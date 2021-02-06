@@ -4,6 +4,7 @@ import pickle as pkl
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
+from own.evaluate.statistics import eval_statistics, stringify
 
 price_col = "Close"
 colors = {"hold": "y", "buy": "g", "sell": "r"}
@@ -59,12 +60,13 @@ def calculate_profit(prices, actions):
     return round(profit, 2), len(inventory)
 
 
-max_stop = 100
+statistics = {"profits": [], "positions": []}
+max_stop = -1
 
 if max_stop == -1:
     max_stop = len(data)
 
-with PdfPages("test.pdf") as pdf:
+with PdfPages("eval.pdf") as pdf:
     for stop, grp in enumerate(data):
 
         plt.clf()
@@ -84,12 +86,23 @@ with PdfPages("test.pdf") as pdf:
         sns.pointplot(x=x, y=y, hue=hue, palette=colors, linestyles="")
         sns.lineplot(data=df[price_col], color="black")
 
-        profit, open_positions = calculate_profit(prices, actions)
+        profit, positions = calculate_profit(prices, actions)
 
-        if open_positions == 0:
+        statistics["profits"].append(profit)
+        statistics["positions"].append(positions)
+
+        if positions == 0:
             plt.title(f"Ticker: {grp['ticker']}, Profit: {profit}")
         else:
-            plt.title(f"Ticker: {grp['ticker']}, Profit: {profit}, OPEN POSITIONS! ({open_positions})")
+            plt.title(f"Ticker: {grp['ticker']}, Profit: {profit}, OPEN POSITIONS! ({positions})")
 
         plt.plot()
         pdf.savefig()
+
+    statistics = eval_statistics(statistics)
+    statistics_str = stringify(statistics)
+
+    statistics_page = plt.figure()
+    statistics_page.clf()
+    statistics_page.text(0.5, 0.25, statistics_str, size=12, ha="center")
+    pdf.savefig()
