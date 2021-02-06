@@ -6,6 +6,23 @@ import numpy as np
 
 # Basically combines n rows into one row
 
+def add_relative_change(data):
+    for grp in data:
+        df = grp["data"]
+        prices = df["price_raw"].values.tolist()
+
+        rel_change = []
+        for i, _ in enumerate(prices):
+            if i == 0:
+                rel_change.append(0.0)
+            else:
+                rel_change.append((prices[i] - prices[i - 1]) / (prices[i - 1]))
+
+        grp["data"]["rel_change"] = rel_change
+
+    return data
+
+
 def add_pre_data(data):
     for grp in data:
         df = grp["data"]
@@ -53,6 +70,7 @@ def drop_raw_price(data):
 with open(paths.data_path / "data_cleaned.pkl", "rb") as f:
     data = pkl.load(f)
 
+data = add_relative_change(data)
 data = add_pre_data(data)
 data = add_padding(data)
 data = drop_raw_price(data)
