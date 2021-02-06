@@ -34,7 +34,7 @@ def generate_points(prices, actions):
 def calculate_profit(prices, actions):
     # In case we didn't buy anything there is also not profit/loss
     if "buy" not in actions:
-        return "-"
+        return "-", 0
 
     profit = 1
     inventory = []
@@ -56,10 +56,10 @@ def calculate_profit(prices, actions):
             else:
                 continue
 
-    return round(profit, 2)
+    return round(profit, 2), len(inventory)
 
 
-max_stop = 10
+max_stop = 100
 
 if max_stop == -1:
     max_stop = len(data)
@@ -82,11 +82,14 @@ with PdfPages("test.pdf") as pdf:
         x, y, hue = generate_points(prices, actions)
 
         sns.pointplot(x=x, y=y, hue=hue, palette=colors, linestyles="")
-
         sns.lineplot(data=df[price_col], color="black")
 
-        profit = calculate_profit(prices, actions)
+        profit, open_positions = calculate_profit(prices, actions)
 
-        plt.title(f"Ticker: {grp['ticker']}, Profit: {profit}")
+        if open_positions == 0:
+            plt.title(f"Ticker: {grp['ticker']}, Profit: {profit}")
+        else:
+            plt.title(f"Ticker: {grp['ticker']}, Profit: {profit}, OPEN POSITIONS! ({open_positions})")
+
         plt.plot()
         pdf.savefig()
