@@ -56,22 +56,6 @@ def drop_nan(data):
     return data
 
 
-def min_max_scaler(data):
-    scaler = MinMaxScaler(feature_range=(0, 1))
-
-    cols = data[0]["data"].columns
-
-    for grp in data:
-        # We want to keep a column with the unscaled price
-        price_raw = grp["data"]["Close"].reset_index(drop=True)
-
-        grp["data"] = pd.DataFrame(scaler.fit_transform(grp["data"]))
-        grp["data"].columns = cols
-        grp["data"]["price_raw"] = price_raw
-
-    return data
-
-
 with open(paths.data_path / "data_offset.pkl", "rb") as f:
     data = pkl.load(f)
 
@@ -82,6 +66,5 @@ print(len(data))
 data = drop_unnecessary(data)
 data = fill_nan(data)
 data = drop_nan(data)
-data = min_max_scaler(data)
 with open(paths.data_path / "data_cleaned.pkl", "wb") as f:
     pkl.dump(data, f)
