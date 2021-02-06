@@ -3,6 +3,7 @@ import pandas as pd
 import pickle as pkl
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib.backends.backend_pdf import PdfPages
 
 price_col = "Close"
 colors = {"hold": "y", "buy": "g", "sell": "r"}
@@ -58,38 +59,34 @@ def calculate_profit(prices, actions):
     return round(profit, 2)
 
 
-max_stop = 50
+max_stop = 10
 
 if max_stop == -1:
     max_stop = len(data)
 
-plt.figure(1, dpi=300, figsize=(15, max_stop * 10))
+with PdfPages("test.pdf") as pdf:
+    for stop, grp in enumerate(data):
 
-for stop, grp in enumerate(data):
+        plt.clf()
 
-    print(f"Processing {stop}/{max_stop}")
+        print(f"Processing {stop}/{max_stop}")
 
-    if stop == max_stop:
-        break
+        if stop == max_stop:
+            break
 
-    plt.subplot(max_stop, 1, 1 + stop)
+        df = prepare(grp)
 
-    df = prepare(grp)
+        prices = df[price_col].values.tolist()
+        actions = df["actions"].values.tolist()
 
-    prices = df[price_col].values.tolist()
-    actions = df["actions"].values.tolist()
+        x, y, hue = generate_points(prices, actions)
 
-    x, y, hue = generate_points(prices, actions)
+        sns.pointplot(x=x, y=y, hue=hue, palette=colors, linestyles="")
 
-    sns.pointplot(x=x, y=y, hue=hue, palette=colors, linestyles="")
+        sns.lineplot(data=df[price_col], color="black")
 
-    sns.lineplot(data=df[price_col], color="black")
+        profit = calculate_profit(prices, actions)
 
-    profit = calculate_profit(prices, actions)
-
-    plt.title(f"Ticker: {grp['ticker']}, Profit: {profit}")
-    plt.plot()
-
-plt.savefig("test.pdf", bbox_inches="tight")
-
-# plt.show()
+        plt.title(f"Ticker: {grp['ticker']}, Profit: {profit}")
+        plt.plot()
+        pdf.savefig()
