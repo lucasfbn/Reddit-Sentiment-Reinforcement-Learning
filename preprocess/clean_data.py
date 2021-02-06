@@ -56,6 +56,16 @@ def drop_nan(data):
     return data
 
 
+def scale_price(data):
+    # ONLY scales close price
+
+    for grp in data:
+        scaler = MinMaxScaler()
+        df = grp["data"]
+        df["close_scaled"] = scaler.fit_transform(df["Close"].values.reshape(-1, 1))
+    return data
+
+
 with open(paths.data_path / "data_offset.pkl", "rb") as f:
     data = pkl.load(f)
 
@@ -66,5 +76,6 @@ print(len(data))
 data = drop_unnecessary(data)
 data = fill_nan(data)
 data = drop_nan(data)
+# data = scale_price(data)
 with open(paths.data_path / "data_cleaned.pkl", "wb") as f:
     pkl.dump(data, f)
