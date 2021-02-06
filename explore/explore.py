@@ -6,6 +6,7 @@ import numpy as np
 sns.set_theme(style="whitegrid")
 pd.options.mode.chained_assignment = None
 
+
 def preprocess(df):
     df = df.drop(columns=['Unnamed: 0', 'Run Id'])
     df = df.rename({"Run Time (UTC)": "time"}, axis=1)
@@ -46,7 +47,7 @@ def plt_several_splitted(df, cols):
 
 
 def _normalize(df):
-    normalizeable_cols = list(df.select_dtypes(include=[np.int64]).columns)
+    normalizeable_cols = list(df.select_dtypes(include=[np.int64, float]).columns)
 
     for norm_col in normalizeable_cols:
         df[norm_col] = (df[norm_col] - df[norm_col].min()) / (df[norm_col].max() - df[norm_col].min())
@@ -69,9 +70,10 @@ def plt_several(ticker, cols, normalize=True):
     plt.show()
 
 
-df = pd.read_csv("report_de.csv", sep=";")
+df = pd.read_csv("../data/report_de.csv", sep=";")
 df = preprocess(df)
-ticker = grp_by(df, "ABML")
+# ticker = grp_by(df, "ABML")
+# ticker = y.merge(ticker, "ABML")
 
 # print()
 # plt_several(ticker, ["total_hype_level", "current_hype_level"])
