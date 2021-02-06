@@ -2,6 +2,7 @@ import pandas as pd
 import paths
 import pickle as pkl
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 
 
 # Basically combines n rows into one row
@@ -9,7 +10,7 @@ import numpy as np
 def add_relative_change(data):
     for grp in data:
         df = grp["data"]
-        prices = df["price_raw"].values.tolist()
+        prices = df["Close"].values.tolist()
 
         rel_change = []
         for i, _ in enumerate(prices):
@@ -32,6 +33,34 @@ def add_pre_data(data):
         join_1 = df.join(shift_1, lsuffix="_1", rsuffix="_2")
         join_2 = join_1.join(shift_2, rsuffix="_3")
         grp["data"] = join_2.dropna()
+    return data
+
+
+def scale(data):
+    cols = ['total_hype_level', 'current_hype_level', 'previous_hype_level',
+            'posts', 'upvotes', 'comments', 'distinct_authors',
+            'rel_change']
+
+    for grp in data:
+
+        df = grp["data"]
+        close = df["Close"].reset_index(drop=True)
+
+        new_df = pd.DataFrame()
+
+        for col in cols:
+            all_cols = [col + "_1", col + "_2", col]
+
+            temp = df[all_cols]
+            temp = temp.values.T  # Transpose so we have each row as column
+            scaler = MinMaxScaler()
+            temp = scaler.fit_transform(temp)
+            temp = pd.DataFrame(temp.T, columns=all_cols)  # Transpose back
+            new_df = new_df.merge(temp, how="right", left_index=True, right_index=True)
+
+        new_df["Close"] = close
+        grp["data"] = new_df
+
     return data
 
 
@@ -61,19 +90,13 @@ def add_padding(data):
     return data
 
 
-def drop_raw_price(data):
-    for grp in data:
-        grp["data"] = grp["data"].drop(columns=["price_raw_1", "price_raw_2"])
-    return data
-
-
 with open(paths.data_path / "data_cleaned.pkl", "rb") as f:
     data = pkl.load(f)
 
 data = add_relative_change(data)
 data = add_pre_data(data)
+data = scale(data)
 data = add_padding(data)
-data = drop_raw_price(data)
 
 with open(paths.data_path / "data_timeseries.pkl", "wb") as f:
     pkl.dump(data, f)
