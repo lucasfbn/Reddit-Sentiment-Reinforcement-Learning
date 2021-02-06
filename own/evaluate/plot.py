@@ -99,6 +99,7 @@ with PdfPages("eval.pdf") as pdf:
         plt.plot()
         pdf.savefig()
 
+    # Append a last statistics page to pdf
     statistics = eval_statistics(statistics)
     statistics_str = stringify(statistics)
 
