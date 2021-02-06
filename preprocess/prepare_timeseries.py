@@ -35,7 +35,6 @@ def add_padding(data):
             first_row = np.tile(first_row, (diff, 1))
             temp_df = pd.DataFrame(first_row, columns=cols)
             df = pd.concat([temp_df, df])
-            df = df.reset_index()  # The new row will have index of 0 aswell, so we have to reset it
             grp["data"] = df
 
     for grp in data:
