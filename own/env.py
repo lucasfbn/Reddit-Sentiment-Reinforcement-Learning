@@ -5,8 +5,7 @@ from gym.spaces import Discrete
 
 class StockEnv:
 
-    def __init__(self, eval=False):
-        self.eval = eval
+    def __init__(self):
         self.action_space = 3
         self.observation_space = 24
 
@@ -18,30 +17,17 @@ class StockEnv:
         self.total_profit = 0
 
     def _calculate_margin(self, current_price):
-
-        if self.eval:
-            margin = 1
-        else:
-            margin = 0
+        margin = 0
 
         for buy_price in self._inventory:
-
-            if self.eval:
-                margin *= current_price / (buy_price + 0.01)
-            else:
-                margin += current_price - buy_price
+            margin += current_price - buy_price
 
         self._inventory = deque()
-
         return margin
 
     def step(self, action):
 
-        if self.eval:
-            current_price = self._prices_raw.popleft()
-            assert len(self._prices_raw) == len(self._df)
-        else:
-            current_price = self._state[len(self._state) - 1]
+        current_price = self._state[len(self._state) - 1]
 
         reward = 0
 
@@ -54,11 +40,7 @@ class StockEnv:
             if len(self._inventory) > 0:
 
                 margin = self._calculate_margin(current_price)
-
-                if self.eval:
-                    self.total_profit *= margin
-                else:
-                    self.total_profit += margin
+                self.total_profit += margin
 
                 reward = max(margin, 0)
                 print(f"Sell: {current_price}, Profit: {margin}")
@@ -76,14 +58,10 @@ class StockEnv:
     def _convert_df(self, df):
         return deque(df.values.tolist())
 
-    def reset(self, df, prices_raw=None):
+    def reset(self, df):
         self._df = self._convert_df(df)
         self._inventory = deque()
         self.total_profit = 0
-
-        if self.eval:
-            self._prices_raw = deque(prices_raw.values.tolist())
-            self.total_profit = 1
 
         self._state = self._df.popleft()
         return self._state
