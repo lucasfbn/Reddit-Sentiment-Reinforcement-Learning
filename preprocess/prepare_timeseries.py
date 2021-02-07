@@ -63,39 +63,12 @@ def scale(data, scaler):
     return data
 
 
-def add_padding(data):
-    cols = data[0]["data"].columns
-
-    max = 0
-    for grp in data:
-        if len(grp["data"]) > max:
-            max = len(grp["data"])
-
-    for grp in data:
-
-        df = grp["data"]
-        diff = max - len(df)
-        if diff != 0:
-            first_row = df.values[0]
-            first_row = np.tile(first_row, (diff, 1))
-            temp_df = pd.DataFrame(first_row, columns=cols)
-            df = pd.concat([temp_df, df])
-            df = df.reset_index(drop=True)
-            grp["data"] = df
-
-    for grp in data:
-        assert len(grp["data"]) == max
-
-    return data
-
-
 with open(paths.data_path / "data_cleaned.pkl", "rb") as f:
     data = pkl.load(f)
 
 data = add_relative_change(data)
 data = add_pre_data(data)
 data = scale(data, MaxAbsScaler())
-data = add_padding(data)
 
 with open(paths.data_path / "data_timeseries.pkl", "wb") as f:
     pkl.dump(data, f)
