@@ -12,7 +12,7 @@ def drop_short(data, min_len=7, keep_offset=2):
         df = grp["data"]
         temp = df.dropna()
 
-        if len(temp) >= min_len:
+        if len(temp) >= min_len and len(df) >= len(temp) + keep_offset:
             min_index = len(df) - len(temp) - keep_offset
             grp["data"] = df.iloc[min_index:]
             new_grps.append(grp)
@@ -69,7 +69,7 @@ def scale_price(data):
 with open(paths.data_path / "data_offset.pkl", "rb") as f:
     data = pkl.load(f)
 
-data = drop_short(data)
+data = drop_short(data, min_len=7, keep_offset=4)
 print(len(data))
 data = drop_yahoo_all_nan(data)
 print(len(data))
