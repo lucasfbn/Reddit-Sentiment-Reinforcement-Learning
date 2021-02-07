@@ -2,7 +2,7 @@ import pandas as pd
 import paths
 import pickle as pkl
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler
 
 
 # Basically combines n rows into one row
@@ -36,7 +36,7 @@ def add_pre_data(data):
     return data
 
 
-def scale(data):
+def scale(data, scaler):
     cols = ['total_hype_level', 'current_hype_level', 'previous_hype_level',
             'posts', 'upvotes', 'comments', 'distinct_authors',
             'rel_change']
@@ -53,7 +53,6 @@ def scale(data):
 
             temp = df[all_cols]
             temp = temp.values.T  # Transpose so we have each row as column
-            scaler = MinMaxScaler()
             temp = scaler.fit_transform(temp)
             temp = pd.DataFrame(temp.T, columns=all_cols)  # Transpose back
             new_df = new_df.merge(temp, how="right", left_index=True, right_index=True)
@@ -95,7 +94,7 @@ with open(paths.data_path / "data_cleaned.pkl", "rb") as f:
 
 data = add_relative_change(data)
 data = add_pre_data(data)
-data = scale(data)
+data = scale(data, MaxAbsScaler())
 data = add_padding(data)
 
 with open(paths.data_path / "data_timeseries.pkl", "wb") as f:
