@@ -2,6 +2,7 @@ from own.env import StockEnv
 from own.agent import Agent
 import paths
 import pickle as pkl
+from random import shuffle
 
 env = StockEnv()
 state_size = env.observation_space
@@ -11,6 +12,7 @@ agent = Agent(state_size, action_size, memory_len=1000)
 
 with open(paths.data_path / "data_timeseries.pkl", "rb") as f:
     data = pkl.load(f)
+shuffle(data)
 
 n_episodes = 3
 batch_size = 32
@@ -19,8 +21,7 @@ for grp in data:
 
     print(f"Processing ticker: {grp['ticker']}")
 
-    prices_raw = grp["data"]["price_raw"]
-    df = grp["data"].drop(columns=["price_raw"])
+    df = grp["data"].drop(columns=["Close"])
 
     for e in range(n_episodes):
 
@@ -48,4 +49,4 @@ for grp in data:
             # So it grows and eventually will throw out "old" state/action pairs.
             agent.replay(batch_size)
 
-agent.save(paths.models_path / "test2.mdl")
+agent.save(paths.models_path)
