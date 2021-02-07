@@ -6,9 +6,6 @@ from gym.spaces import Discrete
 class StockEnv:
 
     def __init__(self):
-        self.action_space = 3
-        self.observation_space = 24
-
         self._state = None
 
         self._df = None
