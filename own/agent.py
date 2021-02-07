@@ -1,4 +1,5 @@
 from collections import deque
+import datetime
 import random
 import numpy as np
 import tensorflow as tf
@@ -22,9 +23,9 @@ class Agent:
         # Exploration rate
         self.epsilon = 1.0
         # Over time, decay epsilon rate
-        self.epsilon_decay = 0.995
+        self.epsilon_decay = 0.999
         # To still explore we set a minimum epsilon which will not be influenced by the epsilon decay
-        self.epsilon_min = 0.01
+        self.epsilon_min = 0.15
 
         self.model = self._build_model()
 
@@ -68,4 +69,7 @@ class Agent:
         self.model = tf.keras.models.load_model(path)
 
     def save(self, path):
-        self.model.save(path)
+        now = datetime.datetime.now()
+        now = now.strftime("%H_%M---%d_%m-%y")
+
+        self.model.save(path / (now + ".mdl"))
