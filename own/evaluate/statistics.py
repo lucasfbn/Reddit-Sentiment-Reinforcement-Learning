@@ -19,9 +19,9 @@ def eval_statistics(statistics):
     even_profits = profits_np[np.where(profits_np == 1)]
     negative_profits = profits_np[np.where(profits_np < 1)]
 
-    statistics["n_positive_profits"] = np.count_nonzero(positive_profits) / statistics["n_profits"]
-    statistics["n_even_profits"] = np.count_nonzero(even_profits) / statistics["n_profits"]
-    statistics["n_negative_profits"] = np.count_nonzero(negative_profits) / statistics["n_profits"]
+    statistics["n_positive_profits"] = np.count_nonzero(positive_profits) / len(profits_np)
+    statistics["n_even_profits"] = np.count_nonzero(even_profits) / len(profits_np)
+    statistics["n_negative_profits"] = np.count_nonzero(negative_profits) / len(profits_np)
 
     statistics["avg_profit"] = np.average(profits_np)
     statistics["avg_profit_negative"] = np.average(negative_profits)
