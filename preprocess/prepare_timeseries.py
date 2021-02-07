@@ -24,15 +24,24 @@ def add_relative_change(data):
     return data
 
 
-def add_pre_data(data):
+def add_pre_data(data, look_back=2):
     for grp in data:
-        df = grp["data"]
-        shift_1 = df.shift(-1)
-        shift_2 = df.shift(-2)
 
-        join_1 = df.join(shift_1, lsuffix="_1", rsuffix="_2")
-        join_2 = join_1.join(shift_2, rsuffix="_3")
-        grp["data"] = join_2.dropna()
+        df = grp["data"]
+
+        shifted = []
+
+        for lb in range(1, look_back + 1):
+            shifted.append(df.shift(-lb))
+
+        suffix_counter = 0
+        for i in range(len(shifted)):
+            df = df.join(shifted[i], lsuffix=f"_{suffix_counter}", rsuffix=f"_{suffix_counter + 1}")
+            suffix_counter += 2
+
+        df = df.dropna()
+        grp["data"] = df
+
     return data
 
 
@@ -49,7 +58,10 @@ def scale(data, scaler):
         new_df = pd.DataFrame()
 
         for col in cols:
-            all_cols = [col + "_1", col + "_2", col]
+            all_cols = []
+            for df_col in df.columns:
+                if col in df_col:
+                    all_cols.append(df_col)
 
             temp = df[all_cols]
             temp = temp.values.T  # Transpose so we have each row as column
@@ -67,7 +79,7 @@ with open(paths.data_path / "data_cleaned.pkl", "rb") as f:
     data = pkl.load(f)
 
 data = add_relative_change(data)
-data = add_pre_data(data)
+data = add_pre_data(data, 4)
 data = scale(data, MaxAbsScaler())
 
 with open(paths.data_path / "data_timeseries.pkl", "wb") as f:
