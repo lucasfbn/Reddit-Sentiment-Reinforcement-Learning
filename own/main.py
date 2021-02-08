@@ -4,14 +4,6 @@ import paths
 import pickle as pkl
 from random import shuffle
 
-# import tensorflow as tf
-#
-# # Session to only use a percentage of GPU so we can train several models simultaneously
-# config = tf.compat.v1.ConfigProto()
-# config.gpu_options.per_process_gpu_memory_fraction = 0.3  # set 0.3 to what you want
-# tf.compat.v1.keras.backend.set_session(tf.compat.v1.Session.Session(config=config))
-
-
 with open(paths.data_path / "data_timeseries.pkl", "rb") as f:
     data = pkl.load(f)
 shuffle(data)
