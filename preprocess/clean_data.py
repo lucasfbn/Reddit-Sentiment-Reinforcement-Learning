@@ -4,6 +4,23 @@ import pickle as pkl
 from sklearn.preprocessing import MinMaxScaler
 
 
+def sort_chronologically(data):
+    for grp in data:
+        grp["data"]["date"] = grp["data"]['date_day'].dt.to_timestamp('s')
+        grp["data"] = grp["data"].sort_values(by=["date"])
+    return data
+
+
+def mark_tradeable(data):
+    # Adds a boolean column whether
+    for grp in data:
+        df = grp["data"]
+        df["date_weekday"] = df["date"].dt.dayofweek
+        df["tradeable"] = df["date_weekday"] < 5
+
+    return data
+
+
 def forward_fill(data):
     for grp in data:
         grp["data"]["Close"] = grp["data"]["Close"].fillna(method="ffill")
@@ -35,7 +52,7 @@ def drop_yahoo_all_nan(data):
     return new_grps
 
 
-def drop_unnecessary(data, cols=["date_day", "Open", "High", "Low", "Adj Close", "Volume", "change_hype_level"]):
+def drop_unnecessary(data, cols=["date_day", "Open", "High", "Low", "Adj Close", "Volume"]):
     new_grps = []
 
     for grp in data:
@@ -65,6 +82,8 @@ def drop_nan(data):
 with open(paths.data_path / "data_offset.pkl", "rb") as f:
     data = pkl.load(f)
 
+data = sort_chronologically(data)
+data = mark_tradeable(data)
 data = forward_fill(data)
 data = drop_unnecessary(data)
 data = drop_short(data, min_len=7, keep_offset=4)
