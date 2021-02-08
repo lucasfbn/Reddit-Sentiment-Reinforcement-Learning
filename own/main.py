@@ -18,18 +18,17 @@ shuffle(data)
 
 env = StockEnv()
 
-state_size = data[0]["data"].shape[1] - 1  # -1 because we remove the "Close" column
-
+state_size = data[0]["data"].shape[1] - 2  # -1 because we remove the "Close" and "tradeable" column
 agent = Agent(state_size=state_size + 1, action_size=3, memory_len=1000)
 
-n_episodes = 1
+n_episodes = 3
 batch_size = 32
 
 for i, grp in enumerate(data):
 
     print(f"{i}/{len(data)} - Processing ticker: {grp['ticker']}")
 
-    df = grp["data"].drop(columns=["Close"])
+    df = grp["data"].drop(columns=["Close", "tradeable"])
 
     for e in range(n_episodes):
 
