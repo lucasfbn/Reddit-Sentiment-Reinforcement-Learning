@@ -19,7 +19,6 @@ class StockEnv:
         for buy_price in self._inventory:
             margin += current_price - buy_price
 
-        self._inventory = deque()
         return margin
 
     def step(self, action):
@@ -40,6 +39,8 @@ class StockEnv:
                 self.total_profit += margin
 
                 reward = max(margin, 0)
+
+                self._inventory = deque()
                 print(f"Sell: {current_price}, Profit: {margin}")
 
             else:
@@ -47,7 +48,12 @@ class StockEnv:
 
         done = True if len(self._df) == 1 else False
 
-        next_state = self._df.popleft()
+        # Add information whether we have an inventory or not to the state
+        if len(self._inventory) == 0:
+            next_state = [0] + self._df.popleft()
+        else:
+            next_state = [1] + self._df.popleft()
+
         self._state = next_state
 
         return next_state, reward, done, None
@@ -60,5 +66,5 @@ class StockEnv:
         self._inventory = deque()
         self.total_profit = 0
 
-        self._state = self._df.popleft()
+        self._state = [0] + self._df.popleft()
         return self._state
