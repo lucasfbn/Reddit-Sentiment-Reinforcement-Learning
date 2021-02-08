@@ -52,14 +52,11 @@ def drop_yahoo_all_nan(data):
     return new_grps
 
 
-def drop_unnecessary(data, cols=["date_day", "Open", "High", "Low", "Adj Close", "Volume"]):
-    new_grps = []
-
+def drop_unnecessary(data, cols=["date_day", "Open", "High", "Low", "Adj Close", "Volume", "date_weekday", "date"]):
     for grp in data:
         grp["data"] = grp["data"].drop(columns=cols)
-        new_grps.append(grp)
 
-    return new_grps
+    return data
 
 
 def fill_nan(data):
@@ -86,7 +83,7 @@ data = sort_chronologically(data)
 data = mark_tradeable(data)
 data = forward_fill(data)
 data = drop_unnecessary(data)
-data = drop_short(data, min_len=7, keep_offset=4)
+data = drop_short(data, min_len=9, keep_offset=6)
 print(len(data))
 data = drop_yahoo_all_nan(data)
 print(len(data))
