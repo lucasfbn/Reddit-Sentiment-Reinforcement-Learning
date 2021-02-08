@@ -20,14 +20,14 @@ env = StockEnv()
 
 state_size = data[0]["data"].shape[1] - 1  # -1 because we remove the "Close" column
 
-agent = Agent(state_size=state_size, action_size=3, memory_len=1000)
+agent = Agent(state_size=state_size + 1, action_size=3, memory_len=1000)
 
-n_episodes = 3
+n_episodes = 1
 batch_size = 32
 
-for grp in data:
+for i, grp in enumerate(data):
 
-    print(f"Processing ticker: {grp['ticker']}")
+    print(f"{i}/{len(data)} - Processing ticker: {grp['ticker']}")
 
     df = grp["data"].drop(columns=["Close"])
 
