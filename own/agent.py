@@ -25,7 +25,7 @@ class Agent:
         # Over time, decay epsilon rate
         self.epsilon_decay = 0.999
         # To still explore we set a minimum epsilon which will not be influenced by the epsilon decay
-        self.epsilon_min = 0.15
+        self.epsilon_min = 0.05
 
         self.model = self._build_model()
 
