@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 
 def eval_statistics(statistics):
@@ -9,9 +10,15 @@ def eval_statistics(statistics):
     positions = np.array(positions)
 
     statistics["total_evaluated"] = len(profits)
-    statistics["n_no_buys"] = np.count_nonzero(np.where(profits_np == "-")) / statistics["total_evaluated"]
-    profits_np = profits_np[np.where(profits_np != "-")]
-    profits_np = profits_np.astype(float)
+
+    if np.count_nonzero(np.where(profits_np == "-")) == 0:
+        warnings.warn("Every single ticker was traded. This is probably not a good idea.")
+        statistics["n_no_buys"] = 0
+        profits_np = profits_np.astype(float)
+    else:
+        statistics["n_no_buys"] = np.count_nonzero(np.where(profits_np == "-")) / statistics["total_evaluated"]
+        profits_np = profits_np[np.where(profits_np != "-")]
+        profits_np = profits_np.astype(float)
 
     statistics["float_profits"] = profits_np.tolist()
     total_profit = 1
@@ -65,9 +72,9 @@ def plot_portfolio(statistics, start=1):
     i = 0
     for profit in statistics["float_profits"]:
         portfolio.append(portfolio[i] * profit)
-        x.append(i+1)
+        x.append(i + 1)
         i += 1
-        
+
     return x, portfolio
 
 # statistics = {}
