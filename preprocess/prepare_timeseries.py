@@ -47,13 +47,13 @@ def add_pre_data(data, look_back=2):
 
 def scale(data, scaler):
     cols = ['total_hype_level', 'current_hype_level', 'previous_hype_level',
-            'posts', 'upvotes', 'comments', 'distinct_authors',
-            'rel_change']
+            'posts', 'upvotes', 'comments', 'distinct_authors', "change_hype_level", 'rel_change']
 
     for grp in data:
 
         df = grp["data"]
         close = df["Close"].reset_index(drop=True)
+        tradeable = df["tradeable"].reset_index(drop=True)
 
         new_df = pd.DataFrame()
 
@@ -70,6 +70,7 @@ def scale(data, scaler):
             new_df = new_df.merge(temp, how="right", left_index=True, right_index=True)
 
         new_df["Close"] = close
+        new_df["tradeable"] = tradeable
         grp["data"] = new_df
 
     return data
@@ -79,8 +80,8 @@ with open(paths.data_path / "data_cleaned.pkl", "rb") as f:
     data = pkl.load(f)
 
 data = add_relative_change(data)
-data = add_pre_data(data, 4)
-data = scale(data, MaxAbsScaler())
+data = add_pre_data(data, 6)
+data = scale(data, MinMaxScaler())
 
 with open(paths.data_path / "data_timeseries.pkl", "wb") as f:
     pkl.dump(data, f)
