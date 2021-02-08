@@ -4,7 +4,7 @@ import pickle as pkl
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
-from own.evaluate.statistics import eval_statistics, stringify
+from learning.evaluate.statistics import eval_statistics, stringify
 
 price_col = "Close"
 colors = {"hold": "y", "buy": "g", "sell": "r"}

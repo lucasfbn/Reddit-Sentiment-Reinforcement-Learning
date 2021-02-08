@@ -1,5 +1,5 @@
-from own.env import StockEnv
-from own.agent import Agent
+from learning.env import StockEnv
+from learning.agent import Agent
 import paths
 import pickle as pkl
 from random import shuffle
