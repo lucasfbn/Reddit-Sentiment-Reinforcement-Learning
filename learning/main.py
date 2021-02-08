@@ -1,6 +1,5 @@
 from learning.env import StockEnv
 from learning.agent import Agent
-from learning.epoch_callback import EpochCallback
 import paths
 import pickle as pkl
 from random import shuffle
@@ -23,11 +22,7 @@ for i, grp in enumerate(data):
 
     df = grp["data"].drop(columns=["Close", "tradeable"])
 
-    callback = EpochCallback()
-
     for e in range(n_episodes):
-
-        callback.new_epoch()
 
         print(f"Episode {e}/{n_episodes}")
 
@@ -43,17 +38,14 @@ for i, grp in enumerate(data):
             if done:
                 break
 
-            callback.add_to_epoch(state, action, reward, next_state, done)
-            # agent.remember(state, action, reward, next_state, done)
+            agent.remember(state, action, reward, next_state, done)
 
             state = next_state
 
-    callback.add_best_epoch_to_agent(agent)
-
-    if len(agent.memory) > batch_size:
-        # Note that agent.memory is a queue and we do not delete elements when replaying. Therefore, yes, we will
-        # replay on the first loop when agent.memory == batch_size BUT we do not delete the content of the queue.
-        # So it grows and eventually will throw out "old" state/action pairs.
-        agent.replay(batch_size)
+        if len(agent.memory) > batch_size:
+            # Note that agent.memory is a queue and we do not delete elements when replaying. Therefore, yes, we will
+            # replay on the first loop when agent.memory == batch_size BUT we do not delete the content of the queue.
+            # So it grows and eventually will throw out "old" state/action pairs.
+            agent.replay(batch_size)
 
 agent.save(paths.models_path)
