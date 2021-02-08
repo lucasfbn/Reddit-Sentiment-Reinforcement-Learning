@@ -4,6 +4,12 @@ import pickle as pkl
 from sklearn.preprocessing import MinMaxScaler
 
 
+def forward_fill(data):
+    for grp in data:
+        grp["data"]["Close"] = grp["data"]["Close"].fillna(method="ffill")
+    return data
+
+
 def drop_short(data, min_len=7, keep_offset=2):
     new_grps = []
 
@@ -59,11 +65,12 @@ def drop_nan(data):
 with open(paths.data_path / "data_offset.pkl", "rb") as f:
     data = pkl.load(f)
 
+data = forward_fill(data)
+data = drop_unnecessary(data)
 data = drop_short(data, min_len=7, keep_offset=4)
 print(len(data))
 data = drop_yahoo_all_nan(data)
 print(len(data))
-data = drop_unnecessary(data)
 data = fill_nan(data)
 data = drop_nan(data)
 

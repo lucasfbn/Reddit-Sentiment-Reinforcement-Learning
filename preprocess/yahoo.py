@@ -10,10 +10,5 @@ def merge(df, symbol, start_offset):
     historical_data = yf.download(symbol, start=start, end=end)
     historical_data["date_day"] = pd.to_datetime(historical_data.index).to_period('D')
 
-    if start_offset == 0:
-        how = "left"
-    else:
-        how = "right"
-
-    df = df.merge(historical_data, on="date_day", how=how)
+    df = historical_data.merge(df, on="date_day", how="outer")
     return df
