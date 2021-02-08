@@ -19,7 +19,7 @@ shuffle(data)
 env = StockEnv()
 
 state_size = data[0]["data"].shape[1] - 2  # -1 because we remove the "Close" and "tradeable" column
-agent = Agent(state_size=state_size + 1, action_size=3, memory_len=1000)
+agent = Agent(state_size=state_size, action_size=3, memory_len=1000)
 
 n_episodes = 3
 batch_size = 32
