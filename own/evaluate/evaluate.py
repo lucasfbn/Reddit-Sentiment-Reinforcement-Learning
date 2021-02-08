@@ -4,21 +4,21 @@ import paths
 import pickle as pkl
 
 env = StockEnv()
-state_size = env.observation_space
-action_size = env.action_space
 
-agent = Agent(state_size, action_size, memory_len=1000, eval=True)
-agent.load(paths.models_path / "test2.mdl")
 
 with open(paths.data_path / "data_timeseries.pkl", "rb") as f:
     data = pkl.load(f)
+
+state_size = data[0]["data"].shape[1] - 2  # -1 because we remove the "Close" and "tradeable" column
+agent = Agent(state_size=state_size + 1, action_size=3, memory_len=1000, eval=True)
+agent.load(paths.models_path / "14_42---08_02-21.mdl")
+
 
 for grp in data:
 
     print(f"Processing ticker: {grp['ticker']}")
 
-    prices_raw = grp["data"]["price_raw"]
-    df = grp["data"].drop(columns=["price_raw"])
+    df = grp["data"].drop(columns=["Close", "tradeable"])
 
     actions = []
 
