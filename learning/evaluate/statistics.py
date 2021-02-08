@@ -13,6 +13,12 @@ def eval_statistics(statistics):
     profits_np = profits_np[np.where(profits_np != "-")]
     profits_np = profits_np.astype(float)
 
+    statistics["float_profits"] = profits_np.tolist()
+    total_profit = 1
+    for profit in statistics["float_profits"]:
+        total_profit *= profit
+    statistics["total_profit"] = total_profit
+
     statistics["n_profits"] = len(profits_np) / statistics["total_evaluated"]
 
     positive_profits = profits_np[np.where(profits_np > 1)]
@@ -45,14 +51,32 @@ def stringify(statistics):
     string = ""
 
     for key, value in statistics.items():
-        temp = f"{key}: {round(value, 2)}"
-        string += temp + "\n"
+
+        if key != "float_profits":
+            temp = f"{key}: {round(value, 2)}"
+            string += temp + "\n"
     return string
 
+
+def plot_portfolio(statistics, start=1):
+    portfolio = [1]
+    x = [0]
+
+    i = 0
+    for profit in statistics["float_profits"]:
+        portfolio.append(portfolio[i] * profit)
+        x.append(i+1)
+        i += 1
+        
+    return x, portfolio
 
 # statistics = {}
 # statistics["profits"] = [1.9, '-', 1.07, 34.11, '-']
 # statistics["positions"] = [0, 0, 0, 0, 0]
+# # #
 #
 # statistics = eval_statistics(statistics)
+# x, y = plot_portfolio(statistics)
+# print(x)
+# print(y)
 # print(stringify(statistics))

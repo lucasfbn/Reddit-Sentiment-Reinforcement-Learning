@@ -4,7 +4,7 @@ import pickle as pkl
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
-from learning.evaluate.statistics import eval_statistics, stringify
+from learning.evaluate.statistics import eval_statistics, stringify, plot_portfolio
 
 price_col = "Close"
 colors = {"hold": "y", "buy": "g", "sell": "r"}
@@ -100,10 +100,18 @@ with PdfPages("eval.pdf") as pdf:
         pdf.savefig()
 
     # Append a last statistics page to pdf
+    plt.clf()
     statistics = eval_statistics(statistics)
     statistics_str = stringify(statistics)
 
     statistics_page = plt.figure()
     statistics_page.clf()
     statistics_page.text(0.5, 0.25, statistics_str, size=12, ha="center")
+    pdf.savefig()
+
+    # Append portfolio curve
+    plt.clf()
+    x, y = plot_portfolio(statistics)
+    sns.lineplot(x=x, y=y, color="black")
+    plt.plot()
     pdf.savefig()
