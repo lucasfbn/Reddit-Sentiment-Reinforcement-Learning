@@ -59,9 +59,7 @@ class Agent:
             else:
                 target = reward + self.gamma * np.amax(self.model.predict([np.array([next_state])])[0])
 
-            # This is an error containing the various errors for each action
             target_f = self.model.predict(np.array([state]))
-            # This picks the appropriate error for the current action
             target_f[0][action] = target
 
             self.model.fit(np.array([state]), target_f, epochs=1, verbose=0)
