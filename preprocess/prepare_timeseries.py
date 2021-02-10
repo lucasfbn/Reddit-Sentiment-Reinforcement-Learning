@@ -76,12 +76,12 @@ def scale(data, scaler):
     return data
 
 
-with open(paths.data_path / "data_cleaned.pkl", "rb") as f:
+with open(paths.test_path / "data_cleaned.pkl", "rb") as f:
     data = pkl.load(f)
 
 data = add_relative_change(data)
 data = add_pre_data(data, 6)
 data = scale(data, MinMaxScaler())
 
-with open(paths.data_path / "data_timeseries.pkl", "wb") as f:
+with open(paths.test_path / "data_timeseries.pkl", "wb") as f:
     pkl.dump(data, f)

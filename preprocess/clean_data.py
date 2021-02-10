@@ -76,7 +76,7 @@ def drop_nan(data):
     return data
 
 
-with open(paths.data_path / "data_offset.pkl", "rb") as f:
+with open(paths.test_path / "data_offset.pkl", "rb") as f:
     data = pkl.load(f)
 
 data = sort_chronologically(data)
@@ -90,5 +90,5 @@ print(len(data))
 data = fill_nan(data)
 data = drop_nan(data)
 
-with open(paths.data_path / "data_cleaned.pkl", "wb") as f:
+with open(paths.test_path / "data_cleaned.pkl", "wb") as f:
     pkl.dump(data, f)
