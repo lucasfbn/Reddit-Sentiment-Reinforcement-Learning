@@ -18,11 +18,13 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
 
     with open(input_path, "rb") as f:
         data = pkl.load(f)
-    shuffle(data)
+
+    if not eval:
+        shuffle(data)
 
     env = StockEnv()
     state_size = data[0]["data"].shape[1] - 2  # -1 because we remove the "Close" and "tradeable" column
-    agent = Agent(state_size=state_size, action_size=3, memory_len=1000)
+    agent = Agent(state_size=state_size, action_size=3, memory_len=1000, eval=eval)
 
     n_episodes = 3
     batch_size = 32
@@ -83,6 +85,6 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
 
 
 if __name__ == "__main__":
-    main(paths.train_path / "data_timeseries.pkl",
+    main(paths.test_path / "data_timeseries.pkl",
          eval=True, model_path=paths.models_path / "18_44---08_02-21.mdl",
          eval_out_path="eval.pkl")
