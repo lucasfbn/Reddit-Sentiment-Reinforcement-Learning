@@ -1,10 +1,10 @@
 import paths
-import pandas as pd
 import pickle as pkl
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
-from learning.evaluate.statistics import eval_statistics, stringify, plot_portfolio
+from evaluate.statistics import eval_statistics, stringify, plot_portfolio
+from random import shuffle
 
 price_col = "Close"
 colors = {"hold": "y", "buy": "g", "sell": "r"}
@@ -12,11 +12,12 @@ colors = {"hold": "y", "buy": "g", "sell": "r"}
 with open(paths.data_path / "evaluated.pkl", "rb") as f:
     data = pkl.load(f)
 
+shuffle(data)
 
 def prepare(grp):
     df = grp["data"]
     df = df.drop(df.tail(1).index)
-    df = df[[price_col, "actions"]]
+    df = df[[price_col, "actions", "tradeable"]]
     df["actions"] = df["actions"].replace({0: "hold", 1: "buy", 2: "sell"})
     return df
 
@@ -32,7 +33,7 @@ def generate_points(prices, actions):
     return x, y, hue
 
 
-def calculate_profit(prices, actions):
+def calculate_profit(prices, actions, tradeable):
     # In case we didn't buy anything there is also not profit/loss
     if "buy" not in actions:
         return "-", 0
@@ -40,12 +41,12 @@ def calculate_profit(prices, actions):
     profit = 1
     inventory = []
 
-    for price, action in zip(prices, actions):
+    for price, action, trade_possible in zip(prices, actions, tradeable):
         if action == "hold":
             continue
-        elif action == "buy":
+        elif action == "buy" and trade_possible:
             inventory.append(price)
-        elif action == "sell":
+        elif action == "sell" and trade_possible:
             if inventory:
                 for inv in inventory:
 
@@ -80,13 +81,14 @@ with PdfPages("eval.pdf") as pdf:
 
         prices = df[price_col].values.tolist()
         actions = df["actions"].values.tolist()
+        tradeable = df["tradeable"].values.tolist()
 
         x, y, hue = generate_points(prices, actions)
 
         sns.pointplot(x=x, y=y, hue=hue, palette=colors, linestyles="")
         sns.lineplot(data=df[price_col], color="black")
 
-        profit, positions = calculate_profit(prices, actions)
+        profit, positions = calculate_profit(prices, actions, tradeable)
 
         statistics["profits"].append(profit)
         statistics["positions"].append(positions)
