@@ -77,6 +77,7 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
     if eval:
         with open(eval_out_path, "wb") as f:
             pkl.dump(data, f)
+        return data
     else:
         agent.save(paths.models_path)
 

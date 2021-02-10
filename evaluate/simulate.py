@@ -12,5 +12,8 @@ class Simulator:
         self.data_path = data_path
         self.model_path = model_path
 
+        self.evaluated_data = None
+
     def evaluate(self):
-        learning.main.main(self.data_path, eval=True, model_path=self.model_path, eval_out_path="eval.pkl")
+        self.evaluated_data = learning.main.main(self.data_path, eval=True,
+                                                 model_path=self.model_path, eval_out_path="eval.pkl")
