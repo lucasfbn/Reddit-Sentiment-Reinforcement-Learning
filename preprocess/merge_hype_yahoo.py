@@ -7,7 +7,7 @@ pd.options.mode.chained_assignment = None
 
 
 def preprocess(df):
-    df = df.drop(columns=['Unnamed: 0', 'Run Id'])
+    df = df.drop(columns=['Unnamed: 0', 'Run Id'], errors="ignore")
     df = df.rename({"Run Time (UTC)": "time"}, axis=1)
 
     new_cols = []
@@ -36,6 +36,16 @@ def grp_by(df):
     return grps
 
 
+def drop_short(grps, min_len=7):
+    filtered_grps = []
+
+    for grp in grps:
+        if len(grp["data"]) >= min_len:
+            filtered_grps.append(grp)
+
+    return filtered_grps
+
+
 def add_stock_prices(grps):
     new_grps = []
 
@@ -46,10 +56,13 @@ def add_stock_prices(grps):
     return new_grps
 
 
-df = pd.read_csv(paths.data_path / "report_de.csv", sep=";")
+df = pd.read_csv(paths.test_path / "report.csv", sep=",")
+# df.to_csv(paths.test_path / "report_de.csv", sep=";", index=False)
+
 df = preprocess(df)
 grps = grp_by(df)
+grps = drop_short(grps)
 grps = add_stock_prices(grps)
 
-with open(paths.data_path / "data_offset.pkl", "wb") as f:
+with open(paths.test_path / "data_offset.pkl", "wb") as f:
     pkl.dump(grps, f)
