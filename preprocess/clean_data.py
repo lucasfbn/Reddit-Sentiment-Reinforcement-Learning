@@ -1,7 +1,6 @@
-import paths
-import pandas as pd
 import pickle as pkl
-from sklearn.preprocessing import MinMaxScaler
+
+import paths
 
 
 def sort_chronologically(data):

@@ -1,8 +1,9 @@
-import pandas as pd
-import paths
 import pickle as pkl
-import numpy as np
-from sklearn.preprocessing import MinMaxScaler, MaxAbsScaler
+
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+
+import paths
 
 
 # Basically combines n rows into one row

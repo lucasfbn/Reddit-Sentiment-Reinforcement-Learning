@@ -1,10 +1,10 @@
-import warnings
-
-from learning.env import StockEnv
-from learning.agent import Agent
-import paths
 import pickle as pkl
+import warnings
 from random import shuffle
+
+import paths
+from learning.agent import Agent
+from learning.env import StockEnv
 
 
 def main(input_path, eval=False, model_path=None, eval_out_path=None):

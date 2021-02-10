@@ -1,6 +1,4 @@
 from collections import deque
-from gym import Env
-from gym.spaces import Discrete
 
 verbose = False
 

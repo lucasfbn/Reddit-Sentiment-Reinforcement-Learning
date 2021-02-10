@@ -1,10 +1,7 @@
-import pickle as pkl
-
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
 
-import paths
 from evaluate.statistics import eval_statistics, stringify, plot_portfolio
 
 
@@ -135,6 +132,10 @@ class EvaluateTrades:
                 plt.plot()
                 pdf.savefig()
 
+
+# import paths
+# import pickle as pkl
+#
 # with open(paths.models_path / "18_44---08_02-21.mdl" / "eval.pkl", "rb") as f:
 #     data = pkl.load(f)
 #

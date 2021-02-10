@@ -1,10 +1,11 @@
-from collections import deque
 import datetime
 import random
+from collections import deque
+
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
+from tensorflow.keras.models import Sequential
 from tensorflow.keras.optimizers import Adam
 
 
@@ -25,13 +26,14 @@ class Agent:
         # Over time, decay epsilon rate
         self.epsilon_decay = 0.999
         # To still explore we set a minimum epsilon which will not be influenced by the epsilon decay
-        self.epsilon_min = 0.05
+        self.epsilon_min = 0.15
 
         self.model = self._build_model()
 
     def _build_model(self):
         model = Sequential()
         model.add(Dense(units=64, input_shape=(self.state_size,), activation="relu"))
+        model.add(Dense(units=48, activation="relu"))
         model.add(Dense(units=32, activation="relu"))
         model.add(Dense(units=8, activation="relu"))
         model.add(Dense(self.action_size, activation="linear"))
@@ -57,7 +59,9 @@ class Agent:
             else:
                 target = reward + self.gamma * np.amax(self.model.predict([np.array([next_state])])[0])
 
+            # This is an error containing the various errors for each action
             target_f = self.model.predict(np.array([state]))
+            # This picks the appropriate error for the current action
             target_f[0][action] = target
 
             self.model.fit(np.array([state]), target_f, epochs=1, verbose=0)
