@@ -47,7 +47,7 @@ class Agent:
         if np.random.rand() <= self.epsilon and not self.eval:
             return random.randrange(self.action_size)
         act_values = self.model.predict(np.array([state]))
-        return np.argmax(act_values[0])
+        return np.argmax(act_values[0]), np.max(act_values[0])
 
     def replay(self, batch_size):
         minibatch = random.sample(self.memory, batch_size)

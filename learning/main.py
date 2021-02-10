@@ -36,26 +36,28 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
 
     for i, grp in enumerate(data):
 
-        print(f"{i+1}/{len(data)} - Processing ticker: {grp['ticker']}")
+        print(f"{i + 1}/{len(data)} - Processing ticker: {grp['ticker']}")
 
         df = grp["data"].drop(columns=["Close", "tradeable"])
 
         if eval:
             actions = []
+            actions_outputs = []
 
         for e in range(n_episodes):
 
-            print(f"Episode {e+1}/{n_episodes}")
+            print(f"Episode {e + 1}/{n_episodes}")
 
             state = env.reset(df)
             done = False
 
             while not done:
 
-                action = agent.act(state)
-
+                action, action_output = agent.act(state)
+                
                 if eval:
                     actions.append(action)
+                    actions_outputs.append(action_output)
 
                 next_state, reward, done, _ = env.step(action)
 
@@ -75,16 +77,18 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
 
         if eval:
             grp["data"]["actions"] = actions + [-1]  # -1 since we do not have an action for the last entry
+            grp["data"]["actions_outputs"] = actions_outputs + [-1]
 
     if eval:
         with open(eval_out_path, "wb") as f:
             pkl.dump(data, f)
         return data
+
     else:
         agent.save(paths.models_path)
 
 
 if __name__ == "__main__":
-    main(paths.test_path / "data_timeseries.pkl",
+    main(paths.train_path / "data_timeseries.pkl",
          eval=True, model_path=paths.models_path / "18_44---08_02-21.mdl",
          eval_out_path="eval.pkl")
