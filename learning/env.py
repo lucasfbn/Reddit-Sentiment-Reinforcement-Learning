@@ -2,6 +2,15 @@ from collections import deque
 from gym import Env
 from gym.spaces import Discrete
 
+verbose = False
+
+if verbose:
+    def vprint(msg):
+        print(msg)
+else:
+    def vprint(msg):
+        pass
+
 
 class StockEnv:
 
@@ -29,7 +38,7 @@ class StockEnv:
 
         if action == 1:
             self._inventory.append(current_price)
-            print(f"Buy: {current_price}, len inventory: {len(self._inventory)}")
+            vprint(f"Buy: {current_price}, len inventory: {len(self._inventory)}")
 
         elif action == 2:
 
@@ -41,10 +50,10 @@ class StockEnv:
                 reward = max(margin, 0)
 
                 self._inventory = deque()
-                print(f"Sell: {current_price}, Profit: {margin}")
+                vprint(f"Sell: {current_price}, Profit: {margin}")
 
             else:
-                print(f"Attempted sell, but inventory is empty.")
+                vprint(f"Attempted sell, but inventory is empty.")
 
         done = True if len(self._df) == 1 else False
 

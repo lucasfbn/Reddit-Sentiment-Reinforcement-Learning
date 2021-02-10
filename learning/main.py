@@ -34,7 +34,7 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
 
     for i, grp in enumerate(data):
 
-        print(f"{i}/{len(data)} - Processing ticker: {grp['ticker']}")
+        print(f"{i+1}/{len(data)} - Processing ticker: {grp['ticker']}")
 
         df = grp["data"].drop(columns=["Close", "tradeable"])
 
@@ -43,7 +43,7 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
 
         for e in range(n_episodes):
 
-            print(f"Episode {e}/{n_episodes}")
+            print(f"Episode {e+1}/{n_episodes}")
 
             state = env.reset(df)
             done = False
