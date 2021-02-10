@@ -1,9 +1,10 @@
+import datetime
 import pickle as pkl
 
 import pandas as pd
+import yfinance as yf
 
 import paths
-from preprocess import yahoo as y
 
 pd.options.mode.chained_assignment = None
 
@@ -49,12 +50,23 @@ def drop_short(grps, min_len=7):
 
 
 def add_stock_prices(grps):
+
+    def merge(df, symbol, start_offset):
+        start = str(df["date_day"].min() - datetime.timedelta(days=start_offset))
+        end = str(df["date_day"].max())
+
+        historical_data = yf.download(symbol, start=start, end=end)
+        historical_data["date_day"] = pd.to_datetime(historical_data.index).to_period('D')
+
+        df = historical_data.merge(df, on="date_day", how="outer")
+        return df
+
     new_grps = []
 
     for i, grp in enumerate(grps):
         print(f"Processing {i}/{len(grps)}")
 
-        new_grps.append({"ticker": grp["ticker"], "data": y.merge(grp["data"], grp["ticker"], start_offset=30)})
+        new_grps.append({"ticker": grp["ticker"], "data": merge(grp["data"], grp["ticker"], start_offset=30)})
     return new_grps
 
 
