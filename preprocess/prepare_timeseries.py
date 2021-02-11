@@ -55,6 +55,7 @@ def scale(data, scaler):
         df = grp["data"]
         close = df["Close"].reset_index(drop=True)
         tradeable = df["tradeable"].reset_index(drop=True)
+        date = df["date"].reset_index(drop=True)
 
         new_df = pd.DataFrame()
 
@@ -72,6 +73,7 @@ def scale(data, scaler):
 
         new_df["Close"] = close
         new_df["tradeable"] = tradeable
+        new_df["date"] = date
         grp["data"] = new_df
 
     return data

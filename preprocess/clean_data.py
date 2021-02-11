@@ -51,7 +51,7 @@ def drop_yahoo_all_nan(data):
     return new_grps
 
 
-def drop_unnecessary(data, cols=["date_day", "Open", "High", "Low", "Adj Close", "Volume", "date_weekday", "date"]):
+def drop_unnecessary(data, cols=["date_day", "Open", "High", "Low", "Adj Close", "Volume", "date_weekday"]):
     for grp in data:
         grp["data"] = grp["data"].drop(columns=cols)
 
