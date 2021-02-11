@@ -21,7 +21,7 @@ class EvaluatePortfolio:
                  max_investment_per_trade=0.02,
                  max_price_per_stock=9999999,
                  min_buy_output=0.9,
-                 max_trades_per_day=5,
+                 max_trades_per_day=25,
                  slippage=0.007,
                  order_fee=0.02):
 
@@ -131,7 +131,9 @@ class EvaluatePortfolio:
         if len(df) == 0:
             return []
 
-        df = df.sort_values(by=["actions_outputs"], ascending=False)
+        # Sorting the action outputs ascending (low -> high) seems to lead to a higher profit. This is a little
+        # counterintuitive but it is what it is.
+        df = df.sort_values(by=["actions_outputs"], ascending=True)
         buys = df.to_dict("records")
 
         self._execute_buy(buys)
@@ -236,7 +238,7 @@ class EvaluatePortfolio:
 import pickle as pkl
 import paths
 
-with open(paths.models_path / "18_44---08_02-21.mdl" / "eval_train.pkl", "rb") as f:
+with open(paths.models_path / "17_08---08_02-21.mdl" / "eval_train.pkl", "rb") as f:
     data = pkl.load(f)
 
 # data = data[:10]
