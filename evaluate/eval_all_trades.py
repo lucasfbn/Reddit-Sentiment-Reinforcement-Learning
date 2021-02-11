@@ -5,7 +5,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from evaluate.statistics import eval_statistics, stringify, plot_portfolio
 
 
-class EvaluateTrades:
+class EvaluateAllTrades:
     price_col = "Close"
     colors = {"hold": "y", "buy": "g", "sell": "r"}
 
@@ -71,7 +71,7 @@ class EvaluateTrades:
     def overall_statistics(self):
         self.statistics = eval_statistics(self.statistics)
         self.statistics_str = stringify(self.statistics)
-        return self.statistics
+        return self.statistics_str
 
     def _generate_points(self, df):
 
