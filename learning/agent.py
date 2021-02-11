@@ -33,7 +33,6 @@ class Agent:
     def _build_model(self):
         model = Sequential()
         model.add(Dense(units=64, input_shape=(self.state_size,), activation="relu"))
-        model.add(Dense(units=48, activation="relu"))
         model.add(Dense(units=32, activation="relu"))
         model.add(Dense(units=8, activation="relu"))
         model.add(Dense(self.action_size, activation="linear"))
@@ -45,7 +44,7 @@ class Agent:
 
     def act(self, state):
         if np.random.rand() <= self.epsilon and not self.eval:
-            return random.randrange(self.action_size)
+            return random.randrange(self.action_size), -1
         act_values = self.model.predict(np.array([state]))
         return np.argmax(act_values[0]), np.max(act_values[0])
 
