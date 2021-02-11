@@ -8,6 +8,12 @@ import paths
 
 # Basically combines n rows into one row
 
+def add_price_col(data):
+    for grp in data:
+        grp["data"]["price"] = grp["data"]["Close"]
+    return data
+
+
 def add_relative_change(data):
     for grp in data:
         df = grp["data"]
@@ -48,7 +54,7 @@ def add_pre_data(data, look_back=2):
 
 def scale(data, scaler):
     cols = ['total_hype_level', 'current_hype_level', 'previous_hype_level',
-            'posts', 'upvotes', 'comments', 'distinct_authors', "change_hype_level", 'rel_change']
+            'posts', 'upvotes', 'comments', 'distinct_authors', "change_hype_level", "rel_change", 'price']
 
     for grp in data:
 
@@ -79,12 +85,13 @@ def scale(data, scaler):
     return data
 
 
-with open(paths.test_path / "data_cleaned.pkl", "rb") as f:
+with open(paths.train_path / "data_cleaned.pkl", "rb") as f:
     data = pkl.load(f)
 
 data = add_relative_change(data)
+data = add_price_col(data)
 data = add_pre_data(data, 6)
 data = scale(data, MinMaxScaler())
 
-with open(paths.test_path / "data_timeseries.pkl", "wb") as f:
+with open(paths.train_path / "data_timeseries.pkl", "wb") as f:
     pkl.dump(data, f)
