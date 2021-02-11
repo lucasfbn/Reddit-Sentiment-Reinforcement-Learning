@@ -21,7 +21,7 @@ class EvaluatePortfolio:
                  max_investment_per_trade=0.02,
                  max_price_per_stock=9999999,
                  min_buy_output=0.9,
-                 max_trades_per_day=25,
+                 max_trades_per_day=5,
                  slippage=0.007,
                  order_fee=0.02):
 
@@ -132,9 +132,6 @@ class EvaluatePortfolio:
             return []
 
         df = df.sort_values(by=["actions_outputs"], ascending=False)
-
-        reserve = df.to_dict("records")
-        df = df.head(self.max_trades_per_day)
         buys = df.to_dict("records")
 
         self._execute_buy(buys)
@@ -143,7 +140,11 @@ class EvaluatePortfolio:
 
         capital_per_trade = self.initial_balance * self.max_investment_per_trade
 
-        for buy in buys:
+        for i, buy in enumerate(buys):
+
+            # Exit constraints should be above this statement
+            if i == self.max_trades_per_day:
+                break
 
             buy["Close"] *= self._extra_costs
             buyable_stocks = capital_per_trade / buy["Close"]
@@ -235,7 +236,7 @@ class EvaluatePortfolio:
 import pickle as pkl
 import paths
 
-with open(paths.models_path / "18_44---08_02-21.mdl" / "eval_test.pkl", "rb") as f:
+with open(paths.models_path / "18_44---08_02-21.mdl" / "eval_train.pkl", "rb") as f:
     data = pkl.load(f)
 
 # data = data[:10]
@@ -244,6 +245,5 @@ ep = EvaluatePortfolio(data)
 ep.act()
 ep.force_sell()
 
-print()
 print(ep.profit)
 print(ep.balance)
