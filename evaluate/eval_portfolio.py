@@ -4,6 +4,7 @@ import warnings
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import datetime
 
 verbose = False
 
@@ -35,6 +36,7 @@ class EvaluatePortfolio:
         self.max_trades_per_day = max_trades_per_day
 
         self.action_outputs = self._action_outputs_df()
+        self.max_buy_output_quantile = max_buy_output_quantile
         self.max_buy_output = float(self.action_outputs.quantile(max_buy_output_quantile))
 
         self.slippage = slippage
@@ -264,9 +266,11 @@ class EvaluatePortfolio:
 
         df = {"model": [model_name], "input": [input_name], "preprocessing": [""],
               "initial_balance": [self.initial_balance], "max_investment_per_trade": [self.max_investment_per_trade],
-              "max_price_per_stock": [self.max_price_per_stock], "max_buy_output": [self.max_buy_output],
+              "max_price_per_stock": [self.max_price_per_stock],
+              "max_buy_output_quantile": [self.max_buy_output_quantile],
               "max_trades_per_day": [self.max_trades_per_day], "slippage": [self.slippage],
-              "order_fee": [self.order_fee], "profit": [self.profit], "balance": [self.balance]}
+              "order_fee": [self.order_fee], "profit": [self.profit], "balance": [self.balance],
+              "time": datetime.datetime.now().strftime("%Hh%Mm %d_%m-%y")}
         df = pd.DataFrame(df)
 
         if existing_report is None:
@@ -279,7 +283,7 @@ class EvaluatePortfolio:
 import pickle as pkl
 import paths
 
-model = "21_07---13_02-21.mdl"
+model = "17_08---08_02-21.mdl"
 file = "eval_train.pkl"
 
 with open(paths.models_path / model / file, "rb") as f:
@@ -287,7 +291,7 @@ with open(paths.models_path / model / file, "rb") as f:
 
 # data = data[:10]
 
-ep = EvaluatePortfolio(data, max_buy_output_quantile=0.25)
+ep = EvaluatePortfolio(data)
 print(ep.action_outputs.describe())
 
 ep.act()
@@ -295,4 +299,4 @@ ep.force_sell()
 
 print(ep.profit)
 print(ep.balance)
-# ep.report(model, file)
+ep.report(model, file)
