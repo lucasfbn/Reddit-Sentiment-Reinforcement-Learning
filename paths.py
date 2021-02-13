@@ -10,3 +10,4 @@ models_path = base_path / "models"
 
 train_path = data_path / "train"
 test_path = data_path / "test"
+live_path = data_path / "live"
