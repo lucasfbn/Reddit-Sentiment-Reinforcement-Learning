@@ -21,24 +21,25 @@ class EvaluatePortfolio:
                  initial_balance=1000000,
                  max_investment_per_trade=0.02,
                  max_price_per_stock=25,
-                 max_buy_output=5.8,
+                 max_buy_output_quantile=0.25,
                  max_trades_per_day=10,
                  slippage=0.007,
                  order_fee=0.02):
 
         self.data = data
+        self.prepare()
 
         self.initial_balance = initial_balance
         self.max_investment_per_trade = max_investment_per_trade
         self.max_price_per_stock = max_price_per_stock
-        self.max_buy_output = max_buy_output
         self.max_trades_per_day = max_trades_per_day
+
+        self.action_outputs = self._action_outputs_df()
+        self.max_buy_output = float(self.action_outputs.quantile(max_buy_output_quantile))
 
         self.slippage = slippage
         self.order_fee = order_fee
         self._extra_costs = 1 + slippage + order_fee
-
-        self.prepare()
 
         self._min_date = None
         self._max_date = None
@@ -48,8 +49,6 @@ class EvaluatePortfolio:
 
         self._inventory = []
         self._log = []
-
-        self._action_outputs = []
 
     def prepare(self):
         for grp in self.data:
@@ -122,16 +121,22 @@ class EvaluatePortfolio:
             self._handle_buys(potential_buys)
             self._handle_sells(sells)
 
+    def _buy_constraints(self, df, action_output_constraint=True):
+        df = df[df["tradeable"] == True]  # Only keep tradeable ticker
+
+        if action_output_constraint:
+            df = df[df["actions_outputs"] <= self.max_buy_output]
+
+        df = df[df["Close"] <= self.max_price_per_stock]
+        return df
+
     def _handle_buys(self, potential_buys):
 
         if len(potential_buys) == 0:
             return
 
         df = pd.DataFrame(potential_buys)
-        df = df[df["tradeable"] == True]  # Only keep tradeable ticker
-
-        df = df[df["actions_outputs"] <= self.max_buy_output]
-        df = df[df["Close"] <= self.max_price_per_stock]
+        df = self._buy_constraints(df)
 
         if len(df) == 0:
             return []
@@ -140,9 +145,6 @@ class EvaluatePortfolio:
         # counterintuitive but it is what it is.
         df = df.sort_values(by=["actions_outputs"], ascending=True)
         buys = df.to_dict("records")
-
-        # Track the action outputs so we can view stats
-        self._action_outputs += df["actions_outputs"].values.tolist()
 
         self._execute_buy(buys)
 
@@ -227,8 +229,6 @@ class EvaluatePortfolio:
 
         self._inventory = updated_inventory
 
-    # def plot(self):
-
     def force_sell(self):
         warnings.warn("FORCING SELL OF REMAINING INVENTORY.")
 
@@ -242,9 +242,17 @@ class EvaluatePortfolio:
     def get_log(self):
         return pd.DataFrame(self._log)
 
-    def get_action_outputs_stats(self):
-        df = pd.DataFrame(self._action_outputs)
-        return df.describe()
+    def _action_outputs_df(self):
+
+        action_outputs = []
+
+        for grp in self.data:
+            df = grp["data"]
+            df = df[df["actions"] == "buy"]
+            df = self._buy_constraints(df, action_output_constraint=False)
+            action_outputs += df["actions_outputs"].values.tolist()
+
+        return pd.DataFrame(action_outputs)
 
     def report(self, model_name, input_name):
 
@@ -268,11 +276,10 @@ class EvaluatePortfolio:
             existing_report.to_csv("report.csv", index=False, sep=";")
 
 
-
 import pickle as pkl
 import paths
 
-model = "17_08---08_02-21.mdl"
+model = "21_07---13_02-21.mdl"
 file = "eval_train.pkl"
 
 with open(paths.models_path / model / file, "rb") as f:
@@ -280,10 +287,12 @@ with open(paths.models_path / model / file, "rb") as f:
 
 # data = data[:10]
 
-ep = EvaluatePortfolio(data)
+ep = EvaluatePortfolio(data, max_buy_output_quantile=0.25)
+print(ep.action_outputs.describe())
+
 ep.act()
 ep.force_sell()
 
 print(ep.profit)
 print(ep.balance)
-ep.report(model, file)
+# ep.report(model, file)
