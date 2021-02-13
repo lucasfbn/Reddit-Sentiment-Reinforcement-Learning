@@ -1,0 +1,3 @@
+model;input;preprocessing;initial_balance;max_investment_per_trade;max_price_per_stock;max_buy_output;max_trades_per_day;slippage;order_fee;profit;balance
+17_08---08_02-21.mdl;eval_train.pkl;;1000000;0.02;25;5.8;10;0.006999999999999999;0.02;1.2085695900083149;1193871.447277816
+17_08---08_02-21.mdl;eval_train.pkl;;1000000;0.02;25;5.8;10;0.007;0.02;1.2085695900083149;1193871.447277816

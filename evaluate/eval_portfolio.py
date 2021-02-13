@@ -20,9 +20,9 @@ class EvaluatePortfolio:
     def __init__(self, data,
                  initial_balance=1000000,
                  max_investment_per_trade=0.02,
-                 max_price_per_stock=9999999,
-                 min_buy_output=0.9,
-                 max_trades_per_day=25,
+                 max_price_per_stock=25,
+                 max_buy_output=5.8,
+                 max_trades_per_day=10,
                  slippage=0.007,
                  order_fee=0.02):
 
@@ -31,9 +31,11 @@ class EvaluatePortfolio:
         self.initial_balance = initial_balance
         self.max_investment_per_trade = max_investment_per_trade
         self.max_price_per_stock = max_price_per_stock
-        self.min_buy_output = min_buy_output
+        self.max_buy_output = max_buy_output
         self.max_trades_per_day = max_trades_per_day
 
+        self.slippage = slippage
+        self.order_fee = order_fee
         self._extra_costs = 1 + slippage + order_fee
 
         self.prepare()
@@ -128,7 +130,7 @@ class EvaluatePortfolio:
         df = pd.DataFrame(potential_buys)
         df = df[df["tradeable"] == True]  # Only keep tradeable ticker
 
-        df = df[df["actions_outputs"] >= self.min_buy_output]
+        df = df[df["actions_outputs"] <= self.max_buy_output]
         df = df[df["Close"] <= self.max_price_per_stock]
 
         if len(df) == 0:
@@ -244,11 +246,36 @@ class EvaluatePortfolio:
         df = pd.DataFrame(self._action_outputs)
         return df.describe()
 
+    def report(self, model_name, input_name):
+
+        existing_report = None
+        try:
+            existing_report = pd.read_csv("report.csv", sep=";")
+        except FileNotFoundError:
+            print("Error loading report.")
+
+        df = {"model": [model_name], "input": [input_name], "preprocessing": [""],
+              "initial_balance": [self.initial_balance], "max_investment_per_trade": [self.max_investment_per_trade],
+              "max_price_per_stock": [self.max_price_per_stock], "max_buy_output": [self.max_buy_output],
+              "max_trades_per_day": [self.max_trades_per_day], "slippage": [self.slippage],
+              "order_fee": [self.order_fee], "profit": [self.profit], "balance": [self.balance]}
+        df = pd.DataFrame(df)
+
+        if existing_report is None:
+            df.to_csv("report.csv", index=False, sep=";")
+        else:
+            existing_report = existing_report.append(df)
+            existing_report.to_csv("report.csv", index=False, sep=";")
+
+
 
 import pickle as pkl
 import paths
 
-with open(paths.models_path / "17_08---08_02-21.mdl" / "eval_train.pkl", "rb") as f:
+model = "17_08---08_02-21.mdl"
+file = "eval_train.pkl"
+
+with open(paths.models_path / model / file, "rb") as f:
     data = pkl.load(f)
 
 # data = data[:10]
@@ -259,4 +286,4 @@ ep.force_sell()
 
 print(ep.profit)
 print(ep.balance)
-print(ep.get_action_outputs_stats())
+ep.report(model, file)
