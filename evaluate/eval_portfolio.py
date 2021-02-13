@@ -3,6 +3,7 @@ import pandas as pd
 import warnings
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 verbose = False
 
@@ -45,6 +46,8 @@ class EvaluatePortfolio:
 
         self._inventory = []
         self._log = []
+
+        self._action_outputs = []
 
     def prepare(self):
         for grp in self.data:
@@ -135,6 +138,9 @@ class EvaluatePortfolio:
         # counterintuitive but it is what it is.
         df = df.sort_values(by=["actions_outputs"], ascending=True)
         buys = df.to_dict("records")
+
+        # Track the action outputs so we can view stats
+        self._action_outputs += df["actions_outputs"].values.tolist()
 
         self._execute_buy(buys)
 
@@ -234,6 +240,10 @@ class EvaluatePortfolio:
     def get_log(self):
         return pd.DataFrame(self._log)
 
+    def get_action_outputs_stats(self):
+        df = pd.DataFrame(self._action_outputs)
+        return df.describe()
+
 
 import pickle as pkl
 import paths
@@ -249,3 +259,4 @@ ep.force_sell()
 
 print(ep.profit)
 print(ep.balance)
+print(ep.get_action_outputs_stats())
