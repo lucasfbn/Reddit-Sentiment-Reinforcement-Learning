@@ -50,7 +50,6 @@ def drop_short(grps, min_len=7):
 
 
 def add_stock_prices(grps):
-
     def merge(df, symbol, start_offset):
         start = str(df["date_day"].min() - datetime.timedelta(days=start_offset))
         end = str(df["date_day"].max())
@@ -70,13 +69,20 @@ def add_stock_prices(grps):
     return new_grps
 
 
-df = pd.read_csv(paths.test_path / "report.csv", sep=",")
-# df.to_csv(paths.test_path / "report_de.csv", sep=";", index=False)
+def pipeline(data):
+    df = preprocess(data)
+    grps = grp_by(df)
+    grps = drop_short(grps)
+    grps = add_stock_prices(grps)
 
-df = preprocess(df)
-grps = grp_by(df)
-grps = drop_short(grps)
-grps = add_stock_prices(grps)
+    return grps
 
-with open(paths.test_path / "data_offset.pkl", "wb") as f:
-    pkl.dump(grps, f)
+
+if __name__ == "__main__":
+    df = pd.read_csv(paths.test_path / "report.csv", sep=",")
+    # df.to_csv(paths.test_path / "report_de.csv", sep=";", index=False)
+
+    data = pipeline(df)
+
+    with open(paths.test_path / "data_offset.pkl", "wb") as f:
+        pkl.dump(data, f)

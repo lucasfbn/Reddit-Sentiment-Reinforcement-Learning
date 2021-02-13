@@ -75,19 +75,25 @@ def drop_nan(data):
     return data
 
 
-with open(paths.test_path / "data_offset.pkl", "rb") as f:
-    data = pkl.load(f)
+def pipeline(data):
+    data = sort_chronologically(data)
+    data = mark_tradeable(data)
+    data = forward_fill(data)
+    data = drop_unnecessary(data)
+    data = drop_short(data, min_len=9, keep_offset=6)
+    print(len(data))
+    data = drop_yahoo_all_nan(data)
+    print(len(data))
+    data = fill_nan(data)
+    data = drop_nan(data)
+    return data
 
-data = sort_chronologically(data)
-data = mark_tradeable(data)
-data = forward_fill(data)
-data = drop_unnecessary(data)
-data = drop_short(data, min_len=9, keep_offset=6)
-print(len(data))
-data = drop_yahoo_all_nan(data)
-print(len(data))
-data = fill_nan(data)
-data = drop_nan(data)
 
-with open(paths.test_path / "data_cleaned.pkl", "wb") as f:
-    pkl.dump(data, f)
+if __name__ == "__main__":
+    with open(paths.test_path / "data_offset.pkl", "rb") as f:
+        data = pkl.load(f)
+
+    data = pipeline(data)
+
+    with open(paths.test_path / "data_cleaned.pkl", "wb") as f:
+        pkl.dump(data, f)
