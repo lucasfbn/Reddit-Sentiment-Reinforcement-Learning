@@ -19,8 +19,8 @@ else:
 class EvaluatePortfolio:
 
     def __init__(self, data,
-                 initial_balance=1000000,
-                 max_investment_per_trade=0.02,
+                 initial_balance=1000,
+                 max_investment_per_trade=0.025,
                  max_price_per_stock=25,
                  max_buy_output_quantile=0.25,
                  max_trades_per_day=10,
