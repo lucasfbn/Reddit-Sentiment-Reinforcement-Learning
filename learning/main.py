@@ -19,9 +19,6 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
     with open(input_path, "rb") as f:
         data = pkl.load(f)
 
-    if not eval:
-        shuffle(data)
-
     env = StockEnv()
     state_size = data[0]["data"].shape[1] - 3  # -1 because we remove the "Close", "tradeable" and "date" column
     agent = Agent(state_size=state_size, action_size=3, memory_len=1000, eval=eval)
@@ -90,5 +87,5 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
 
 if __name__ == "__main__":
     main(paths.train_path / "data_timeseries.pkl",
-         eval=False, model_path=paths.models_path / "17_08---08_02-21.mdl",
+         eval=False, model_path=paths.models_path / "21_07---13_02-21.mdl",
          eval_out_path="eval_train.pkl")
