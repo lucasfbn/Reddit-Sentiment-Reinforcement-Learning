@@ -22,9 +22,19 @@ def preprocess(df):
         new_cols.append(col)
 
     df.columns = new_cols
+
+    return df
+
+
+def handle_time(df, start_hour=17, start_min=0):
     df["time"] = pd.to_datetime(df["time"], format="%d-%m-%Y %H:%M")
     df = df.sort_values(by=["time"])
-    df["date_day"] = pd.to_datetime(df['time']).dt.to_period('D')
+
+    df["time"] = df["time"].dt.tz_localize("UTC")
+    df["time_mesz"] = df["time"].dt.tz_convert("Europe/Berlin")
+    df["time_shifted"] = df["time_mesz"] - pd.Timedelta(hours=start_hour, minutes=start_min) + pd.Timedelta(days=1)
+
+    df["date_day"] = pd.to_datetime(df['time_shifted']).dt.to_period('D')
     return df
 
 
@@ -39,7 +49,7 @@ def grp_by(df):
     return grps
 
 
-def drop_short(grps, min_len=7):
+def drop_short(grps, min_len):
     filtered_grps = []
 
     for grp in grps:
@@ -49,7 +59,7 @@ def drop_short(grps, min_len=7):
     return filtered_grps
 
 
-def add_stock_prices(grps):
+def add_stock_prices(grps, start_offset):
     def merge(df, symbol, start_offset):
         start = str(df["date_day"].min() - datetime.timedelta(days=start_offset))
         end = str(df["date_day"].max())
@@ -65,24 +75,25 @@ def add_stock_prices(grps):
     for i, grp in enumerate(grps):
         print(f"Processing {i}/{len(grps)}")
 
-        new_grps.append({"ticker": grp["ticker"], "data": merge(grp["data"], grp["ticker"], start_offset=30)})
+        new_grps.append({"ticker": grp["ticker"], "data": merge(grp["data"], grp["ticker"], start_offset=start_offset)})
     return new_grps
 
 
-def pipeline(data):
+def pipeline(data, min_len=7, start_offset=30):
     df = preprocess(data)
+    df = handle_time(df)
     grps = grp_by(df)
-    grps = drop_short(grps)
-    grps = add_stock_prices(grps)
+    grps = drop_short(grps, min_len=min_len)
+    grps = add_stock_prices(grps, start_offset)
 
     return grps
 
 
 if __name__ == "__main__":
-    df = pd.read_csv(paths.test_path / "report.csv", sep=",")
+    df = pd.read_csv(paths.train_path / "report.csv", sep=",")
     # df.to_csv(paths.test_path / "report_de.csv", sep=";", index=False)
 
     data = pipeline(df)
 
-    with open(paths.test_path / "data_offset.pkl", "wb") as f:
+    with open(paths.train_path / "data_offset.pkl", "wb") as f:
         pkl.dump(data, f)
