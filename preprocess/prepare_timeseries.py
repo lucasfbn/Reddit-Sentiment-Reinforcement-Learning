@@ -85,10 +85,10 @@ def scale(data, scaler):
     return data
 
 
-def pipeline(data):
+def pipeline(data, offset=6):
     data = add_relative_change(data)
     data = add_price_col(data)
-    data = add_pre_data(data, 6)
+    data = add_pre_data(data, offset)
     data = scale(data, MinMaxScaler())
     return data
 
