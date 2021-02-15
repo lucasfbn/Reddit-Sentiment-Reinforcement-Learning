@@ -5,6 +5,7 @@ import pandas as pd
 import yfinance as yf
 
 import paths
+from preprocess.stock_prices import StockPrices
 
 pd.options.mode.chained_assignment = None
 
@@ -59,32 +60,22 @@ def drop_short(grps, min_len):
     return filtered_grps
 
 
-def add_stock_prices(grps, start_offset):
-    def merge(df, symbol, start_offset):
-        start = str(df["date_day"].min() - datetime.timedelta(days=start_offset))
-        end = str(df["date_day"].max())
-
-        historical_data = yf.download(symbol, start=start, end=end)
-        historical_data["date_day"] = pd.to_datetime(historical_data.index).to_period('D')
-
-        df = historical_data.merge(df, on="date_day", how="outer")
-        return df
-
+def add_stock_prices(grps, start_offset, live):
     new_grps = []
 
     for i, grp in enumerate(grps):
         print(f"Processing {i}/{len(grps)}")
-
-        new_grps.append({"ticker": grp["ticker"], "data": merge(grp["data"], grp["ticker"], start_offset=start_offset)})
+        sp = StockPrices(grp, start_offset=start_offset, live=live)
+        new_grps.append({"ticker": grp["ticker"], "data": sp.download()})
     return new_grps
 
 
-def pipeline(data, min_len=7, start_offset=30):
+def pipeline(data, min_len=7, start_offset=30, live=False):
     df = preprocess(data)
     df = handle_time(df)
     grps = grp_by(df)
     grps = drop_short(grps, min_len=min_len)
-    grps = add_stock_prices(grps, start_offset)
+    grps = add_stock_prices(grps, start_offset, live=live)
 
     return grps
 
