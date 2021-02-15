@@ -39,3 +39,9 @@ class StockPrices:
 
     def _merge(self, historic):
         return historic.merge(self.data, on="date_day", how="outer")
+
+
+if __name__ == "__main__":
+    sp = StockPrices({"ticker": "TSLA", "data": None}, 10, True)
+    df = sp.download()
+    print()
