@@ -256,7 +256,7 @@ class EvaluatePortfolio:
 
         return pd.DataFrame(action_outputs)
 
-    def report(self, model_name, input_name):
+    def report(self, model_name, input_name, preprocessing):
 
         existing_report = None
         try:
@@ -264,7 +264,7 @@ class EvaluatePortfolio:
         except FileNotFoundError:
             print("Error loading report.")
 
-        df = {"model": [model_name], "input": [input_name], "preprocessing": [""],
+        df = {"model": [model_name], "input": [input_name], "preprocessing": [preprocessing],
               "initial_balance": [self.initial_balance], "max_investment_per_trade": [self.max_investment_per_trade],
               "max_price_per_stock": [self.max_price_per_stock],
               "max_buy_output_quantile": [self.max_buy_output_quantile],
@@ -283,7 +283,7 @@ class EvaluatePortfolio:
 import pickle as pkl
 import paths
 
-model = "17_08---08_02-21.mdl"
+model = "19_32---14_02-21.mdl"
 file = "eval_train.pkl"
 
 with open(paths.models_path / model / file, "rb") as f:
@@ -299,4 +299,4 @@ ep.force_sell()
 
 print(ep.profit)
 print(ep.balance)
-ep.report(model, file)
+ep.report(model, file, "17 start time")
