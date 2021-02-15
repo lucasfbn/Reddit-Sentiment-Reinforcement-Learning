@@ -27,7 +27,7 @@ def preprocess(df):
     return df
 
 
-def handle_time(df, start_hour=17, start_min=0):
+def handle_time(df, start_hour=22, start_min=0):
     df["time"] = pd.to_datetime(df["time"], format="%d-%m-%Y %H:%M")
     df = df.sort_values(by=["time"])
 
@@ -36,6 +36,11 @@ def handle_time(df, start_hour=17, start_min=0):
     df["time_shifted"] = df["time_mesz"] - pd.Timedelta(hours=start_hour, minutes=start_min) + pd.Timedelta(days=1)
 
     df["date_day"] = pd.to_datetime(df['time_shifted']).dt.to_period('D')
+    return df
+
+
+def filter_market_symbol(df):
+    df = df[df["market_symbol"].isin(["NASDAQ", "NYSE"])]
     return df
 
 
@@ -73,6 +78,7 @@ def add_stock_prices(grps, start_offset, live):
 def pipeline(data, min_len=7, start_offset=30, live=False):
     df = preprocess(data)
     df = handle_time(df)
+    df = filter_market_symbol(df)
     grps = grp_by(df)
     grps = drop_short(grps, min_len=min_len)
     grps = add_stock_prices(grps, start_offset, live=live)
