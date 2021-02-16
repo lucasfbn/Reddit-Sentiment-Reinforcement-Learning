@@ -1,0 +1,31 @@
+[{
+        "MergeHypePrice": [{
+                "start_hour": 22
+            }, {
+                "start_min": 0
+            }, {
+                "market_symbols": []
+            }, {
+                "min_len": 9
+            }, {
+                "start_offset": 30
+            }, {
+                "live": false
+            }
+        ]
+    }, {
+        "Cleaner": [{
+                "min_len": 9
+            }, {
+                "keep_offset": 7
+            }
+        ]
+    }, {
+        "TimeseriesGenerator": [{
+                "look_back": 7
+            }, {
+                "scaler": "MinMaxScaler"
+            }
+        ]
+    }
+]
