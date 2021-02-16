@@ -56,7 +56,7 @@ class EvaluatePortfolio:
         for grp in self.data:
             df = grp["data"]
             df = df.drop(df.tail(1).index)  # since we do not have an action for the last entry
-            df = df[["Close", "actions", "actions_outputs", "tradeable", "date"]]
+            df = df[["price", "actions", "actions_outputs", "tradeable", "date"]]
             df["actions"] = df["actions"].replace({0: "hold", 1: "buy", 2: "sell"})
             grp["data"] = df
 
@@ -129,7 +129,7 @@ class EvaluatePortfolio:
         if action_output_constraint:
             df = df[df["actions_outputs"] <= self.max_buy_output]
 
-        df = df[df["Close"] <= self.max_price_per_stock]
+        df = df[df["price"] <= self.max_price_per_stock]
         return df
 
     def _handle_buys(self, potential_buys):
@@ -160,11 +160,11 @@ class EvaluatePortfolio:
             if i == self.max_trades_per_day:
                 break
 
-            buy["Close"] *= self._extra_costs
-            buyable_stocks = capital_per_trade / buy["Close"]
+            buy["price"] *= self._extra_costs
+            buyable_stocks = capital_per_trade / buy["price"]
 
             buy["quantity"] = buyable_stocks
-            buy["total_buy_price"] = buyable_stocks * buy["Close"]
+            buy["total_buy_price"] = buyable_stocks * buy["price"]
 
             if self.balance - buy["total_buy_price"] <= 0:
                 vprint("Attempted BUY but balance is below or even to zero.")
@@ -196,11 +196,11 @@ class EvaluatePortfolio:
 
                 if sell_ticker == position_ticker and sell["tradeable"]:
 
-                    bought_price = position["Close"]
+                    bought_price = position["price"]
                     if forced:
                         current_price = bought_price
                     else:
-                        current_price = sell["Close"]
+                        current_price = sell["price"]
 
                     old_depot = self.balance
                     self.balance += current_price * position["quantity"]
@@ -283,7 +283,7 @@ class EvaluatePortfolio:
 import pickle as pkl
 import paths
 
-model = "19_32---14_02-21.mdl"
+model = "13_48---16_02-21.mdl"
 file = "eval_train.pkl"
 
 with open(paths.models_path / model / file, "rb") as f:
@@ -299,4 +299,4 @@ ep.force_sell()
 
 print(ep.profit)
 print(ep.balance)
-ep.report(model, file, "17 start time")
+# ep.report(model, file, "22 start time, only NYSE and NASDAQ")
