@@ -18,7 +18,7 @@ else:
 
 class EvaluatePortfolio:
 
-    def __init__(self, data,
+    def __init__(self, model_path,
                  initial_balance=1000,
                  max_investment_per_trade=0.025,
                  max_price_per_stock=25,
@@ -27,7 +27,8 @@ class EvaluatePortfolio:
                  slippage=0.007,
                  order_fee=0.02):
 
-        self.data = data
+        self.model_path = model_path
+        self.data = self.load_data(model_path)
         self.prepare()
 
         self.initial_balance = initial_balance
@@ -51,6 +52,10 @@ class EvaluatePortfolio:
 
         self._inventory = []
         self._log = []
+
+    def load_data(self, path):
+        with open(path / "eval.pkl", "rb") as f:
+            return pkl.load(f)
 
     def prepare(self):
         for grp in self.data:
@@ -256,7 +261,7 @@ class EvaluatePortfolio:
 
         return pd.DataFrame(action_outputs)
 
-    def report(self, model_name, input_name, preprocessing):
+    def report(self, model_name):
 
         existing_report = None
         try:
@@ -264,7 +269,7 @@ class EvaluatePortfolio:
         except FileNotFoundError:
             print("Error loading report.")
 
-        df = {"model": [model_name], "input": [input_name], "preprocessing": [preprocessing],
+        df = {"model": [model_name], "preprocessing": [self.model_path.name.split("-")[0]],
               "initial_balance": [self.initial_balance], "max_investment_per_trade": [self.max_investment_per_trade],
               "max_price_per_stock": [self.max_price_per_stock],
               "max_buy_output_quantile": [self.max_buy_output_quantile],
@@ -283,15 +288,11 @@ class EvaluatePortfolio:
 import pickle as pkl
 import paths
 
-model = "13_48---16_02-21.mdl"
-file = "eval_train.pkl"
-
-with open(paths.models_path / model / file, "rb") as f:
-    data = pkl.load(f)
+model = "4-15_02---16_02-21"
 
 # data = data[:10]
 
-ep = EvaluatePortfolio(data)
+ep = EvaluatePortfolio(paths.models_path / model)
 print(ep.action_outputs.describe())
 
 ep.act()
@@ -299,4 +300,4 @@ ep.force_sell()
 
 print(ep.profit)
 print(ep.balance)
-# ep.report(model, file, "22 start time, only NYSE and NASDAQ")
+ep.report(model)
