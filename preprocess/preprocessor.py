@@ -1,6 +1,7 @@
 import pandas as pd
 import pickle as pkl
 import json
+import paths
 
 
 class Preprocessor:
@@ -19,7 +20,7 @@ class Preprocessor:
                          'price_ts']
 
     path = None
-    settings = []
+    settings = {}
 
     def fix_cols(self, cols):
         new_cols = []
@@ -41,19 +42,31 @@ class Preprocessor:
             raise ValueError("Invalid filename.")
 
     def save_settings(self, obj):
-        obj_name = obj.__class__.__name__
-        temp = {obj_name: []}
+        temp = {}
         for key, value in obj.__dict__.items():
             if key == "scaler":
-                temp[obj_name].append({key: value.__class__.__name__})
+                temp[key] = [value.__class__.__name__]
                 continue
             if key not in ["df", "grps", "data"]:
-                temp[obj_name].append({key: value})
-        Preprocessor.settings.append(temp)
+                temp[key] = [value]
+        Preprocessor.settings.update(temp)
 
     def settings_to_file(self):
-        with open(Preprocessor.path / "settings.json", "w+") as fp:
-            json.dump(Preprocessor.settings, fp)
+
+        existing_df = None
+        try:
+            existing_df = pd.read_csv(paths.data_path / "overview.csv", sep=";")
+        except FileNotFoundError:
+            print("Error loading report.")
+
+        Preprocessor.settings["path"] = str(Preprocessor.path.name)
+        df = pd.DataFrame(Preprocessor.settings)
+
+        if existing_df is None:
+            df.to_csv(paths.data_path / "overview.csv", index=False, sep=";")
+        else:
+            existing_df = existing_df.append(df)
+            existing_df.to_csv(paths.data_path / "overview.csv", index=False, sep=";")
 
     def save(self, data, fn):
         with open(Preprocessor.path / fn, "wb") as f:
