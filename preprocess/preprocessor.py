@@ -20,7 +20,7 @@ class Preprocessor:
                          'price_ts']
 
     path = None
-    settings = {}
+    settings = {"used_price": use_price}
 
     def fix_cols(self, cols):
         new_cols = []
