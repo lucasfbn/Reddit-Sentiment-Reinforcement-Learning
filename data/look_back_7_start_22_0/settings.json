@@ -1,0 +1,16 @@
+[{
+        "Cleaner": [{
+                "min_len": 7
+            }, {
+                "keep_offset": 7
+            }
+        ]
+    }, {
+        "TimeseriesGenerator": [{
+                "look_back": 7
+            }, {
+                "scaler": "MinMaxScaler"
+            }
+        ]
+    }
+]
