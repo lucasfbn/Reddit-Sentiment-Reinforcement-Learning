@@ -20,7 +20,7 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
         data = pkl.load(f)
 
     env = StockEnv()
-    state_size = data[0]["data"].shape[1] - 3  # -1 because we remove the "Close", "tradeable" and "date" column
+    state_size = data[0]["data"].shape[1] - 3  # -1 because we remove the "price", "tradeable" and "date" column
     agent = Agent(state_size=state_size, action_size=3, memory_len=1000, eval=eval)
 
     n_episodes = 3
@@ -35,7 +35,7 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
 
         print(f"{i + 1}/{len(data)} - Processing ticker: {grp['ticker']}")
 
-        df = grp["data"].drop(columns=["Close", "tradeable", "date"])
+        df = grp["data"].drop(columns=["price", "tradeable", "date"])
 
         if eval:
             actions = []
@@ -82,10 +82,10 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
         return data
 
     else:
-        agent.save(paths.models_path)
+        agent.save(input_path.parent.name, paths.models_path)
 
 
 if __name__ == "__main__":
-    main(paths.train_path / "data_timeseries.pkl",
-         eval=False, model_path=paths.models_path / "21_07---13_02-21.mdl",
+    main(paths.data_paths[4] / "timeseries.pkl",
+         eval=False, model_path=paths.models_path / "10_59---16_02-21.mdl",
          eval_out_path="eval_train.pkl")

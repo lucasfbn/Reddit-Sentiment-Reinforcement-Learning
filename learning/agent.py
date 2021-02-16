@@ -69,8 +69,9 @@ class Agent:
     def load(self, path):
         self.model = tf.keras.models.load_model(path)
 
-    def save(self, path):
-        now = datetime.datetime.now()
-        now = now.strftime("%H_%M---%d_%m-%y")
+    def save(self, data_symbol, path):
 
-        self.model.save(path / (now + ".mdl"))
+        now = datetime.datetime.now().strftime("%H_%M---%d_%m-%y")
+        fn = f"{data_symbol}-{now}"
+
+        self.model.save(path / fn)
