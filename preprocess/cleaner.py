@@ -3,9 +3,9 @@ from preprocess.preprocessor import Preprocessor
 
 class Cleaner(Preprocessor):
 
-    def __init__(self, min_len=6, keep_offset=6):
+    def __init__(self, min_len_hype_price=6, keep_offset=6):
         self.data = self.load(self.fn_merge_hype_price)
-        self.min_len = min_len
+        self.min_len = min_len_hype_price
         self.keep_offset = keep_offset
 
     def _rename_cols(self):

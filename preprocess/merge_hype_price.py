@@ -16,7 +16,7 @@ class MergeHypePrice(Preprocessor):
     def __init__(self,
                  start_hour=22, start_min=0,
                  market_symbols=[],
-                 min_len=7,
+                 min_len_hype=7,
                  start_offset=30,
                  live=False):
 
@@ -25,7 +25,7 @@ class MergeHypePrice(Preprocessor):
         self.start_hour = start_hour
         self.start_min = start_min
         self.market_symbols = market_symbols
-        self.min_len = min_len
+        self.min_len = min_len_hype
         self.start_offset = start_offset
         self.live = live
 
