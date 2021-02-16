@@ -43,7 +43,7 @@ def add_pre_data(data, look_back=2):
 
         suffix_counter = 0
         for i in range(len(shifted)):
-            df = df.join(shifted[i], lsuffix=f"_{suffix_counter}", rsuffix=f"_{suffix_counter + 1}")
+            df = df.join(shifted[i], lsuffix=f"_{suffix_counter}", rsuffix=f"")
             suffix_counter += 2
 
         df = df.dropna()
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     with open(paths.train_path / "data_cleaned.pkl", "rb") as f:
         data = pkl.load(f)
 
-    data = pipeline(data)
+    data = pipeline(data, offset=7)
 
     with open(paths.train_path / "data_timeseries.pkl", "wb") as f:
         pkl.dump(data, f)
