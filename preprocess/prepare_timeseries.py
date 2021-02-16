@@ -94,10 +94,10 @@ def pipeline(data, offset=6):
 
 
 if __name__ == "__main__":
-    with open(paths.train_path / "data_cleaned.pkl", "rb") as f:
+    with open(paths.train_path / "offset_7_all_marketsymbols" / "data_cleaned.pkl", "rb") as f:
         data = pkl.load(f)
 
     data = pipeline(data, offset=7)
 
-    with open(paths.train_path / "data_timeseries.pkl", "wb") as f:
+    with open(paths.train_path / "offset_7_all_marketsymbols" / "data_timeseries.pkl", "wb") as f:
         pkl.dump(data, f)
