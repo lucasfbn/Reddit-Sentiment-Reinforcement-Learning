@@ -38,7 +38,11 @@ class EvaluatePortfolio:
 
         self.action_outputs = self._action_outputs_df()
         self.max_buy_output_quantile = max_buy_output_quantile
-        self.max_buy_output = float(self.action_outputs.quantile(max_buy_output_quantile))
+
+        if len(self.action_outputs) != 0:
+            self.max_buy_output = float(self.action_outputs.quantile(max_buy_output_quantile))
+        else:
+            self.max_buy_output = 0
 
         self.slippage = slippage
         self.order_fee = order_fee
@@ -288,12 +292,12 @@ class EvaluatePortfolio:
 import pickle as pkl
 import paths
 
-model = "4-15_02---16_02-21"
+model = "45-12_22---17_02-21"
 
 # data = data[:10]
 
 ep = EvaluatePortfolio(paths.models_path / model)
-print(ep.action_outputs.describe())
+# print(ep.action_outputs.describe())
 
 ep.act()
 ep.force_sell()
