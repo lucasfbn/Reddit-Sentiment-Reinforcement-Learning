@@ -75,8 +75,8 @@ def main(input_path, continue_training=False, eval=False, model_path=None, eval_
                 agent.replay(batch_size)
 
         if eval:
-            grp["data"]["actions"] = actions + [-1]  # -1 since we do not have an action for the last entry
-            grp["data"]["actions_outputs"] = actions_outputs + [-1]
+            grp["data"]["actions"] = actions
+            grp["data"]["actions_outputs"] = actions_outputs
 
     if eval:
         with open(eval_out_path, "wb") as f:
@@ -88,7 +88,8 @@ def main(input_path, continue_training=False, eval=False, model_path=None, eval_
 
 
 if __name__ == "__main__":
-    main(paths.data_paths[5] / "timeseries.pkl",
+    main(paths.data_paths[6] / "timeseries.pkl",
          continue_training=False,
          eval=True,
-         model_path=paths.models_path / "45-12_22---17_02-21")
+         model_path=paths.models_path / "4-15_02---16_02-21"
+         )

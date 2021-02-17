@@ -53,9 +53,12 @@ class StockEnv:
             else:
                 vprint(f"Attempted sell, but inventory is empty.")
 
-        done = True if len(self._df) == 1 else False
+        done = True if len(self._df) == 0 else False
 
-        next_state = self._df.popleft()
+        if not done:
+            next_state = self._df.popleft()
+        else:
+            next_state = None
         self._state = next_state
 
         return next_state, reward, done, None
