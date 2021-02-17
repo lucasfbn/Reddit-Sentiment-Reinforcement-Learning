@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import datetime
+import pickle as pkl
 
 verbose = False
 
@@ -19,16 +20,18 @@ else:
 class EvaluatePortfolio:
 
     def __init__(self, model_path,
+                 data_path="default",
                  initial_balance=1000,
                  max_investment_per_trade=0.025,
                  max_price_per_stock=25,
                  max_buy_output_quantile=0.25,
+                 max_buy_output=None,
                  max_trades_per_day=10,
                  slippage=0.007,
                  order_fee=0.02):
 
         self.model_path = model_path
-        self.data = self.load_data(model_path)
+        self.data = self.load_data(data_path, model_path)
         self.prepare()
 
         self.initial_balance = initial_balance
@@ -39,7 +42,10 @@ class EvaluatePortfolio:
         self.action_outputs = self._action_outputs_df()
         self.max_buy_output_quantile = max_buy_output_quantile
 
-        if len(self.action_outputs) != 0:
+        if max_buy_output is not None:
+            warnings.warn("max_buy_output is != None. max_buy_output_quantile will be ignored.")
+            self.max_buy_output = max_buy_output
+        elif len(self.action_outputs) != 0:
             self.max_buy_output = float(self.action_outputs.quantile(max_buy_output_quantile))
         else:
             self.max_buy_output = 0
@@ -57,14 +63,15 @@ class EvaluatePortfolio:
         self._inventory = []
         self._log = []
 
-    def load_data(self, path):
-        with open(path / "eval.pkl", "rb") as f:
+    def load_data(self, path, model_path):
+        if path == "default":
+            path = model_path / "eval.pkl"
+        with open(path, "rb") as f:
             return pkl.load(f)
 
     def prepare(self):
         for grp in self.data:
             df = grp["data"]
-            df = df.drop(df.tail(1).index)  # since we do not have an action for the last entry
             df = df[["price", "actions", "actions_outputs", "tradeable", "date"]]
             df["actions"] = df["actions"].replace({0: "hold", 1: "buy", 2: "sell"})
             grp["data"] = df
@@ -290,19 +297,19 @@ class EvaluatePortfolio:
             existing_report.to_csv("report.csv", index=False, sep=";")
 
 
-import pickle as pkl
-import paths
+if __name__ == "__main__":
+    import paths
 
-model = "45-12_22---17_02-21"
+    model = "4-15_02---16_02-21"
 
-# data = data[:10]
+    # data = data[:10]
 
-ep = EvaluatePortfolio(paths.models_path / model)
-# print(ep.action_outputs.describe())
+    ep = EvaluatePortfolio(paths.models_path / model)
+    # print(ep.action_outputs.describe())
 
-ep.act()
-ep.force_sell()
+    ep.act()
+    ep.force_sell()
 
-print(ep.profit)
-print(ep.balance)
-ep.report(model)
+    print(ep.profit)
+    print(ep.balance)
+    ep.report(model)
