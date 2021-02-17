@@ -18,7 +18,8 @@ class MergeHypePrice(Preprocessor):
                  market_symbols=[],
                  min_len_hype=7,
                  start_offset=30,
-                 live=False):
+                 live=False,
+                 limit=None):
 
         self.df = self.load(self.fn_initial)
         self.grps = []
@@ -28,6 +29,7 @@ class MergeHypePrice(Preprocessor):
         self.min_len = min_len_hype
         self.start_offset = start_offset
         self.live = live
+        self.limit = limit
 
     def _preprocess(self):
         self.df = self.df.drop(columns=['Unnamed: 0', 'Run Id'], errors="ignore")
@@ -55,6 +57,10 @@ class MergeHypePrice(Preprocessor):
         for name, group in grp_by:
             self.grps.append({"ticker": name, "data": group.groupby(["date_day"]).agg("sum").reset_index()})
 
+    def _limit(self):
+        if self.limit is not None:
+            self.grps = self.grps[:self.limit]
+
     def _drop_short(self):
         filtered_grps = []
 
@@ -79,6 +85,7 @@ class MergeHypePrice(Preprocessor):
         self._filter_market_symbol()
         self._grp_by()
         self._drop_short()
+        self._limit()
         self._add_stock_prices()
         self.save(self.grps, self.fn_merge_hype_price)
         self.save_settings(self)
