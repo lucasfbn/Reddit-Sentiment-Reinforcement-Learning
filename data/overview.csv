@@ -2,3 +2,4 @@ min_len;keep_offset;look_back;scaler;path;start_hour;start_min;market_symbols;st
 9;7;7;MinMaxScaler;4;22;0;[];30;False;
 7;7;7;MinMaxScaler;3;22;0;[];30;False;
 7;7;7;MinMaxScaler;3;22;0;[];30;False;close
+7;7;7;MinMaxScaler;5;22;0;[];30;False;close
