@@ -30,12 +30,14 @@ class StockPrices:
             historic = self._get_prices(start, end - datetime.timedelta(days=1))
             historic = historic.append(live)
             historic["date_day"] = pd.to_datetime(historic.index).to_period('D')
+            historic = historic.reset_index(drop=True)
         else:
             start, end = self._get_min_max_date()
             historic = self._get_prices(start - datetime.timedelta(days=self.start_offset), end)
             historic["date_day"] = pd.to_datetime(historic.index).to_period('D')
 
-        return self._merge(historic)
+        merged = self._merge(historic)
+        return merged
 
     def _merge(self, historic):
         return historic.merge(self.data, on="date_day", how="outer")
