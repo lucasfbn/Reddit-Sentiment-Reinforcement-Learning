@@ -22,13 +22,15 @@ class EvaluatePortfolio:
     def __init__(self, model_path,
                  data_path="default",
                  initial_balance=1000,
-                 max_investment_per_trade=0.025,
+                 max_investment_per_trade=0.05,
                  max_price_per_stock=25,
                  max_buy_output_quantile=0.25,
                  max_buy_output=None,
-                 max_trades_per_day=10,
+                 max_trades_per_day=5,
                  slippage=0.007,
-                 order_fee=0.02):
+                 order_fee=0.02,
+                 partial_shares_possible=True
+                 ):
 
         self.model_path = model_path
         self.data = self.load_data(data_path, model_path)
@@ -53,6 +55,8 @@ class EvaluatePortfolio:
         self.slippage = slippage
         self.order_fee = order_fee
         self._extra_costs = 1 + slippage + order_fee
+
+        self.partial_shares_possible = partial_shares_possible
 
         self._min_date = None
         self._max_date = None
@@ -145,7 +149,9 @@ class EvaluatePortfolio:
         if action_output_constraint:
             df = df[df["actions_outputs"] <= self.max_buy_output]
 
-        df = df[df["price"] <= self.max_price_per_stock]
+        if self.max_price_per_stock is not None:
+            df = df[df["price"] <= self.max_price_per_stock]
+
         return df
 
     def _handle_buys(self, potential_buys):
@@ -177,7 +183,11 @@ class EvaluatePortfolio:
                 break
 
             buy["price"] *= self._extra_costs
-            buyable_stocks = capital_per_trade / buy["price"]
+
+            if self.partial_shares_possible:
+                buyable_stocks = capital_per_trade / buy["price"]
+            else:
+                buyable_stocks = capital_per_trade // buy["price"]
 
             buy["quantity"] = buyable_stocks
             buy["total_buy_price"] = buyable_stocks * buy["price"]
@@ -286,6 +296,7 @@ class EvaluatePortfolio:
               "max_buy_output_quantile": [self.max_buy_output_quantile],
               "max_buy_output": [self.max_buy_output],
               "max_trades_per_day": [self.max_trades_per_day], "slippage": [self.slippage],
+              "partial_share_possible": [self.partial_shares_possible],
               "order_fee": [self.order_fee], "profit": [self.profit], "balance": [self.balance],
               "time": datetime.datetime.now().strftime("%Hh%Mm %d_%m-%y")}
         df = pd.DataFrame(df)
