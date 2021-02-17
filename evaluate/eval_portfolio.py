@@ -33,7 +33,8 @@ class EvaluatePortfolio:
                  ):
 
         self.model_path = model_path
-        self.data = self.load_data(data_path, model_path)
+        self.data_path = data_path
+        self.data = self.load_data()
         self.prepare()
 
         self.initial_balance = initial_balance
@@ -67,10 +68,10 @@ class EvaluatePortfolio:
         self._inventory = []
         self._log = []
 
-    def load_data(self, path, model_path):
-        if path == "default":
-            path = model_path / "eval.pkl"
-        with open(path, "rb") as f:
+    def load_data(self):
+        if self.data_path == "default":
+            path = self.model_path / "eval.pkl"
+        with open(self.data_path, "rb") as f:
             return pkl.load(f)
 
     def prepare(self):
@@ -175,12 +176,17 @@ class EvaluatePortfolio:
     def _execute_buy(self, buys):
 
         capital_per_trade = self.initial_balance * self.max_investment_per_trade
-
-        for i, buy in enumerate(buys):
+        i = 0
+        for buy in buys:
 
             # Exit constraints should be above this statement
             if i == self.max_trades_per_day:
                 break
+
+            if not self.callback(buy):
+                continue
+            else:
+                i += 1
 
             buy["price"] *= self._extra_costs
 
@@ -282,6 +288,10 @@ class EvaluatePortfolio:
 
         return pd.DataFrame(action_outputs)
 
+    def callback(self, buy):
+        # Used to implement custom callbacks when buying. While evaluating we do not need such callbacks.
+        return True
+
     def report(self, model_name):
 
         existing_report = None
@@ -323,4 +333,4 @@ if __name__ == "__main__":
 
     print(ep.profit)
     print(ep.balance)
-    ep.report(model)
+    # ep.report(model)
