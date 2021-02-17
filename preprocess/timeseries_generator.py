@@ -5,10 +5,11 @@ from sklearn.preprocessing import MinMaxScaler
 
 class TimeseriesGenerator(Preprocessor):
 
-    def __init__(self, look_back=6, scaler=MinMaxScaler()):
+    def __init__(self, look_back=6, scaler=MinMaxScaler(), live=False):
         self.data = self.load(self.fn_cleaned)
         self.look_back = look_back
         self.scaler = scaler
+        self.live = live
 
     def _add_timeseries_price_col(self, grp):
         grp["data"]["price_ts"] = grp["data"]["price"]
@@ -71,12 +72,18 @@ class TimeseriesGenerator(Preprocessor):
         grp["data"] = new_df
         return grp
 
+    def _live(self, grp):
+        if self.live:
+            grp["data"] = grp["data"].tail(1)
+        return grp
+
     def pipeline(self):
         for grp in self.data:
             grp = self._add_timeseries_price_col(grp)
             grp = self._add_relative_change(grp)
             grp = self._add_pre_data(grp)
             grp = self._scale(grp)
+            grp = self._live(grp)
         self.save(self.data, self.fn_timeseries)
         self.save_settings(self)
         self.settings_to_file()
