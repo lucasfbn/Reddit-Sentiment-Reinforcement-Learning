@@ -277,6 +277,7 @@ class EvaluatePortfolio:
               "initial_balance": [self.initial_balance], "max_investment_per_trade": [self.max_investment_per_trade],
               "max_price_per_stock": [self.max_price_per_stock],
               "max_buy_output_quantile": [self.max_buy_output_quantile],
+              "max_buy_output": [self.max_buy_output],
               "max_trades_per_day": [self.max_trades_per_day], "slippage": [self.slippage],
               "order_fee": [self.order_fee], "profit": [self.profit], "balance": [self.balance],
               "time": datetime.datetime.now().strftime("%Hh%Mm %d_%m-%y")}
