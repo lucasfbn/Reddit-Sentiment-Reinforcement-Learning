@@ -14,5 +14,6 @@ data_paths = {
     1: data_path / "test",
     2: data_path / "live",
     3: data_path / "3",
-    4: data_path / "4"
+    4: data_path / "4",
+    5: data_path / "5",
 }
