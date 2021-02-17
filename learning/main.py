@@ -7,7 +7,7 @@ from learning.agent import Agent
 from learning.env import StockEnv
 
 
-def main(input_path, eval=False, model_path=None, eval_out_path=None):
+def main(input_path, continue_training=False, eval=False, model_path=None, eval_out_path="eval.pkl"):
     if eval:
         warnings.warn("Eval is active.")
 
@@ -30,6 +30,8 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
         agent.load(model_path)
         n_episodes = 1
         batch_size = 0
+    if continue_training:
+        agent.load(model_path)
 
     for i, grp in enumerate(data):
 
@@ -86,6 +88,7 @@ def main(input_path, eval=False, model_path=None, eval_out_path=None):
 
 
 if __name__ == "__main__":
-    main(paths.data_paths[4] / "timeseries.pkl",
-         eval=False, model_path=paths.models_path / "10_59---16_02-21.mdl",
-         eval_out_path="eval_train.pkl")
+    main(paths.data_paths[5] / "timeseries.pkl",
+         continue_training=False,
+         eval=True,
+         model_path=paths.models_path / "45-12_22---17_02-21")
