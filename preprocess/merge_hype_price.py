@@ -31,19 +31,11 @@ class MergeHypePrice(Preprocessor):
         self.live = live
         self.limit = limit
 
-    def _preprocess(self):
-        self.df = self.df.drop(columns=['Unnamed: 0', 'Run Id'], errors="ignore")
-        self.df = self.df.rename({"Run Time (UTC)": "time"}, axis=1)
-        self.df.columns = self.fix_cols(self.df.columns)
-
     def _handle_time(self):
-        self.df["time"] = pd.to_datetime(self.df["time"], format="%d-%m-%Y %H:%M")
+        self.df["time"] = pd.to_datetime(self.df["end"], format="%Y-%m-%d %H:%M")
         self.df = self.df.sort_values(by=["time"])
-
-        self.df["time"] = self.df["time"].dt.tz_localize("UTC")
-        self.df["time_mesz"] = self.df["time"].dt.tz_convert("Europe/Berlin")
-        self.df["time_shifted"] = self.df["time_mesz"] - pd.Timedelta(hours=self.start_hour,
-                                                                      minutes=self.start_min) + pd.Timedelta(days=1)
+        self.df["time_shifted"] = self.df["time"] - pd.Timedelta(hours=self.start_hour,
+                                                                 minutes=self.start_min) + pd.Timedelta(days=1)
 
         self.df["date_day"] = pd.to_datetime(self.df['time_shifted']).dt.to_period('D')
 
@@ -52,7 +44,7 @@ class MergeHypePrice(Preprocessor):
             self.df = self.df[self.df["market_symbol"].isin(self.market_symbols)]
 
     def _grp_by(self):
-        grp_by = self.df.groupby(["ticker_symbol"])
+        grp_by = self.df.groupby(["ticker"])
 
         for name, group in grp_by:
             self.grps.append({"ticker": name, "data": group.groupby(["date_day"]).agg("sum").reset_index()})
@@ -80,7 +72,6 @@ class MergeHypePrice(Preprocessor):
         self.grps = new_grps
 
     def pipeline(self):
-        self._preprocess()
         self._handle_time()
         self._filter_market_symbol()
         self._grp_by()

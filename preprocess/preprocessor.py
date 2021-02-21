@@ -15,9 +15,8 @@ class Preprocessor:
     # Used in cleaner
     cols_to_be_dropped = ["date_day", "open", "close", "high", "low", "adj_close", "volume", "date_weekday"]
     # Used in timeseries generator
-    cols_to_be_scaled = ['total_hype_level', 'current_hype_level', 'previous_hype_level',
-                         'posts', 'upvotes', 'comments', 'distinct_authors', "change_hype_level", "rel_change",
-                         'price_ts']
+    cols_to_be_scaled = ['num_comments', 'pos', 'compound', 'posts', 'neu', 'neg', 'n_posts',
+                         "rel_change", 'price_ts']
 
     path = None
     settings = {"used_price": use_price}
@@ -34,7 +33,7 @@ class Preprocessor:
 
     def load(self, fn):
         if "csv" in fn:
-            return pd.read_csv(Preprocessor.path / fn, sep=",")
+            return pd.read_csv(Preprocessor.path / fn, sep=";")
         elif "pkl" in fn:
             with open(Preprocessor.path / fn, "rb") as f:
                 return pkl.load(f)

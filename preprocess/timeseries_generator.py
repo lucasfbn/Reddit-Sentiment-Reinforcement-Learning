@@ -79,6 +79,7 @@ class TimeseriesGenerator(Preprocessor):
 
     def pipeline(self):
         for grp in self.data:
+            print(grp["ticker"])
             grp = self._add_timeseries_price_col(grp)
             grp = self._add_relative_change(grp)
             grp = self._add_pre_data(grp)
