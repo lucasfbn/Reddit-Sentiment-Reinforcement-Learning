@@ -16,7 +16,10 @@ tracking_path = storage_path / "tracking"
 
 
 def d_path(folder):
-    return datasets_data_path / str(folder)
+    if not os.path.exists(datasets_data_path / str(folder)):
+        create_dir(datasets_data_path, str(folder), "")
+    else:
+        return datasets_data_path / str(folder)
 
 
 def create_dir(path, fn, suffix):
