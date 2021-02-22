@@ -24,7 +24,7 @@ class MergeHypePrice(Preprocessor):
         self.start_hour = start_hour
         self.start_min = start_min
         self.market_symbols = market_symbols
-        self.min_len = min_len_hype
+        self.min_len_hype = min_len_hype
         self.start_offset = start_offset
         self.fill_gaps = fill_gaps
         self.scale_cols_daywise = scale_cols_daywise
@@ -71,7 +71,7 @@ class MergeHypePrice(Preprocessor):
         filtered_grps = []
 
         for grp in self.grps:
-            if len(grp["data"]) >= self.min_len:
+            if len(grp["data"]) >= self.min_len_hype:
                 filtered_grps.append(grp)
         self.grps = filtered_grps
 

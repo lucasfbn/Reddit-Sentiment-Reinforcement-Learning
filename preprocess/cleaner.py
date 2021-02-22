@@ -5,7 +5,7 @@ class Cleaner(Preprocessor):
 
     def __init__(self, min_len_hype_price=6, keep_offset=6):
         self.data = self.load(self.fn_merge_hype_price)
-        self.min_len = min_len_hype_price
+        self.min_len_hype_price = min_len_hype_price
         self.keep_offset = keep_offset
 
     def _rename_cols(self):
@@ -39,7 +39,7 @@ class Cleaner(Preprocessor):
             df = grp["data"]
             temp = df.dropna()
 
-            if len(temp) >= self.min_len and len(df) >= len(temp) + self.keep_offset:
+            if len(temp) >= self.min_len_hype_price and len(df) >= len(temp) + self.keep_offset:
                 min_index = len(df) - len(temp) - self.keep_offset
                 grp["data"] = df.iloc[min_index:]
                 new_data.append(grp)
