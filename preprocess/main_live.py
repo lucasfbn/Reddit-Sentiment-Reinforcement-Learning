@@ -12,6 +12,8 @@ mhp = MergeHypePrice(
     market_symbols=[],
     min_len_hype=1,
     start_offset=30,
+    fill_gaps=False,
+    scale_cols_daywise=False,
     live=True,
     limit=None
 )
