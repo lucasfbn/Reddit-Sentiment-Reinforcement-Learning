@@ -71,7 +71,9 @@ class EvaluatePortfolio:
     def load_data(self):
         if self.data_path == "default":
             path = self.model_path / "eval.pkl"
-        with open(self.data_path, "rb") as f:
+        else:
+            path = self.data_path
+        with open(path, "rb") as f:
             return pkl.load(f)
 
     def prepare(self):
@@ -296,7 +298,7 @@ class EvaluatePortfolio:
 
         existing_report = None
         try:
-            existing_report = pd.read_csv("report.csv", sep=";")
+            existing_report = pd.read_csv(paths.tracking_path / "eval.csv", sep=";")
         except FileNotFoundError:
             print("Error loading report.")
 
@@ -312,16 +314,16 @@ class EvaluatePortfolio:
         df = pd.DataFrame(df)
 
         if existing_report is None:
-            df.to_csv("report.csv", index=False, sep=";")
+            df.to_csv(paths.tracking_path / "eval.csv", index=False, sep=";")
         else:
             existing_report = existing_report.append(df)
-            existing_report.to_csv("report.csv", index=False, sep=";")
+            existing_report.to_csv(paths.tracking_path / "eval.csv", index=False, sep=";")
 
 
 if __name__ == "__main__":
     import paths
 
-    model = "4-15_02---16_02-21"
+    model = "12-10_22---22_02-21"
 
     # data = data[:10]
 
@@ -333,4 +335,4 @@ if __name__ == "__main__":
 
     print(ep.profit)
     print(ep.balance)
-    # ep.report(model)
+    ep.report(model)

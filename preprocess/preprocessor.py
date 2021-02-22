@@ -54,7 +54,7 @@ class Preprocessor:
 
         existing_df = None
         try:
-            existing_df = pd.read_csv(paths.data_path / "overview.csv", sep=";")
+            existing_df = pd.read_csv(paths.tracking_path / "preprocessing.csv", sep=";")
         except FileNotFoundError:
             print("Error loading report.")
 
@@ -62,10 +62,10 @@ class Preprocessor:
         df = pd.DataFrame(Preprocessor.settings)
 
         if existing_df is None:
-            df.to_csv(paths.data_path / "overview.csv", index=False, sep=";")
+            df.to_csv(paths.tracking_path / "preprocessing.csv", index=False, sep=";")
         else:
             existing_df = existing_df.append(df)
-            existing_df.to_csv(paths.data_path / "overview.csv", index=False, sep=";")
+            existing_df.to_csv(paths.tracking_path / "preprocessing.csv", index=False, sep=";")
 
     def save(self, data, fn):
         with open(Preprocessor.path / fn, "wb") as f:
