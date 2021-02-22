@@ -33,16 +33,7 @@ class Dataset:
     def _prepare_dir(self):
         n_folder = len([_ for _ in os.listdir(self.path) if os.path.isdir(self.path / _)])
         fn = f"{self.start.strftime('%d-%m-%y')} - {self.end.strftime('%d-%m-%y')}"
-
-        def create(fn, suffix):
-            if not os.path.exists(self.path / (fn + f"_{suffix}")):
-                os.mkdir(self.path / (fn + f"_{suffix}"))
-                return self.path / (fn + f"_{suffix}")
-            else:
-                create(fn, suffix + 1)
-                return self.path / (fn + f"_{suffix}")
-
-        self.path = create(fn, 0)
+        self.path = paths.create_dir(self.path, fn, 0)
 
     def get_from_gc(self):
         self.df = download(self.start, self.end, self.fields)
@@ -65,7 +56,9 @@ class Dataset:
 
         sh = SubmissionsHandler(data=self.grps,
                                 upload=self.upload_report,
-                                upload_all_at_once=False)
+                                upload_all_at_once=False,
+                                search_ticker_in_body=True,
+                                max_subm_p_author_p_day=1)
         p_data = sh.process()
         p_data.to_csv(self.path / self.report_fn, sep=";", index=False)
 
@@ -78,7 +71,7 @@ class Dataset:
 if __name__ == "__main__":
     from datetime import datetime
 
-    start = datetime(year=2021, month=2, day=1)
-    end = datetime(year=2021, month=2, day=2)
-    ds = Dataset(start, end, path_suffix="live")
+    start = datetime(year=2021, month=1, day=13)
+    end = datetime(year=2021, month=1, day=14)
+    ds = Dataset(start, end, path_suffix="")
     ds.create()

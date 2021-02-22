@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 """
@@ -16,6 +17,15 @@ tracking_path = storage_path / "tracking"
 
 def d_path(folder):
     return datasets_data_path / str(folder)
+
+
+def create_dir(path, fn, suffix):
+    if not os.path.exists(path / (fn + f"_{suffix}")):
+        os.mkdir(path / (fn + f"_{suffix}"))
+        return path / (fn + f"_{suffix}")
+    else:
+        create_dir(path, fn, suffix + 1)
+        return path / (fn + f"_{suffix}")
 
 
 # sentiment analysis
