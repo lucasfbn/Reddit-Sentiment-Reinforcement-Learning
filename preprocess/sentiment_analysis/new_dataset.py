@@ -3,9 +3,9 @@ import pickle as pkl
 
 import pandas as pd
 
-from analyze.analysis import SubmissionsHandler
-from download.from_gc.download import download
-from preprocess.preprocess import Preprocessor
+from preprocess.sentiment_analysis.analyze.analysis import SubmissionsHandler
+from preprocess.sentiment_analysis.download.from_gc.download import download
+from preprocess.sentiment_analysis.preprocess.preprocess import Preprocessor
 
 
 class Dataset:

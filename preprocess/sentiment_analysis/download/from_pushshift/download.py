@@ -1,8 +1,8 @@
 from datetime import datetime
 
-from db.db_handler import DB
-from download.from_pushshift.graber import Graber
-from utils.utils import *
+from preprocess.sentiment_analysis.db.db_handler import DB
+from preprocess.sentiment_analysis.download.from_pushshift.graber import Graber
+from preprocess.sentiment_analysis.utils.utils import *
 
 
 def download():

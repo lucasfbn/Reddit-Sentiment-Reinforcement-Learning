@@ -3,7 +3,7 @@ import logging
 import praw
 from psaw import PushshiftAPI
 import pandas as pd
-import download.from_pushshift.schemas as schema
+import preprocess.sentiment_analysis.download.from_pushshift.schemas as schema
 
 handler = logging.StreamHandler()
 handler.setLevel(logging.DEBUG)

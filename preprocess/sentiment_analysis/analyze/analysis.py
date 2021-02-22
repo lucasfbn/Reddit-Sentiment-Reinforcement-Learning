@@ -4,8 +4,8 @@ import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 import paths
-from db.db_handler import DB
-from utils.utils import *
+from preprocess.sentiment_analysis.db.db_handler import DB
+from preprocess.sentiment_analysis.utils.utils import *
 
 
 class SubmissionsHandler:

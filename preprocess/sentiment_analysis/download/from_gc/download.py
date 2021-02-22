@@ -1,4 +1,4 @@
-from db.db_handler import DB
+from preprocess.sentiment_analysis.db.db_handler import DB
 from datetime import datetime
 
 
