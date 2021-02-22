@@ -88,8 +88,8 @@ def main(input_path, continue_training=False, eval=False, model_path=None, eval_
 
 
 if __name__ == "__main__":
-    main(paths.data_paths[6] / "timeseries.pkl",
+    main(paths.d_path(12) / "timeseries.pkl",
          continue_training=False,
-         eval=True,
-         model_path=paths.models_path / "4-15_02---16_02-21"
+         eval=False,
+         model_path=paths.models_path / "12-10_22---22_02-21"
          )
