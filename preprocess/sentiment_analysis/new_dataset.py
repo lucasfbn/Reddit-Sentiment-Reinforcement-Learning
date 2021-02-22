@@ -16,12 +16,13 @@ class Dataset:
 
     def __init__(self, start, end,
                  fields=["author", "created_utc", "id", "num_comments", "title", "selftext", "subreddit"],
+                 path_suffix="",
                  upload_report=False):
         self.start = start
         self.end = end
         self.fields = fields
         self.upload_report = upload_report
-        self.path = paths.sentiment_data_path
+        self.path = paths.sentiment_data_path / path_suffix
 
         self._prepare_dir()
 
@@ -78,6 +79,6 @@ if __name__ == "__main__":
     from datetime import datetime
 
     start = datetime(year=2021, month=2, day=1)
-    end = datetime(year=2021, month=2, day=14)
-    ds = Dataset(start, end)
+    end = datetime(year=2021, month=2, day=2)
+    ds = Dataset(start, end, path_suffix="live")
     ds.create()
