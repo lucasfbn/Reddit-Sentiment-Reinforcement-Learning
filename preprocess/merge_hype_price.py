@@ -1,12 +1,8 @@
-import datetime
-import pickle as pkl
-
 import pandas as pd
-import yfinance as yf
+from sklearn.preprocessing import MinMaxScaler
 
-import paths
-from preprocess.stock_prices import StockPrices
 from preprocess.preprocessor import Preprocessor
+from preprocess.stock_prices import StockPrices
 
 pd.options.mode.chained_assignment = None
 
@@ -19,6 +15,7 @@ class MergeHypePrice(Preprocessor):
                  min_len_hype=7,
                  start_offset=30,
                  fill_gaps=True,
+                 scale_cols_daywise=True,
                  live=False,
                  limit=None):
 
@@ -30,6 +27,7 @@ class MergeHypePrice(Preprocessor):
         self.min_len = min_len_hype
         self.start_offset = start_offset
         self.fill_gaps = fill_gaps
+        self.scale_cols_daywise = scale_cols_daywise
         self.live = live
         self.limit = limit
 
@@ -44,6 +42,20 @@ class MergeHypePrice(Preprocessor):
     def _filter_market_symbol(self):
         if self.market_symbols:
             self.df = self.df[self.df["market_symbol"].isin(self.market_symbols)]
+
+    def _scale_daywise(self):
+        if not self.scale_cols_daywise:
+            return
+
+        scaled = pd.DataFrame()
+        grp_by = self.df.groupby(["date_day"])
+        for name, group in grp_by:
+            scaler = MinMaxScaler()
+
+            group[[col + "_scaled_daywise" for col in self.cols_to_be_scaled_daywise]] \
+                = scaler.fit_transform(group[self.cols_to_be_scaled_daywise])
+            scaled = scaled.append(group)
+        self.df = scaled
 
     def _grp_by(self):
         grp_by = self.df.groupby(["ticker"])
@@ -100,6 +112,7 @@ class MergeHypePrice(Preprocessor):
     def pipeline(self):
         self._handle_time()
         self._filter_market_symbol()
+        self._scale_daywise()
         self._grp_by()
         self._drop_short()
         self._limit()

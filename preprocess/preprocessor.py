@@ -12,10 +12,12 @@ class Preprocessor:
 
     use_price = "close"
 
+    # Used in merge_hype_price
+    cols_to_be_scaled_daywise = ['num_comments', 'pos', 'compound', 'neu', 'neg', 'n_posts']
     # Used in cleaner
     cols_to_be_dropped = ["date_day", "open", "close", "high", "low", "adj_close", "volume", "date_weekday"]
     # Used in timeseries generator
-    cols_to_be_scaled = ['num_comments', 'pos', 'compound', 'posts', 'neu', 'neg', 'n_posts',
+    cols_to_be_scaled = ['num_comments', 'pos', 'compound', 'neu', 'neg', 'n_posts',
                          "rel_change", 'price_ts']
 
     path = None
