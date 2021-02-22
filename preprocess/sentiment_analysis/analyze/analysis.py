@@ -10,17 +10,19 @@ from preprocess.sentiment_analysis.utils.utils import *
 
 class SubmissionsHandler:
 
-    def __init__(self, data, upload=False, upload_all_at_once=True):
+    def __init__(self, data, upload=False, upload_all_at_once=True, **kwargs):
         self.data = data
         self.upload = upload
         self.upload_all_at_once = upload_all_at_once
+        self.kwargs = kwargs
         self.processed_data = pd.DataFrame()
 
     def process(self):
         len_d = len(self.data)
         for i, d in enumerate(self.data):
             log.info(f"Processing {i}/{len_d}")
-            submission = Submissions(run_id=d["id"],
+            submission = Submissions(**self.kwargs,
+                                     run_id=d["id"],
                                      df=d["df"],
                                      start=d["start"],
                                      start_timestamp=d["start_timestamp"],
