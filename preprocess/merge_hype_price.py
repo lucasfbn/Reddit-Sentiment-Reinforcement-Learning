@@ -18,6 +18,7 @@ class MergeHypePrice(Preprocessor):
                  market_symbols=[],
                  min_len_hype=7,
                  start_offset=30,
+                 fill_gaps=True,
                  live=False,
                  limit=None):
 
@@ -28,6 +29,7 @@ class MergeHypePrice(Preprocessor):
         self.market_symbols = market_symbols
         self.min_len = min_len_hype
         self.start_offset = start_offset
+        self.fill_gaps = fill_gaps
         self.live = live
         self.limit = limit
 
@@ -61,6 +63,30 @@ class MergeHypePrice(Preprocessor):
                 filtered_grps.append(grp)
         self.grps = filtered_grps
 
+    def _handle_gaps(self):
+        """
+        Handles gaps in between the first and the last occurrence. E.g. if a whole day (or more) is missing during a
+        certain period these days will be added and their values will be set to 0.
+        """
+
+        if not self.fill_gaps:
+            return
+
+        for grp in self.grps:
+            df = grp["data"]
+            min_date = df["date_day"].min().to_timestamp()
+            max_date = df["date_day"].max().to_timestamp()
+
+            # Created temp df with the daterange between min and max date in original df
+            temp = pd.DataFrame()
+            temp["date_day"] = pd.date_range(start=min_date, end=max_date)
+            temp["date_day"] = temp["date_day"].dt.to_period("D")
+
+            df = df.merge(temp, on="date_day", how="outer")
+            df = df.sort_values(by=["date_day"])
+            df = df.fillna(0)
+            grp["data"] = df
+
     def _add_stock_prices(self):
         new_grps = []
 
@@ -77,6 +103,7 @@ class MergeHypePrice(Preprocessor):
         self._grp_by()
         self._drop_short()
         self._limit()
+        self._handle_gaps()
         self._add_stock_prices()
         self.save(self.grps, self.fn_merge_hype_price)
         self.save_settings(self)

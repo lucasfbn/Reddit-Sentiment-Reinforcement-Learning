@@ -12,19 +12,20 @@ mhp = MergeHypePrice(
     market_symbols=[],
     min_len_hype=7,
     start_offset=30,
+    fill_gaps=True,
     live=False,
     limit=None
 )
-# mhp.pipeline()
+mhp.pipeline()
 # mhp.save_settings(mhp)
 
-c = Cleaner(
-    min_len_hype_price=7,
-    keep_offset=7
-)
+# c = Cleaner(
+#     min_len_hype_price=7,
+#     keep_offset=7
+# )
 # c.pipeline()
 #
-tsg = TimeseriesGenerator(
-    look_back=7
-)
-tsg.pipeline()
+# tsg = TimeseriesGenerator(
+#     look_back=7
+# )
+# tsg.pipeline()
