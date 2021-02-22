@@ -6,6 +6,7 @@ import pandas as pd
 from preprocess.sentiment_analysis.analyze.analysis import SubmissionsHandler
 from preprocess.sentiment_analysis.download.from_gc.download import download
 from preprocess.sentiment_analysis.preprocess.preprocess import Preprocessor
+import paths
 
 
 class Dataset:
@@ -20,20 +21,26 @@ class Dataset:
         self.end = end
         self.fields = fields
         self.upload_report = upload_report
+        self.path = paths.sentiment_data_path
 
         self._prepare_dir()
-
-        self.path = None
 
         self.df = None
         self.grps = None
         self.report = None
 
     def _prepare_dir(self):
-        n_folder = len([_ for _ in os.listdir() if os.path.isdir(_)])
-        new_dir = f"{n_folder + 1}"
-        os.mkdir(new_dir)
-        self.path = new_dir
+        n_folder = len([_ for _ in os.listdir(self.path) if os.path.isdir(self.path / _)])
+        fn = f"{self.start.strftime('%d-%m-%y')} - {self.end.strftime('%d-%m-%y')}"
+
+        def create(fn, suffix):
+            if not os.path.exists(self.path / (fn + f"_{suffix}")):
+                os.mkdir(self.path / (fn + f"_{suffix}"))
+            else:
+                create(fn, suffix + 1)
+                return self.path / (fn + f"_{suffix}")
+
+        self.path = create(fn, 0)
 
     def get_from_gc(self):
         self.df = download(self.start, self.end, self.fields)
@@ -43,7 +50,7 @@ class Dataset:
         if self.df is None:
             self.df = pd.read_csv(self.path / self.gc_dump_fn, sep=";")
 
-        prep = Preprocessor(self.df)
+        prep = Preprocessor(df=self.df)
         self.grps = prep.run()
 
         with open(self.path / self.grps_fn, "wb") as f:
@@ -54,7 +61,7 @@ class Dataset:
             with open(self.path / self.grps_fn, "rb") as f:
                 self.grps = pkl.load(f)
 
-        sh = SubmissionsHandler(self.grps,
+        sh = SubmissionsHandler(data=self.grps,
                                 upload=self.upload_report,
                                 upload_all_at_once=False)
         p_data = sh.process()
@@ -70,6 +77,6 @@ if __name__ == "__main__":
     from datetime import datetime
 
     start = datetime(year=2021, month=1, day=13)
-    end = datetime(year=2021, month=1, day=13, hour=1)
+    end = datetime(year=2021, month=1, day=14)
     ds = Dataset(start, end)
     ds.create()
