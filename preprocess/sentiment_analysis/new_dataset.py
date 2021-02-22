@@ -36,6 +36,7 @@ class Dataset:
         def create(fn, suffix):
             if not os.path.exists(self.path / (fn + f"_{suffix}")):
                 os.mkdir(self.path / (fn + f"_{suffix}"))
+                return self.path / (fn + f"_{suffix}")
             else:
                 create(fn, suffix + 1)
                 return self.path / (fn + f"_{suffix}")
@@ -76,7 +77,7 @@ class Dataset:
 if __name__ == "__main__":
     from datetime import datetime
 
-    start = datetime(year=2021, month=1, day=13)
-    end = datetime(year=2021, month=1, day=14)
+    start = datetime(year=2021, month=2, day=1)
+    end = datetime(year=2021, month=2, day=14)
     ds = Dataset(start, end)
     ds.create()
