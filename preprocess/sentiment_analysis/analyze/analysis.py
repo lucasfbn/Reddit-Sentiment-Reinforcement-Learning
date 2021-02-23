@@ -142,7 +142,7 @@ class Submissions:
         return occurred_ticker
 
     @drop_stats
-    def _filter_no_ticker(self):
+    def filter_no_ticker(self):
         submission_ticker_id = self.submission_ticker["id"].values.tolist()
         self.df = self.df[self.df["id"].isin(submission_ticker_id)]
 
@@ -163,7 +163,6 @@ class Submissions:
                 submission_ticker.append({"id": id, "ticker": ot})
 
         self.submission_ticker = pd.DataFrame(submission_ticker)
-        self._filter_no_ticker()
 
     def _map_polarity_to_ticker(self):
         vader = self.df[self.cols_in_vader_merge]
@@ -203,6 +202,11 @@ class Submissions:
     def process(self):
         self.preprocess()
         self.get_submission_ticker()
+
+        if self.submission_ticker.empty:
+            return pd.DataFrame()
+
+        self.filter_no_ticker()
         self.apply_vader()
         self.aggregate()
         self.add_metadata()
