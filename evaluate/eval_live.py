@@ -25,8 +25,15 @@ class EvalLive(EvaluatePortfolio):
         self._handle_sells(sells)
         self._handle_buys(potential_buys)
 
-    def callback(self, buy):
-        decision = input(f"Attempting to buy {buy['ticker']} @ {buy['price']}. Execute buy? (y/n)")
+    def buy_callback(self, buy):
+        decision = input(f"Attempting to BUY {buy['ticker']} @ {buy['price']}. Execute BUY? (y/n)")
+        if decision == "y":
+            return True
+        return False
+
+    def sell_callback(self, sell, profit_perc):
+        decision = input(
+            f"Attempting to SELL {sell['ticker']} @ {sell['price']}. Rel. Profit: {profit_perc}. Execute SELL? (y/n)")
         if decision == "y":
             return True
         return False

@@ -185,7 +185,7 @@ class EvaluatePortfolio:
             if i == self.max_trades_per_day:
                 break
 
-            if not self.callback(buy):
+            if not self.buy_callback(buy):
                 continue
             else:
                 i += 1
@@ -236,11 +236,14 @@ class EvaluatePortfolio:
                     else:
                         current_price = sell["price"]
 
-                    old_depot = self.balance
-                    self.balance += current_price * position["quantity"]
-
                     profit_raw = current_price - bought_price
                     profit_perc = current_price / bought_price
+
+                    if not self.sell_callback(sell, profit_perc):
+                        continue
+
+                    old_depot = self.balance
+                    self.balance += current_price * position["quantity"]
 
                     self.profit = self.profit + (self.profit * (self.max_investment_per_trade * (profit_perc - 1)))
 
@@ -290,8 +293,12 @@ class EvaluatePortfolio:
 
         return pd.DataFrame(action_outputs)
 
-    def callback(self, buy):
+    def buy_callback(self, buy):
         # Used to implement custom callbacks when buying. While evaluating we do not need such callbacks.
+        return True
+
+    def sell_callback(self, sell, profit_perc):
+        # Used to implement custom callbacks when selling. While evaluating we do not need such callbacks.
         return True
 
     def report(self, model_name):
