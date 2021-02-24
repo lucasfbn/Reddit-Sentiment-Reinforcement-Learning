@@ -7,7 +7,7 @@ import numpy as np
 import datetime
 import pickle as pkl
 
-verbose = False
+verbose = True
 
 if verbose:
     def vprint(msg):
@@ -143,8 +143,8 @@ class EvaluatePortfolio:
                 elif trade["actions"] == "sell" and trade["tradeable"]:
                     sells.append(trade)
 
-            self._handle_buys(potential_buys)
             self._handle_sells(sells)
+            self._handle_buys(potential_buys)
 
     def _buy_constraints(self, df, action_output_constraint=True):
         df = df[df["tradeable"] == True]  # Only keep tradeable ticker
