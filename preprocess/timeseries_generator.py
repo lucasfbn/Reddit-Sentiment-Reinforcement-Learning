@@ -78,12 +78,20 @@ class TimeseriesGenerator(Preprocessor):
         return grp
 
     def pipeline(self):
+        processed_data = []
         for grp in self.data:
             grp = self._add_timeseries_price_col(grp)
             grp = self._add_relative_change(grp)
             grp = self._add_pre_data(grp)
+
+            if len(grp["data"]) == 0:
+                continue
+
             grp = self._scale(grp)
             grp = self._live(grp)
+            processed_data.append(grp)
+
+        self.data = processed_data
         self.save(self.data, self.fn_timeseries)
         self.save_settings(self)
         self.settings_to_file()
