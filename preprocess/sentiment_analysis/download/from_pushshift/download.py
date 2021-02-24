@@ -9,8 +9,8 @@ def download():
     g = Graber()
     database = DB()
 
-    start = datetime(year=2021, month=2, day=1)
-    end = datetime(year=2021, month=2, day=14)
+    start = datetime(year=2021, month=2, day=15)
+    end = datetime(year=2021, month=2, day=24)
 
     subreddits = [
         "pennystocks",
@@ -30,3 +30,7 @@ def download():
             database.up(data, dataset="data", table="submissions")
         except Exception as e:
             log.critical(f"Processing {subreddit} failed. Error: {e}")
+
+
+if __name__ == '__main__':
+    download()
