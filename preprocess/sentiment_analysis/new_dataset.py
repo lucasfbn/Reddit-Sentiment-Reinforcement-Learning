@@ -4,7 +4,7 @@ import pickle as pkl
 import pandas as pd
 
 from preprocess.sentiment_analysis.analyze.analysis import SubmissionsHandler
-from preprocess.sentiment_analysis.download.from_gc.download import download
+from preprocess.sentiment_analysis.api.download import download
 from preprocess.sentiment_analysis.preprocess.preprocess import Preprocessor
 import paths
 
@@ -71,7 +71,7 @@ class Dataset:
 if __name__ == "__main__":
     from datetime import datetime
 
-    start = datetime(year=2021, month=1, day=13)
-    end = datetime(year=2021, month=1, day=14)
-    ds = Dataset(start, end, path_suffix="")
+    start = datetime(year=2021, month=2, day=14)
+    end = datetime(year=2021, month=2, day=24)
+    ds = Dataset(start, end, path_suffix="live")
     ds.create()

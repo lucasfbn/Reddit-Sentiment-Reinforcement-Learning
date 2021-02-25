@@ -2,7 +2,7 @@ import pickle as pkl
 
 import pandas as pd
 
-from preprocess.sentiment_analysis.utils.utils import *
+from utils import *
 
 
 class Preprocessor:

@@ -5,7 +5,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 import paths
 from preprocess.sentiment_analysis.db.db_handler import DB
-from preprocess.sentiment_analysis.utils.utils import *
+from utils import *
 
 
 class SubmissionsHandler:
@@ -49,7 +49,7 @@ class SubmissionsHandler:
 
         log.info(f"Uploading... Rows: {len(data)}")
         database = DB()
-        database.up(data, "processed_data", "ticker")
+        database.upload(data, "processed_data", "ticker")
 
 
 class Submissions:
