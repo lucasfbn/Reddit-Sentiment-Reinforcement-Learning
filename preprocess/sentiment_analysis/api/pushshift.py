@@ -1,11 +1,12 @@
 from datetime import datetime
+import time
 
 import pandas as pd
 import requests
 from preprocess.sentiment_analysis.api.google_cloud import BigQueryDB
 from psaw import PushshiftAPI
 
-from utils import dt_to_timestamp
+from utils import dt_to_timestamp, log
 
 submission_schema = {"created_utc": "int64", "author": "object", "id": "object", "title": "object",
                      "subreddit": "object", "num_comments": "int64", "selftext": "object",
@@ -85,7 +86,15 @@ class BetaAPI:
         }
 
         response = requests.get(baseurl, params=params)
-        assert response.status_code == 200
+
+        timeout = 0
+
+        while response.status_code != 200:
+            log.warning(f"BETA API: Response status code was {response.status_code}. Will retry in {1 + timeout}.")
+            response = requests.get(baseurl, params=params)
+            time.sleep(1 + timeout)
+            timeout += 5
+
         return response.json()["data"]
 
     def filter_early_submissions(self, submissions, start):
