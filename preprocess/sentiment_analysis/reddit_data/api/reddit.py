@@ -1,17 +1,14 @@
 import praw
-from utils import dt_to_timestamp, log
-from preprocess.sentiment_analysis.api.api import API
-import pandas as pd
+from utils import dt_to_timestamp
+from preprocess.sentiment_analysis.reddit_data.api.api import API
 
 
 class RedditAPI(API):
 
-    def __init__(self, user_agent, client_id, client_secret, username, password):
+    def __init__(self, user_agent, client_id, client_secret):
         self.reddit = praw.Reddit(user_agent=user_agent,
                                   client_id=client_id,
-                                  client_secret=client_secret,
-                                  username=username,
-                                  password=password)
+                                  client_secret=client_secret)
         self.submissions = []
 
     def extract_relevant_data(self, submission):

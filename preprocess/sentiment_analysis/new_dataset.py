@@ -5,7 +5,7 @@ import pandas as pd
 
 from preprocess.sentiment_analysis.analyze.analysis import SubmissionsHandler
 from preprocess.sentiment_analysis.api.download import download
-from preprocess.sentiment_analysis.preprocess.preprocess import Preprocessor
+from preprocess.sentiment_analysis.reddit_data.preprocess.preprocess import Preprocessor
 import paths
 
 

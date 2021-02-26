@@ -1,10 +1,9 @@
 from datetime import datetime
 import time
 
-import pandas as pd
 import requests
-from preprocess.sentiment_analysis.api.google_cloud import BigQueryDB
-from preprocess.sentiment_analysis.api.api import API
+from preprocess.sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
+from preprocess.sentiment_analysis.reddit_data.api.api import API
 from psaw import PushshiftAPI
 
 from utils import dt_to_timestamp, log
@@ -24,11 +23,43 @@ class MainApi(API):
             submissions = self.api.search_submissions(after=after, before=end, subreddit=subreddit)
         return submissions
 
+    def extract_relevant_data(self, submission):
+        temp = {}
+        submission_dict = submission._asdict()
+        for schema_key in self.submission_schema:
+            if schema_key in submission_dict:
+                if schema_key == "author":
+                    try:
+                        author_name = submission.author
+                    except:
+                        author_name = None
+                    temp[schema_key] = author_name
+                elif schema_key == "subreddit":
+                    temp[schema_key] = submission.subreddit
+                else:
+                    temp[schema_key] = submission_dict[schema_key]
+            else:
+                temp[schema_key] = None
+        return temp
+
     def get_submissions(self, start, subreddit, end=None):
         start, end = dt_to_timestamp(start), dt_to_timestamp(end)
         self.submissions = self._submission_request(start, subreddit, end=end)
-        self.extract_relevant_data()
+
+        new_submissions = []
+        for subm in self.submissions:
+            new_submissions.append(self.extract_relevant_data(subm))
+
+        self.submissions = new_submissions
+
         return self.to_df()
+
+    def get_submission_ids(self, start, end, subreddit, filter_removed):
+        df = self.get_submissions(start=start, end=end, subreddit=subreddit)
+        if filter_removed:
+            df = self._filter_removed(df)
+
+        return df["id"].values.tolist()
 
 
 class BetaAPI(API):
@@ -77,11 +108,17 @@ class BetaAPI(API):
 
         self.submissions = filtered_submissions
 
-    def _filter_removed(self, df):
-        cols_to_check_if_removed = ["author", "selftext", "title"]
-        for col in cols_to_check_if_removed:
-            df = df[~df[col].isin(["[removed]", "[deleted]"])]
-        return df
+    def extract_relevant_data(self):
+        new_submissions = []
+        for subm in self.submissions:
+            temp = {}
+            for schema_key in self.submission_schema:
+                if schema_key in subm:
+                    temp[schema_key] = subm[schema_key]
+                else:
+                    temp[schema_key] = None
+            new_submissions.append(temp)
+        self.submissions = new_submissions
 
     def get_submissions(self, start, subreddit):
         start = dt_to_timestamp(start)

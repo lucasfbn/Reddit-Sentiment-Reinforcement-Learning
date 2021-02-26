@@ -43,14 +43,8 @@ class API:
         df = df.astype(self.submission_schema)
         return df
 
-    def extract_relevant_data(self):
-        new_submissions = []
-        for subm in self.submissions:
-            temp = {}
-            for schema_key in self.submission_schema:
-                if schema_key in subm:
-                    temp[schema_key] = subm[schema_key]
-                else:
-                    temp[schema_key] = None
-            new_submissions.append(temp)
-        self.submissions = new_submissions
+    def _filter_removed(self, df):
+        cols_to_check_if_removed = ["author", "selftext", "title"]
+        for col in cols_to_check_if_removed:
+            df = df[~df[col].isin(["[removed]", "[deleted]"])]
+        return df
