@@ -48,9 +48,8 @@ def hourly_scrape(data, context):
             submission_ids.extend(ids)
 
         log.info("\tRetrieving submissions.")
-        for subm_id in submission_ids:
-            reddit_api.get_submissions_by_id(ids=submission_ids)
-            submissions = submissions.append(reddit_api.to_df())
+        reddit_api.get_submissions_by_id(ids=submission_ids)
+        submissions = submissions.append(reddit_api.to_df())
 
     else:
 
@@ -59,7 +58,7 @@ def hourly_scrape(data, context):
         log.info("\tRetrieving submissions.")
         for subreddit in subreddits:
             log.info(f"\t\tProcessing {subreddit}")
-            reddit_api.get_latest_submissions(start=start, subreddit=subreddit)
+            reddit_api.get_latest_submissions(start=start, subreddit=subreddit, limit=1000)
             submissions = submissions.append(reddit_api.to_df())
 
     db = BigQueryDB()

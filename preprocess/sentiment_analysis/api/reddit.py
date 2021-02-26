@@ -33,7 +33,7 @@ class RedditAPI(API):
                 temp[schema_key] = None
         return temp
 
-    def get_latest_submissions(self, start, subreddit, limit=10):
+    def get_latest_submissions(self, start, subreddit, limit):
 
         start = dt_to_timestamp(start)
 

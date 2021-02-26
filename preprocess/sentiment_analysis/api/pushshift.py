@@ -40,12 +40,12 @@ class BetaAPI(API):
         self.submissions = None
 
     def available(self):
-        _, status_code = self._submission_request(subreddit="pushshift", size=10)
+        _, status_code = self._submission_request(subreddit="pushshift", size=10, max_retries=1)
         if status_code == 200:
             return True
         return False
 
-    def _submission_request(self, subreddit, size=1000):
+    def _submission_request(self, subreddit, size=1000, max_retries=None):
         baseurl = "https://beta.pushshift.io/search/reddit/submissions"
         params = {
             "subreddit": subreddit,
@@ -54,17 +54,20 @@ class BetaAPI(API):
 
         response = requests.get(baseurl, params=params)
 
-        timeout = 0
         retries = 0
+        if max_retries is None:
+            max_retries = self.max_retries
 
-        while response.status_code != 200 and retries < self.max_retries:
-            log.warning(f"BETA API: Response status code was {response.status_code}. Will retry in {1 + timeout}.")
+        while response.status_code != 200 and retries < max_retries:
+            log.warning(f"BETA API: Response status code was {response.status_code}. Will retry in {1}.")
             response = requests.get(baseurl, params=params)
-            time.sleep(1 + timeout)
-            timeout += 1
+            time.sleep(1)
             retries += 1
 
-        return response.json()["data"], response.status_code
+        if response.status_code == 200:
+            return response.json()["data"], response.status_code
+        else:
+            return [], response.status_code
 
     def _filter_early_submissions(self, start):
         filtered_submissions = []
