@@ -4,9 +4,10 @@ import pickle as pkl
 import pandas as pd
 
 from preprocess.sentiment_analysis.analyze.analysis import SubmissionsHandler
-from preprocess.sentiment_analysis.api.download import download
+from preprocess.sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from preprocess.sentiment_analysis.reddit_data.preprocess.preprocess import Preprocessor
 import paths
+from utils import report
 
 
 class Dataset:
@@ -15,7 +16,7 @@ class Dataset:
     report_fn = "report.csv"
 
     def __init__(self, start, end,
-                 fields=["author", "created_utc", "id", "num_comments", "title", "selftext", "subreddit"],
+                 fields=["author", "created_utc", "id", "num_comments", "score", "title", "selftext", "subreddit"],
                  path_suffix="",
                  upload_report=False):
         self.start = start
@@ -24,19 +25,25 @@ class Dataset:
         self.upload_report = upload_report
         self.path = paths.sentiment_data_path / path_suffix
 
-        self._prepare_dir()
+        # self._prepare_dir()
 
         self.df = None
         self.grps = None
         self.report = None
 
+        report.add({"start": self.start,
+                    "end": self.end,
+                    "fields": fields}, "Dataset")
+
     def _prepare_dir(self):
         n_folder = len([_ for _ in os.listdir(self.path) if os.path.isdir(self.path / _)])
         fn = f"{self.start.strftime('%d-%m-%y')} - {self.end.strftime('%d-%m-%y')}"
         self.path = paths.create_dir(self.path, fn, 0)
+        report.add_to_key({"path": self.path}, "Dataset")
 
     def get_from_gc(self):
-        self.df = download(self.start, self.end, self.fields)
+        db = BigQueryDB()
+        self.df = db.download(self.start, self.end, self.fields)
         self.df.to_csv(self.path / self.gc_dump_fn, sep=";", index=False)
 
     def preprocess(self):

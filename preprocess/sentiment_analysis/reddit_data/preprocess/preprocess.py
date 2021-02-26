@@ -19,6 +19,7 @@ class Preprocessor:
             self.df = df
 
         self.cols_to_check_if_removed = ["author", "selftext", "title"]
+        report.add({"cols_to_check_if_removed": self.cols_to_check_if_removed}, "Preprocessor")
 
     def _add_date_col(self):
         self.df["date_full"] = pd.to_datetime(self.df["created_utc"], unit="s")
@@ -38,6 +39,7 @@ class Preprocessor:
     def _filter_removed(self):
         for col in self.cols_to_check_if_removed:
             self.df = self.df[~self.df[col].isin(["[removed]", "[deleted]"])]
+        report.add({"filter_removed": True}, "Preprocessor")
 
     def _split_by_date(self):
         grps = self.df.groupby("start")
