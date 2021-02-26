@@ -9,6 +9,9 @@ class BigQueryDB:
     def __init__(self):
         self.project_id = "redditdata-305217"
 
+    def auth(self):
+        self.upload(pd.DataFrame({"test": [1, 2, 3]}), dataset="auth", table="auth_table")
+
     def upload(self, df, dataset, table):
         df.to_gbq(destination_table=f"{dataset}.{table}",
                   project_id=self.project_id,
@@ -33,6 +36,5 @@ if __name__ == '__main__':
     # df = db.download(start, end)
     # df.to_csv("raw.csv", sep=";", index=False)
 
-
     db = BigQueryDB()
-    db.upload(pd.DataFrame({"one": [1,2,3]}), dataset="data", table="test_subm1")
+    db.upload(pd.DataFrame({"one": [1, 2, 3]}), dataset="data", table="test_subm1")
