@@ -17,8 +17,7 @@ class BigQueryDB:
                   project_id=self.project_id,
                   if_exists="append")
 
-    def download(self, start, end,
-                 fields=["author", "created_utc", "id", "num_comments", "title", "selftext", "subreddit"]):
+    def download(self, start, end, fields):
         start, end = dt_to_timestamp(start), dt_to_timestamp(end)
 
         sql = f"""
@@ -33,7 +32,7 @@ if __name__ == '__main__':
     # start = datetime(year=2021, month=1, day=13)
     # end = datetime(year=2021, month=1, day=13, hour=1)
     # db = BigQueryDB()
-    # df = db.download(start, end)
+    # df = db.download(start, end, fields=["author", "created_utc", "id", "num_comments", "title", "selftext", "subreddit"])
     # df.to_csv("raw.csv", sep=";", index=False)
 
     db = BigQueryDB()
