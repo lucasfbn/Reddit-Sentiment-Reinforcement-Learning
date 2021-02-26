@@ -37,4 +37,5 @@ if __name__ == '__main__':
     # df.to_csv("raw.csv", sep=";", index=False)
 
     db = BigQueryDB()
-    db.upload(pd.DataFrame({"one": [1, 2, 3]}), dataset="data", table="test_subm1")
+    db.auth()
+    # db.upload(pd.DataFrame({"one": [1, 2, 3]}), dataset="data", table="test_subm1")
