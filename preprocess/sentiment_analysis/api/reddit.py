@@ -20,7 +20,11 @@ class RedditAPI(API):
         for schema_key in self.submission_schema:
             if schema_key in submission_dict:
                 if schema_key == "author":
-                    temp[schema_key] = submission.author.name
+                    try:
+                        author_name = submission.author.name
+                    except:
+                        author_name = None
+                    temp[schema_key] = author_name
                 elif schema_key == "subreddit":
                     temp[schema_key] = submission.subreddit.display_name
                 else:

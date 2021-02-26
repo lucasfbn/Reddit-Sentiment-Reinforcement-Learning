@@ -27,8 +27,12 @@ class BigQueryDB:
 
 
 if __name__ == '__main__':
-    start = datetime(year=2021, month=1, day=13)
-    end = datetime(year=2021, month=1, day=13, hour=1)
+    # start = datetime(year=2021, month=1, day=13)
+    # end = datetime(year=2021, month=1, day=13, hour=1)
+    # db = BigQueryDB()
+    # df = db.download(start, end)
+    # df.to_csv("raw.csv", sep=";", index=False)
+
+
     db = BigQueryDB()
-    df = db.download(start, end)
-    df.to_csv("raw.csv", sep=";", index=False)
+    db.upload(pd.DataFrame({"one": [1,2,3]}), dataset="data", table="test_subm1")
