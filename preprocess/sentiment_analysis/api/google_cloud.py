@@ -10,7 +10,6 @@ class BigQueryDB:
         self.project_id = "redditdata-305217"
 
     def upload(self, df, dataset, table):
-        # df = pd.DataFrame(data)
         df.to_gbq(destination_table=f"{dataset}.{table}",
                   project_id=self.project_id,
                   if_exists="append")

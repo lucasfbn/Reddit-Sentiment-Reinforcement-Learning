@@ -4,16 +4,18 @@ import time
 import pandas as pd
 import requests
 from preprocess.sentiment_analysis.api.google_cloud import BigQueryDB
+from preprocess.sentiment_analysis.api.api import API
 from psaw import PushshiftAPI
 
-from utils import dt_to_timestamp, log, submission_schema
+from utils import dt_to_timestamp, log
 
 
-class MainApi:
+class MainApi(API):
     # Used for historic data
 
     def __init__(self):
         self.api = PushshiftAPI()
+        self.submissions = None
 
     def _submission_request(self, after, subreddit, end):
         if end is None:
@@ -22,57 +24,49 @@ class MainApi:
             submissions = self.api.search_submissions(after=after, before=end, subreddit=subreddit)
         return submissions
 
-    def _extract_relevant_data(self, submissions):
-        new_submissions = []
-        for subm in submissions:
-            subm = subm.d_
-            temp = {}
-            for schema_key in submission_schema:
-                if schema_key in subm:
-                    temp[schema_key] = subm[schema_key]
-                else:
-                    temp[schema_key] = None
-            new_submissions.append(temp)
-        return new_submissions
-
-    def _to_df(self, submissions):
-        df = pd.DataFrame(submissions)
-        df = df.astype(submission_schema)
-        return df
-
     def get_submissions(self, start, subreddit, end=None):
         start, end = dt_to_timestamp(start), dt_to_timestamp(end)
-        submissions = self._submission_request(start, subreddit, end=end)
-        submissions = self._extract_relevant_data(submissions)
-        return self._to_df(submissions)
+        self.submissions = self._submission_request(start, subreddit, end=end)
+        self.extract_relevant_data()
+        return self.to_df()
 
 
-class BetaAPI:
+class BetaAPI(API):
     # Used for current data
 
-    def __init__(self):
+    def __init__(self, max_retries=5):
+        self.max_retries = max_retries
+
         self.submissions = None
 
-    def submission_request(self, subreddit):
+    def available(self):
+        _, status_code = self._submission_request(subreddit="pushshift", size=10)
+        if status_code == 200:
+            return True
+        return False
+
+    def _submission_request(self, subreddit, size=1000):
         baseurl = "https://beta.pushshift.io/search/reddit/submissions"
         params = {
             "subreddit": subreddit,
-            "size": 1000
+            "size": size
         }
 
         response = requests.get(baseurl, params=params)
 
         timeout = 0
+        retries = 0
 
-        while response.status_code != 200:
+        while response.status_code != 200 and retries < self.max_retries:
             log.warning(f"BETA API: Response status code was {response.status_code}. Will retry in {1 + timeout}.")
             response = requests.get(baseurl, params=params)
             time.sleep(1 + timeout)
-            timeout += 5
+            timeout += 1
+            retries += 1
 
-        return response.json()["data"]
+        return response.json()["data"], response.status_code
 
-    def filter_early_submissions(self, start):
+    def _filter_early_submissions(self, start):
         filtered_submissions = []
         for submission in self.submissions:
             if submission["created_utc"] >= start:
@@ -80,29 +74,26 @@ class BetaAPI:
 
         self.submissions = filtered_submissions
 
-    def _extract_relevant_data(self):
-        new_submissions = []
-        for subm in self.submissions:
-            temp = {}
-            for schema_key in submission_schema:
-                if schema_key in subm:
-                    temp[schema_key] = subm[schema_key]
-                else:
-                    temp[schema_key] = None
-            new_submissions.append(temp)
-        self.submissions = new_submissions
-
-    def _to_df(self):
-        df = pd.DataFrame(self.submissions)
-        df = df.astype(submission_schema)
+    def _filter_removed(self, df):
+        cols_to_check_if_removed = ["author", "selftext", "title"]
+        for col in cols_to_check_if_removed:
+            df = df[~df[col].isin(["[removed]", "[deleted]"])]
         return df
 
     def get_submissions(self, start, subreddit):
-        after = dt_to_timestamp(start)
-        self.submission_request(subreddit)
-        self.filter_early_submissions(start)
-        df = self._to_df()
+        start = dt_to_timestamp(start)
+        self.submissions, _ = self._submission_request(subreddit)
+        self._filter_early_submissions(start)
+        self.extract_relevant_data()
+        df = self.to_df()
         return df
+
+    def get_submission_ids(self, start, subreddit, filter_removed):
+        df = self.get_submissions(start, subreddit)
+        if filter_removed:
+            df = self._filter_removed(df)
+
+        return df["id"].values.tolist()
 
 
 def download():
@@ -133,6 +124,7 @@ if __name__ == "__main__":
     start = datetime(year=2021, month=2, day=23, hour=21)
 
     p = BetaAPI()
+    print(p.available())
     res = p.get_submissions(start=start, subreddit="wallstreetbets")
 
     # p = MainApi()
@@ -140,3 +132,4 @@ if __name__ == "__main__":
     # print()
 
     # download()
+    print()
