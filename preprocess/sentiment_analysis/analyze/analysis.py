@@ -4,7 +4,6 @@ import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 import paths
-from preprocess.sentiment_analysis.db.db_handler import DB
 from utils import *
 
 
@@ -63,10 +62,9 @@ class Submissions:
                  end,
                  end_timestamp,
                  subreddit,
+                 search_ticker_in_body,
                  path=None,
-                 df=None,
-                 max_subm_p_author_p_day=1,
-                 search_ticker_in_body=True):
+                 df=None):
 
         if path is None and df is None:
             raise ValueError("Specify either a path or a df.")
@@ -80,10 +78,8 @@ class Submissions:
         self.start, self.end = start, end
         self.start_timestamp, self.end_timestamp = start_timestamp, end_timestamp
         self.subreddit = subreddit
-        self.max_subm_p_author_p_day = max_subm_p_author_p_day
         self.search_ticker_in_body = search_ticker_in_body
 
-        self.cols_to_be_cleaned = ["title"]
         self.body_col = "selftext"
         self.cols_in_vader_merge = ["id", "num_comments", "date", "pos", "compound", "neu", "neg", "date_mesz"]
 
@@ -95,38 +91,6 @@ class Submissions:
         ticker = pd.read_csv(paths.all_ticker, sep=";")["Symbol"]
         ticker = ticker[ticker.str.len() >= 2]
         return ticker.values.tolist()
-
-    @drop_stats
-    def _filter_authors(self):
-        filtered_df = pd.DataFrame()
-
-        grps = self.df.groupby(["date"])
-
-        for i, (name, grp) in enumerate(grps):
-            grp = pd.DataFrame(grp)
-            authors = grp.groupby(["author"])
-
-            for j, (author_id, author_grp) in enumerate(authors):
-                log.debug(f"Processing grp: {i}/{len(grps)}. Author: {j}/{len(authors)}")
-
-                if author_id in self.author_blacklist:
-                    continue
-
-                if len(author_grp) == self.max_subm_p_author_p_day:
-                    filtered_df = filtered_df.append(author_grp)
-                else:
-                    author_grp = author_grp.sort_values(by=["num_comments"], ascending=False)
-                    filtered_df = filtered_df.append(author_grp.head(self.max_subm_p_author_p_day))
-
-        self.df = filtered_df
-
-    def _delete_non_alphanumeric(self):
-        for col in self.cols_to_be_cleaned:
-            self.df[col] = self.df[col].str.replace('[^\w\s,.?!()-+:"]', '', regex=True)
-
-    def preprocess(self):
-        self._filter_authors()
-        self._delete_non_alphanumeric()
 
     def _extract_ticker(self, txt):
         occurred_ticker = []
@@ -200,7 +164,6 @@ class Submissions:
         self.ticker_aggregated = grps
 
     def process(self):
-        self.preprocess()
         self.get_submission_ticker()
 
         if self.submission_ticker.empty:
