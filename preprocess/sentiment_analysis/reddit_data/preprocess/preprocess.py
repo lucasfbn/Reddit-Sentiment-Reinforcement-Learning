@@ -6,7 +6,6 @@ from utils import *
 
 
 class Preprocessor:
-    ticker_blacklist = ["DD"]
     author_blacklist = []
     cols_to_check_if_removed = ["author", "selftext", "title"]
     cols_to_be_cleaned = ["title"]
@@ -44,8 +43,8 @@ class Preprocessor:
     def _filter_removed(self):
         for col in self.cols_to_check_if_removed:
             self.df = self.df[~self.df[col].isin(["[removed]", "[deleted]"])]
-        tracker.add({"filter_removed": True}, "Raw_Preprocessor")
-        tracker.add({"cols_to_check_if_removed": self.cols_to_check_if_removed}, "Raw_Preprocessor")
+        tracker.add({"filter_removed": True,
+                     "cols_to_check_if_removed": self.cols_to_check_if_removed}, "Raw_Preprocessor")
 
     @drop_stats
     def _filter_authors(self):
@@ -53,9 +52,9 @@ class Preprocessor:
 
         cols = self.df.columns
         grps = self.df.groupby(["date"])
-        tracker.add({"filter_authors": True}, "Raw_Preprocessor")
-        tracker.add({"filter_authors_grp_by": "date"}, "Raw_Preprocessor")
-        tracker.add({"max_subm_p_author_p_day": self.max_subm_p_author_p_day}, "Raw_Preprocessor")
+        tracker.add({"filter_authors": True,
+                     "filter_authors_grp_by": "date",
+                     "max_subm_p_author_p_day": self.max_subm_p_author_p_day}, "Raw_Preprocessor")
 
         for i, (name, grp) in enumerate(grps):
             grp = pd.DataFrame(grp)

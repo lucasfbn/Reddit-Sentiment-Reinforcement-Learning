@@ -3,6 +3,8 @@ import pickle as pkl
 import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
+from preprocess.sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
+
 import paths
 from utils import *
 
@@ -19,7 +21,7 @@ class SubmissionsHandler:
     def process(self):
         len_d = len(self.data)
         for i, d in enumerate(self.data):
-            log.info(f"Processing {i}/{len_d}")
+            log.info(f"Processing hour {i} of {len_d}")
             submission = Submissions(**self.kwargs,
                                      run_id=d["id"],
                                      df=d["df"],
@@ -28,7 +30,7 @@ class SubmissionsHandler:
                                      end=d["end"],
                                      end_timestamp=d["end_timestamp"],
                                      subreddit=d["subreddit"])
-            result = submission.process()
+            result = submission.analyze()
             if not self.upload_all_at_once:
                 self._upload(result)
             self.processed_data = self.processed_data.append(result)
@@ -47,13 +49,14 @@ class SubmissionsHandler:
             data = self.processed_data
 
         log.info(f"Uploading... Rows: {len(data)}")
-        database = DB()
-        database.upload(data, "processed_data", "ticker")
+        db = BigQueryDB()
+        db.upload(data, "processed_data", "ticker")
 
 
 class Submissions:
     ticker_blacklist = ["DD"]
-    author_blacklist = []
+    body_col = "selftext"
+    cols_in_vader_merge = ["id", "num_comments", "score", "date", "pos", "compound", "neu", "neg", "date_mesz"]
 
     def __init__(self,
                  run_id,
@@ -80,8 +83,10 @@ class Submissions:
         self.subreddit = subreddit
         self.search_ticker_in_body = search_ticker_in_body
 
-        self.body_col = "selftext"
-        self.cols_in_vader_merge = ["id", "num_comments", "date", "pos", "compound", "neu", "neg", "date_mesz"]
+        tracker.add({"search_ticker_in_body": self.search_ticker_in_body,
+                     "body_col": self.body_col,
+                     "cols_in_vader_merge": self.cols_in_vader_merge,
+                     "ticker_blacklist": self.ticker_blacklist}, "Analyzer", only_once=True)
 
         self.valid_ticker = self._get_valid_ticker()
         self.submission_ticker = pd.DataFrame()
@@ -106,7 +111,7 @@ class Submissions:
         return occurred_ticker
 
     @drop_stats
-    def filter_no_ticker(self):
+    def _filter_no_ticker(self):
         submission_ticker_id = self.submission_ticker["id"].values.tolist()
         self.df = self.df[self.df["id"].isin(submission_ticker_id)]
 
@@ -163,13 +168,13 @@ class Submissions:
         grps = grps.merge(n_posts, on="ticker")
         self.ticker_aggregated = grps
 
-    def process(self):
+    def analyze(self):
         self.get_submission_ticker()
 
         if self.submission_ticker.empty:
             return pd.DataFrame()
 
-        self.filter_no_ticker()
+        self._filter_no_ticker()
         self.apply_vader()
         self.aggregate()
         self.add_metadata()
