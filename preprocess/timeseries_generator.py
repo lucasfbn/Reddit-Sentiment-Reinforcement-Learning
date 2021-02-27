@@ -62,7 +62,8 @@ class TimeseriesGenerator(Preprocessor):
         for col in self.cols_to_be_scaled:
             all_cols = []
             for df_col in df.columns:
-                if col in df_col:
+                df_col_raw = df_col.rsplit('_', 1)[0] # Gets rid of _n. For instance: score_0 -> score
+                if col == df_col_raw:
                     all_cols.append(df_col)
 
             temp = df[all_cols]
