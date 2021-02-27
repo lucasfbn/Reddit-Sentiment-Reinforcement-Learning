@@ -1,0 +1,24 @@
+{
+    "Dataset": {
+        "path": "13-01-21 - 25-01-21_0",
+        "start": "2021-01-21 00:00:00",
+        "end": "2021-01-21 00:00:00",
+        "fields": ["author", "created_utc", "id", "num_comments", "score", "title", "selftext", "subreddit"],
+        "check_integrity": true
+    },
+    "Raw_Preprocessor": {
+        "filter_removed": true,
+        "cols_to_check_if_removed": ["author", "selftext", "title"],
+        "filter_authors": true,
+        "filter_authors_grp_by": "date",
+        "max_subm_p_author_p_day": 1,
+        "delete_non_alphanumeric": true,
+        "groupby": "start"
+    },
+    "Analyzer": {
+        "search_ticker_in_body": true,
+        "body_col": "selftext",
+        "cols_in_vader_merge": ["id", "num_comments", "score", "date", "pos", "compound", "neu", "neg", "date_mesz"],
+        "ticker_blacklist": ["DD"]
+    }
+}

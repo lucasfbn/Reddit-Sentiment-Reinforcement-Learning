@@ -13,3 +13,6 @@ min_len;keep_offset;look_back;scaler;path;start_hour;start_min;market_symbols;st
 ;7.0;7;MinMaxScaler;13;22.0;0.0;[];30.0;False;close;;False;7.0;False;7.0
 ;7.0;7;MinMaxScaler;16;22.0;0.0;[];30.0;False;close;;False;7.0;False;7.0
 ;;7;MinMaxScaler;17;;;;;True;close;;;;;
+;;7;MinMaxScaler;17;;;;;True;close;;;;;
+;;7;MinMaxScaler;17;;;;;True;close;;;;;
+;7.0;7;MinMaxScaler;_1;21.0;0.0;[];30.0;False;close;;False;7.0;False;7.0
