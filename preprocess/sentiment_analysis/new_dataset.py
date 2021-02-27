@@ -92,4 +92,4 @@ if __name__ == "__main__":
     ds = Dataset(start, end, path_suffix="", path=paths.sentiment_data_path / "" / "14-01-21 - 15-01-21_0")
     ds.create()
 
-    tracker.new()
+    tracker.new(kind="sentiment")

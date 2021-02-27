@@ -4,7 +4,7 @@ import json
 import paths
 import logging
 
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format="%(levelname)s %(asctime)s - %(message)s")
 log = logging.getLogger()
 
@@ -49,15 +49,16 @@ class Tracker:
             new_dict[key] = new_value
         return new_dict
 
-    def new(self):
+    def new(self, kind):
+
         n_tracking_ids = len([_ for _ in os.listdir(paths.tracking_path) if os.path.isfile(paths.tracking_path / _)])
         self.arguments = self._flatten(self.arguments)
-        with open(paths.tracking_path / f"{n_tracking_ids + 1}.json", "w+") as f:
+        with open(paths.tracking_path / kind / f"{n_tracking_ids + 1}.json", "w+") as f:
             json.dump(self.arguments, f)
         log.info(f"Created tracker file: {n_tracking_ids + 1}.json")
 
-    def add_to(self, run_id):
-        with open(paths.tracking_path / f"{run_id}.json") as f:
+    def add_to(self, run_id, kind):
+        with open(paths.tracking_path / kind / f"{run_id}.json") as f:
             data = json.load(f)
 
         for key, value in self.arguments.items():
