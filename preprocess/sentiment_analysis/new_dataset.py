@@ -71,11 +71,24 @@ class Dataset:
         daterange = pd.date_range(start=self.start, end=self.end - pd.Timedelta(hours=1), freq="H")
 
         if len(daterange) != len(self.grps):
+            daterange_list = daterange.tolist()
+
+            grp_starts_list = []
+            for grp in self.grps:
+                grp_starts_list.append(grp["start"].to_timestamp())
+
+            difference = list(set(daterange_list) - set(grp_starts_list))
+            difference = pd.Series(difference)
+            difference = difference.sort_values()
+            difference.to_csv(self.path / "diff.csv", sep=";")
             raise ValueError(
-                f"The dataset is missing entries. len daterange: {len(daterange)}, len grps: {len(self.grps)}")
+                f"The dataset is missing entries. len daterange: {len(daterange)}, len grps: {len(self.grps)}. "
+                f"Difference got stored in diff.csv")
         for grp in self.grps:
             if len(grp["df"]) == 0:
                 raise ValueError(f"Df of grp {grp['id']} is 0.")
+
+        tracker.add({"check_integrity": True}, "Dataset")
 
     def analyze(self):
         if self.grps is None:
@@ -90,10 +103,10 @@ class Dataset:
         p_data.to_csv(self.path / self.report_fn, sep=";", index=False)
 
     def create(self):
-        self.get_from_gc()
-        self.preprocess()
+        # self.get_from_gc()
+        # self.preprocess()
         self.check_integrity()
-        self.analyze()
+        # self.analyze()
 
 
 if __name__ == "__main__":
@@ -101,9 +114,10 @@ if __name__ == "__main__":
 
     tracker.run_id = 1
 
-    start = datetime(year=2021, month=1, day=14)
-    end = datetime(year=2021, month=1, day=15)
-    ds = Dataset(start, end, path_suffix="", path=paths.sentiment_data_path / "" / "14-01-21 - 15-01-21_0")
+    start = datetime(year=2021, month=1, day=13)
+    end = datetime(year=2021, month=2, day=13)
+    path = paths.sentiment_data_path / "" / "13-01-21 - 13-02-21_0"
+    ds = Dataset(start, end, path_suffix="", path=path)
     ds.create()
 
     tracker.new(kind="sentiment")
