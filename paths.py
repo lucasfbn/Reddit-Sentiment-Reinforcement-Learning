@@ -30,12 +30,10 @@ def s_path(folder, live=False):
 
 
 def create_dir(path, fn, suffix):
-    if not os.path.exists(path / (fn + f"_{suffix}")):
-        os.mkdir(path / (fn + f"_{suffix}"))
-        return path / (fn + f"_{suffix}")
-    else:
-        create_dir(path, fn, suffix + 1)
-        return path / (fn + f"_{suffix}")
+    while os.path.exists(path / (fn + f"_{suffix}")):
+        suffix += 1
+    os.mkdir(path / (fn + f"_{suffix}"))
+    return path / (fn + f"_{suffix}")
 
 
 # sentiment analysis
