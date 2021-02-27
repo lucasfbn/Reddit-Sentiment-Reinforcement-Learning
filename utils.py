@@ -51,7 +51,8 @@ class Tracker:
 
     def new(self, kind):
 
-        n_tracking_ids = len([_ for _ in os.listdir(paths.tracking_path) if os.path.isfile(paths.tracking_path / _)])
+        n_tracking_ids = len([_ for _ in os.listdir(paths.tracking_path / kind)
+                              if os.path.isfile(paths.tracking_path / kind / _)])
         self.arguments = self._flatten(self.arguments)
         with open(paths.tracking_path / kind / f"{n_tracking_ids + 1}.json", "w+") as f:
             json.dump(self.arguments, f)
@@ -63,7 +64,7 @@ class Tracker:
 
         for key, value in self.arguments.items():
             if key in data:
-                data[key].extend(value)
+                data[key].append(value)
             else:
                 data[key] = value
 
