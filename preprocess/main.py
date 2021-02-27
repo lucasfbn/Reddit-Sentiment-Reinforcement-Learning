@@ -4,16 +4,17 @@ from preprocess.merge_hype_price import MergeHypePrice
 from preprocess.cleaner import Cleaner
 from preprocess.timeseries_generator import TimeseriesGenerator
 
-Preprocessor.path = paths.d_path(15)
+Preprocessor.source_path = paths.sentiment_data_path / "13-01-21 - 25-01-21_0"
+Preprocessor.target_path = paths.d_path(18)
 
 mhp = MergeHypePrice(
-    start_hour=22,
+    start_hour=21,
     start_min=0,
     market_symbols=[],
-    min_len_hype=9,
+    min_len_hype=7,
     start_offset=30,
     fill_gaps=False,
-    scale_cols_daywise=True,
+    scale_cols_daywise=False,
     live=False,
     limit=None
 )

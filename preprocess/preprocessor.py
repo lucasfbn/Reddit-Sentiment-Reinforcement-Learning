@@ -20,7 +20,8 @@ class Preprocessor:
     cols_to_be_scaled = ['num_comments', 'pos', 'compound', 'neu', 'neg', 'n_posts',
                          "rel_change", 'price_ts']
 
-    path = None
+    source_path = None
+    target_path = None
     settings = {"used_price": use_price}
 
     def fix_cols(self, cols):
@@ -33,11 +34,16 @@ class Preprocessor:
             new_cols.append(col)
         return new_cols
 
-    def load(self, fn):
+    def load(self, fn, initial=False):
+
+        path = Preprocessor.target_path
+        if initial:
+            path = Preprocessor.source_path
+
         if "csv" in fn:
-            return pd.read_csv(Preprocessor.path / fn, sep=";")
+            return pd.read_csv(path / fn, sep=";")
         elif "pkl" in fn:
-            with open(Preprocessor.path / fn, "rb") as f:
+            with open(path / fn, "rb") as f:
                 return pkl.load(f)
         else:
             raise ValueError("Invalid filename.")
@@ -60,7 +66,7 @@ class Preprocessor:
         except FileNotFoundError:
             print("Error loading report.")
 
-        Preprocessor.settings["path"] = str(Preprocessor.path.name)
+        Preprocessor.settings["path"] = str(Preprocessor.target_path.name)
         df = pd.DataFrame(Preprocessor.settings)
 
         if existing_df is None:
@@ -70,5 +76,5 @@ class Preprocessor:
             existing_df.to_csv(paths.tracking_path / "preprocessing.csv", index=False, sep=";")
 
     def save(self, data, fn):
-        with open(Preprocessor.path / fn, "wb") as f:
+        with open(Preprocessor.target_path / fn, "wb") as f:
             pkl.dump(data, f)

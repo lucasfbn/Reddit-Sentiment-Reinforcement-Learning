@@ -19,7 +19,7 @@ class MergeHypePrice(Preprocessor):
                  live=False,
                  limit=None):
 
-        self.df = self.load(self.fn_initial)
+        self.df = self.load(self.fn_initial, initial=True)
         self.grps = []
         self.start_hour = start_hour
         self.start_min = start_min
