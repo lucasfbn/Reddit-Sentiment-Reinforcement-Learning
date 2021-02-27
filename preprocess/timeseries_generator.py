@@ -1,15 +1,20 @@
 import pandas as pd
-from preprocess.preprocessor import Preprocessor
 from sklearn.preprocessing import MinMaxScaler
+
+from preprocess.preprocessor import Preprocessor
+from utils import tracker
 
 
 class TimeseriesGenerator(Preprocessor):
 
-    def __init__(self, look_back=6, scaler=MinMaxScaler(), live=False):
+    def __init__(self, look_back, scaler=MinMaxScaler(), live=False):
         self.data = self.load(self.fn_cleaned)
         self.look_back = look_back
         self.scaler = scaler
         self.live = live
+
+        tracker.add({"look_back": self.look_back,
+                     "scaler": self.scaler.__class__.__name__}, "TimeseriesGenerator")
 
     def _add_timeseries_price_col(self, grp):
         grp["data"]["price_ts"] = grp["data"]["price"]
@@ -93,5 +98,3 @@ class TimeseriesGenerator(Preprocessor):
 
         self.data = processed_data
         self.save(self.data, self.fn_timeseries)
-        self.save_settings(self)
-        self.settings_to_file()

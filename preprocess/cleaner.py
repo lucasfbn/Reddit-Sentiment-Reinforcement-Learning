@@ -1,4 +1,5 @@
 from preprocess.preprocessor import Preprocessor
+from utils import tracker
 
 
 class Cleaner(Preprocessor):
@@ -7,6 +8,9 @@ class Cleaner(Preprocessor):
         self.data = self.load(self.fn_merge_hype_price)
         self.min_len_hype_price = min_len_hype_price
         self.keep_offset = keep_offset
+
+        tracker.add({"min_len_hype_price": self.min_len_hype_price,
+                     "keep_offset": self.keep_offset}, "Cleaner")
 
     def _rename_cols(self):
         for grp in self.data:
@@ -81,4 +85,3 @@ class Cleaner(Preprocessor):
         self._fill_nan()
         self._drop_nan()
         self.save(self.data, self.fn_cleaned)
-        self.save_settings(self)

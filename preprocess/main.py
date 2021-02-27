@@ -4,8 +4,12 @@ from preprocess.merge_hype_price import MergeHypePrice
 from preprocess.cleaner import Cleaner
 from preprocess.timeseries_generator import TimeseriesGenerator
 
+from utils import tracker
+
 Preprocessor.source_path = paths.sentiment_data_path / "13-01-21 - 25-01-21_0"
-Preprocessor.target_path = paths.d_path(18)
+Preprocessor.target_path = paths.create_dir(paths.datasets_data_path)
+tracker.add({"source_path": str(Preprocessor.source_path.name),
+             "target_path": str(Preprocessor.target_path.name)}, "Main")
 
 mhp = MergeHypePrice(
     start_hour=21,
@@ -31,3 +35,5 @@ tsg = TimeseriesGenerator(
     look_back=7
 )
 tsg.pipeline()
+
+tracker.new(kind="datasets")

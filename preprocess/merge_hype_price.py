@@ -6,11 +6,13 @@ from preprocess.stock_prices import StockPrices
 
 pd.options.mode.chained_assignment = None
 
+from utils import tracker
+
 
 class MergeHypePrice(Preprocessor):
 
     def __init__(self,
-                 start_hour=22, start_min=0,
+                 start_hour, start_min,
                  market_symbols=[],
                  min_len_hype=7,
                  start_offset=30,
@@ -30,6 +32,16 @@ class MergeHypePrice(Preprocessor):
         self.scale_cols_daywise = scale_cols_daywise
         self.live = live
         self.limit = limit
+
+        tracker.add({"start_hour": self.start_hour,
+                     "start_min": self.start_min,
+                     "market_symbols": self.market_symbols,
+                     "min_len_hype": self.min_len_hype,
+                     "start_offset": self.start_offset,
+                     "fill_gaps": self.fill_gaps,
+                     "scale_cols_daywise": self.scale_cols_daywise,
+                     "live": self.live,
+                     "limit": self.limit}, "MergeHypePrice")
 
     def _handle_time(self):
         self.df["time"] = pd.to_datetime(self.df["end"], format="%Y-%m-%d %H:%M")
@@ -119,4 +131,3 @@ class MergeHypePrice(Preprocessor):
         self._handle_gaps()
         self._add_stock_prices()
         self.save(self.grps, self.fn_merge_hype_price)
-        self.save_settings(self)

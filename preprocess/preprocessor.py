@@ -2,6 +2,7 @@ import pandas as pd
 import pickle as pkl
 import json
 import paths
+from utils import tracker
 
 
 class Preprocessor:
@@ -13,16 +14,21 @@ class Preprocessor:
     use_price = "close"
 
     # Used in merge_hype_price
-    cols_to_be_scaled_daywise = ['num_comments', 'pos', 'compound', 'neu', 'neg', 'n_posts']
+    cols_to_be_scaled_daywise = ['num_comments', "score", 'pos', 'compound', 'neu', 'neg', 'n_posts']
     # Used in cleaner
     cols_to_be_dropped = ["date_day", "open", "close", "high", "low", "adj_close", "volume", "date_weekday"]
     # Used in timeseries generator
-    cols_to_be_scaled = ['num_comments', 'pos', 'compound', 'neu', 'neg', 'n_posts',
+    cols_to_be_scaled = ['num_comments', "score", 'pos', 'compound', 'neu', 'neg', 'n_posts',
                          "rel_change", 'price_ts']
 
     source_path = None
     target_path = None
     settings = {"used_price": use_price}
+
+    tracker.add({"use_price": use_price,
+                 "cols_to_be_scaled_daywise": cols_to_be_scaled_daywise,
+                 "cols_to_be_dropped": cols_to_be_dropped,
+                 "cols_to_be_scaled": cols_to_be_scaled}, "Preprocessor")
 
     def fix_cols(self, cols):
         new_cols = []
