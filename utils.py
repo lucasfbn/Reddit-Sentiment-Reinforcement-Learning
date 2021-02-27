@@ -4,7 +4,7 @@ import json
 import paths
 import logging
 
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.DEBUG,
                     format="%(levelname)s %(asctime)s - %(message)s")
 log = logging.getLogger()
 
@@ -29,16 +29,29 @@ class Tracker:
         self.run_id = 0
         self.arguments = {}
 
-    def add(self, val, key=None):
-        if key is None:
+    def add(self, val, key=None, replace=False, only_once=False):
+
+        if key in self.arguments and only_once:
+            return
+        elif key is None:
             self.arguments.update(val)
-        elif key not in self.arguments:
+        elif key not in self.arguments or (key in self.arguments and replace):
             self.arguments[key] = [val]
         else:
             self.arguments[key].append(val)
 
+    def _flatten(self, dic):
+        new_dict = {}
+        for key, value in dic.items():
+            new_value = {}
+            for item in value:
+                new_value.update(item)
+            new_dict[key] = new_value
+        return new_dict
+
     def new(self):
         n_tracking_ids = len([_ for _ in os.listdir(paths.tracking_path) if os.path.isfile(paths.tracking_path / _)])
+        self.arguments = self._flatten(self.arguments)
         with open(paths.tracking_path / f"{n_tracking_ids + 1}.json", "w+") as f:
             json.dump(self.arguments, f)
         log.info(f"Created tracker file: {n_tracking_ids + 1}.json")
@@ -53,13 +66,16 @@ class Tracker:
             else:
                 data[key] = value
 
+        data = self._flatten(data)
+
         with open(paths.tracking_path / f"{run_id}.json", "w+") as f:
             json.dump(data, f)
         log.info(f"Added to tracker file: {run_id}.json")
 
 
+tracker = Tracker()
+
 if __name__ == '__main__':
-    tracker = Tracker()
     tracker.add({"test5": 1}, "hallo1")
     # tracker.new()
     tracker.add_to(5)
