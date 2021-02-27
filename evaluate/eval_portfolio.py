@@ -19,8 +19,7 @@ else:
 
 class EvaluatePortfolio:
 
-    def __init__(self, model_path,
-                 data_path="default",
+    def __init__(self, eval_data,
                  initial_balance=1000,
                  max_investment_per_trade=0.05,
                  max_price_per_stock=25,
@@ -32,9 +31,7 @@ class EvaluatePortfolio:
                  partial_shares_possible=True
                  ):
 
-        self.model_path = model_path
-        self.data_path = data_path
-        self.data = self.load_data()
+        self.data = eval_data
         self.prepare()
 
         self.initial_balance = initial_balance
@@ -67,14 +64,6 @@ class EvaluatePortfolio:
 
         self._inventory = []
         self._log = []
-
-    def load_data(self):
-        if self.data_path == "default":
-            path = self.model_path / "eval.pkl"
-        else:
-            path = self.data_path
-        with open(path, "rb") as f:
-            return pkl.load(f)
 
     def prepare(self):
         for grp in self.data:
@@ -329,12 +318,10 @@ class EvaluatePortfolio:
 
 if __name__ == "__main__":
     import paths
+    with open(paths.eval_data_path / "18-48 27_02-21.pkl", "rb") as f:
+        data = pkl.load(f)
 
-    model = "12-10_22---22_02-21"
-
-    # data = data[:10]
-
-    ep = EvaluatePortfolio(paths.models_path / model)
+    ep = EvaluatePortfolio(eval_data=data)
     # print(ep.action_outputs.describe())
 
     ep.act()
@@ -342,4 +329,3 @@ if __name__ == "__main__":
 
     print(ep.profit)
     print(ep.balance)
-    ep.report(model)
