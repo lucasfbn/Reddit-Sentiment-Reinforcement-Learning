@@ -1,6 +1,7 @@
 import pandas as pd
 from utils import drop_stats
 
+
 class API:
     submission_schema = {"created_utc": "int64", "author": "object", "id": "object", "title": "object",
                          "subreddit": "object", "num_comments": "int64", "selftext": "object",
@@ -37,7 +38,9 @@ class API:
     def to_df(self):
         if len(self.submissions) == 0:
             cols = [key for key in self.submission_schema]
-            return pd.DataFrame(columns=cols)
+            df = pd.DataFrame(columns=cols)
+            df = df.astype(self.submission_schema)
+            return df
 
         df = pd.DataFrame(self.submissions)
         df = df.astype(self.submission_schema)
