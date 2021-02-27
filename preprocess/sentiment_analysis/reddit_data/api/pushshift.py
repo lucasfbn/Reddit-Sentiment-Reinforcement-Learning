@@ -42,7 +42,7 @@ class MainApi(API):
                 temp[schema_key] = None
         return temp
 
-    def get_submissions(self, start, subreddit, end=None):
+    def get_submissions(self, start, subreddit, filter_removed, end=None):
         start, end = dt_to_timestamp(start), dt_to_timestamp(end)
         self.submissions = self._submission_request(start, subreddit, end=end)
 
@@ -51,14 +51,13 @@ class MainApi(API):
             new_submissions.append(self.extract_relevant_data(subm))
 
         self.submissions = new_submissions
-
-        return self.to_df()
-
-    def get_submission_ids(self, start, end, subreddit, filter_removed):
-        df = self.get_submissions(start=start, end=end, subreddit=subreddit)
+        df = self.to_df()
         if filter_removed:
             df = self._filter_removed(df)
+        return df
 
+    def get_submission_ids(self, start, end, subreddit, filter_removed):
+        df = self.get_submissions(start=start, end=end, subreddit=subreddit, filter_removed=filter_removed)
         return df["id"].values.tolist()
 
 
@@ -120,19 +119,20 @@ class BetaAPI(API):
             new_submissions.append(temp)
         self.submissions = new_submissions
 
-    def get_submissions(self, start, subreddit):
+    def get_submissions(self, start, subreddit, filter_removed):
         start = dt_to_timestamp(start)
         self.submissions, _ = self._submission_request(subreddit)
         self._filter_early_submissions(start)
         self.extract_relevant_data()
         df = self.to_df()
-        return df
 
-    def get_submission_ids(self, start, subreddit, filter_removed):
-        df = self.get_submissions(start, subreddit)
         if filter_removed:
             df = self._filter_removed(df)
 
+        return df
+
+    def get_submission_ids(self, start, subreddit, filter_removed):
+        df = self.get_submissions(start, subreddit, filter_removed)
         return df["id"].values.tolist()
 
 
