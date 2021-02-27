@@ -64,6 +64,19 @@ class Dataset:
         with open(self.path / self.grps_fn, "wb") as f:
             pkl.dump(self.grps, f)
 
+    def check_integrity(self):
+        if self.grps is None:
+            with open(self.path / self.grps_fn, "rb") as f:
+                self.grps = pkl.load(f)
+        daterange = pd.date_range(start=self.start, end=self.end - pd.Timedelta(hours=1), freq="H")
+
+        if len(daterange) != len(self.grps):
+            raise ValueError(
+                f"The dataset is missing entries. len daterange: {len(daterange)}, len grps: {len(self.grps)}")
+        for grp in self.grps:
+            if len(grp["df"]) == 0:
+                raise ValueError(f"Df of grp {grp['id']} is 0.")
+
     def analyze(self):
         if self.grps is None:
             with open(self.path / self.grps_fn, "rb") as f:
@@ -79,6 +92,7 @@ class Dataset:
     def create(self):
         self.get_from_gc()
         self.preprocess()
+        self.check_integrity()
         self.analyze()
 
 
