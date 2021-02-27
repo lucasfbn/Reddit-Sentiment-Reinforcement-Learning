@@ -12,22 +12,22 @@ from utils import tracker
 def main(input_path, eval=False, model_path=None):
     with open(input_path, "rb") as f:
         data = pkl.load(f)
-
+        
     if eval:
         model = tf.keras.models.load_model(model_path)
         eval_data = deep_q_model(data, eval=True, model=model)
 
-        eval_path = paths.eval_data_path / f"{datetime.datetime.now().strftime('%H:%M-%d_%m-%y')}.pkl"
+        eval_path = paths.eval_data_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}.pkl"
         with open(eval_path, "wb") as f:
             pkl.dump(eval_data, f)
     else:
         model = deep_q_model(data, eval=False)
-        model_path = paths.models_path / f"{datetime.datetime.now().strftime('%H:%M-%d_%m-%y')}"
+        model_path = paths.models_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}"
         model.save(model_path)
-        tracker.add({"model": model_path.name})
+        tracker.add({"model": model_path.name}, "Model")
 
         eval_data = deep_q_model(data, eval=True, model=model)
-        eval_path = paths.eval_data_path / f"{datetime.datetime.now().strftime('%H:%M-%d_%m-%y')}.pkl"
+        eval_path = paths.eval_data_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}.pkl"
         with open(eval_path, "wb") as f:
             pkl.dump(eval_data, f)
 
@@ -38,7 +38,7 @@ def main(input_path, eval=False, model_path=None):
     tracker.add({"dataset": input_path.parent.name,
                  "eval_path": eval_path.name,
                  "profit": ep.profit,
-                 "balance": ep.balance})
+                 "balance": ep.balance}, "Model")
 
     tracker.new(kind="eval")
 
