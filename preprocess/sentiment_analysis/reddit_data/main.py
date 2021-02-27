@@ -28,10 +28,7 @@ def _work(procnum, submission_id_chunk, worker, return_dict):
     return_dict[procnum] = submissions
 
 
-def historic_data():
-    start = datetime(year=2021, month=1, day=25)
-    end = datetime(year=2021, month=2, day=15)
-
+def historic_data(start, end):
     pushshift_api = pushshift.MainApi()
 
     submissions_ids = []
@@ -73,24 +70,26 @@ def historic_data():
 
 
 def hourly_scrape(data, context):
+    end = datetime.now()
+    start = end - timedelta(hours=1)
+    get(start, end)
+
+
+def get(start, end):
     user_agent = "RedditTrend"
     client_id = "XGPKdr-omVKy6A"
     client_secret = "tXPhgIcvevtWoJzwFQXYXgyL5bF9JQ"
     username = "qrzte"
     password = "ga5FwRaXcRyJ77e"
 
-    end = datetime.now()
-    start = end - timedelta(hours=1)
-
     log.info(f"Start: {str(start)}. End: {str(end)}.")
 
     pushshift_api = pushshift.BetaAPI()
-    reddit_api = reddit.RedditAPI(user_agent=user_agent, client_id=client_id, client_secret=client_secret,
-                                  username=username, password=password)
+    reddit_api = reddit.RedditAPI(user_agent=user_agent, client_id=client_id, client_secret=client_secret)
 
     submissions = pd.DataFrame()
 
-    if pushshift_api.available():
+    if False and pushshift_api.available():
         log.info("Using pushshift beta api.")
 
         submission_ids = []
@@ -121,4 +120,7 @@ def hourly_scrape(data, context):
 
 if __name__ == '__main__':
     # hourly_scrape(0, 0)
-    historic_data()
+    start = datetime(year=2021, month=2, day=27, hour=10)
+    end = datetime(year=2021, month=2, day=27, hour=11)
+    get(start, end)
+    # historic_data()
