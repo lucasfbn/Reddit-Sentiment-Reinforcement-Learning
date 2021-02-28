@@ -8,12 +8,12 @@ df = None
 first = True
 for filename in os.listdir(paths.ticker_folder):
     if first:
-        df = pd.read_csv(paths.ticker_folder / filename)
+        df = pd.read_csv(paths.ticker_folder / filename, sep="\t")
         df = df[["Symbol"]]
         df["exchange"] = filename.split(".")[0]
         first = False
     else:
-        next_df = pd.read_csv(paths.ticker_folder / filename)
+        next_df = pd.read_csv(paths.ticker_folder / filename, sep="\t")
         next_df = next_df[["Symbol"]]
         next_df["exchange"] = filename.split(".")[0]
         df = df.append(next_df)
