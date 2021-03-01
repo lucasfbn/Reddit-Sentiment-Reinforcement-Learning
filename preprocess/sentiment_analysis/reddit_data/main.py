@@ -75,7 +75,7 @@ def hourly_scrape(data, context):
     get(start, end)
 
 
-def get(start, end):
+def get(start, end, use_pushshift=False):
     user_agent = "RedditTrend"
     client_id = "XGPKdr-omVKy6A"
     client_secret = "tXPhgIcvevtWoJzwFQXYXgyL5bF9JQ"
@@ -89,7 +89,7 @@ def get(start, end):
 
     submissions = pd.DataFrame()
 
-    if pushshift_api.available():
+    if use_pushshift and pushshift_api.available():
         log.info("Using pushshift beta api.")
 
         submission_ids = []
@@ -119,8 +119,8 @@ def get(start, end):
 
 
 if __name__ == '__main__':
-    # hourly_scrape(0, 0)
-    start = datetime(year=2021, month=2, day=5, hour=0)
-    end = datetime(year=2021, month=2, day=7, hour=23)
+    hourly_scrape(0, 0)
+    # start = datetime(year=2021, month=2, day=5, hour=0)
+    # end = datetime(year=2021, month=2, day=7, hour=23)
     # get(start, end)
-    historic_data(start, end)
+    # historic_data(start, end)
