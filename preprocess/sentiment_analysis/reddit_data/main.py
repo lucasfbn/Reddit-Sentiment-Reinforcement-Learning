@@ -28,6 +28,21 @@ def _work(procnum, submission_id_chunk, worker, return_dict):
     return_dict[procnum] = submissions
 
 
+def historic_data_wrapper(start, end, freq=5):
+    def date_range(start, end, freq):
+        days_diff = (end - start).days
+        intv = math.ceil(days_diff / freq)
+        diff = (end - start) / intv
+        for i in range(intv):
+            yield (start + diff * i)
+        yield end
+
+    dt_rng = list(date_range(start, end, freq))
+
+    for i in range(len(dt_rng) - 1):
+        historic_data(dt_rng[i], dt_rng[i + 1])
+
+
 def historic_data(start, end):
     pushshift_api = pushshift.MainApi()
 
@@ -67,6 +82,7 @@ def historic_data(start, end):
 
     db = BigQueryDB()
     db.upload(parent_df, dataset="data", table="submissions")
+
 
 
 def hourly_scrape(data, context):
@@ -119,8 +135,8 @@ def get(start, end, use_pushshift=False):
 
 
 if __name__ == '__main__':
-    hourly_scrape(0, 0)
-    # start = datetime(year=2021, month=2, day=5, hour=0)
-    # end = datetime(year=2021, month=2, day=7, hour=23)
+    # hourly_scrape(0, 0)
+    start = datetime(year=2020, month=12, day=13)
+    end = datetime(year=2021, month=1, day=13)
     # get(start, end)
-    # historic_data(start, end)
+    historic_data_wrapper(start, end, freq=3)
