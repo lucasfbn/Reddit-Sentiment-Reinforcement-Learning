@@ -1,9 +1,10 @@
 import json
 
 import pandas as pd
+from pandas_gbq.gbq import GenericGBQException
 
 from datetime import datetime
-from utils import dt_to_timestamp
+from utils import dt_to_timestamp, log
 
 
 class BigQueryDB:
@@ -15,9 +16,12 @@ class BigQueryDB:
         self.upload(pd.DataFrame({"test": [1, 2, 3]}), dataset="auth", table="auth_table")
 
     def upload(self, df, dataset, table):
-        df.to_gbq(destination_table=f"{dataset}.{table}",
-                  project_id=self.project_id,
-                  if_exists="append")
+        try:
+            df.to_gbq(destination_table=f"{dataset}.{table}",
+                      project_id=self.project_id,
+                      if_exists="append")
+        except GenericGBQException as e:
+            log.warn(f"Error while uploading. Error:\n {e}. \n Len df: {len(df)}")
 
     def download(self, start, end, fields, sql=None):
         start, end = dt_to_timestamp(start), dt_to_timestamp(end)
