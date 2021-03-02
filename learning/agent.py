@@ -32,7 +32,7 @@ class Agent:
     def _build_model(self):
         model = Sequential()
         model.add(Dense(units=42, input_shape=(self.state_size,), activation="relu"))
-        model.add(Dense(units=21, activation="relu"))
+        # model.add(Dense(units=21, activation="relu"))
         # model.add(Dense(units=8, activation="relu"))
         model.add(Dense(self.action_size, activation="linear"))
         model.compile(loss="mse", optimizer=Adam())
@@ -65,16 +65,5 @@ class Agent:
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
-    def load(self, path):
-        self.model = tf.keras.models.load_model(path)
-
     def get_model(self):
         return self.model
-
-    def save(self, data_symbol, path):
-
-        now = datetime.datetime.now().strftime("%H_%M---%d_%m-%y")
-        fn = f"{data_symbol}-{now}"
-
-        self.model.save(path / fn)
-        return path / fn
