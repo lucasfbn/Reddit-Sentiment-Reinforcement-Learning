@@ -1,13 +1,13 @@
 import paths
 from preprocess.preprocessor import Preprocessor
-from preprocess.merge_hype_price import MergeHypePrice
-from preprocess.cleaner import Cleaner
-from preprocess.timeseries_generator import TimeseriesGenerator
+from preprocess.merge_clean.merge_hype_price import MergeHypePrice
+from preprocess.merge_clean.cleaner import Cleaner
+from preprocess.timeseries_generator.timeseries_generator import TimeseriesGenerator
 
-Preprocessor.path = paths.d_path(6)
+Preprocessor.target_path = paths.d_path(17)
 
 mhp = MergeHypePrice(
-    start_hour=22,
+    start_hour=21,
     start_min=0,
     market_symbols=[],
     min_len_hype=1,
@@ -17,13 +17,13 @@ mhp = MergeHypePrice(
     live=True,
     limit=None
 )
-mhp.pipeline()
+# mhp.pipeline()
 
 c = Cleaner(
     min_len_hype_price=1,
     keep_offset=7
 )
-c.pipeline()
+# c.pipeline()
 
 tsg = TimeseriesGenerator(
     look_back=7,

@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
 from preprocess.preprocessor import Preprocessor
-from preprocess.stock_prices import StockPrices
+from preprocess.merge_clean.stock_prices import StockPrices
 
 pd.options.mode.chained_assignment = None
 
