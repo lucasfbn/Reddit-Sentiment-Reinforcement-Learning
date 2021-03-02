@@ -23,7 +23,7 @@ class BigQueryDB:
         except GenericGBQException as e:
             log.warn(f"Error while uploading. Error:\n {e}. \n Len df: {len(df)}")
 
-    def download(self, start, end, fields, sql=None):
+    def download(self, start, end, fields, sql=None, check_duplicates=True):
         start, end = dt_to_timestamp(start), dt_to_timestamp(end)
 
         if sql is None:
@@ -33,7 +33,9 @@ class BigQueryDB:
             """
 
         df = pd.read_gbq(sql, project_id=self.project_id)
-        df = df.drop_duplicates(subset=['id'])
+
+        if check_duplicates:
+            df = df.drop_duplicates(subset=['id'])
         return df
 
     def detect_gaps(self, start=None, end=None, save_json=True):
@@ -48,7 +50,7 @@ class BigQueryDB:
         elif end is not None and start is None:
             sql += f" WHERE created_utc <= {end}"
 
-        df = self.download(None, None, None, sql)
+        df = self.download(None, None, None, sql, check_duplicates=False)
 
         # df.to_csv("gaps.csv", sep=";", index=False)
         # df = pd.read_csv("gaps.csv", sep=";")
@@ -98,8 +100,8 @@ class BigQueryDB:
 
 
 if __name__ == '__main__':
-    # start = datetime(year=2021, month=1, day=13)
-    # end = datetime(year=2021, month=1, day=13, hour=1)
+    start = datetime(year=2021, month=12, day=13)
+    end = datetime(year=2021, month=1, day=27, hour=14)
     # db = BigQueryDB()
     # df = db.download(start, end, fields=["author", "created_utc", "id", "num_comments", "title", "selftext", "subreddit"])
     # df.to_csv("raw.csv", sep=";", index=False)
