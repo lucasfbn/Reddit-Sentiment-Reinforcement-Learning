@@ -32,7 +32,9 @@ class BigQueryDB:
             WHERE created_utc BETWEEN {start} AND {end}
             """
 
-        return pd.read_gbq(sql, project_id=self.project_id)
+        df = pd.read_gbq(sql, project_id=self.project_id)
+        df = df.drop_duplicates(subset=['id'])
+        return df
 
     def detect_gaps(self, start=None, end=None, save_json=True):
         start, end = dt_to_timestamp(start), dt_to_timestamp(end)
