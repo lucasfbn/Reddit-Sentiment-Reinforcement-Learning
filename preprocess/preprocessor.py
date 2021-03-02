@@ -16,7 +16,8 @@ class Preprocessor:
     # Used in merge_hype_price
     cols_to_be_scaled_daywise = ['num_comments', "score", 'pos', 'compound', 'neu', 'neg', 'n_posts']
     # Used in cleaner
-    cols_to_be_dropped = ["date_day", "open", "close", "high", "low", "adj_close", "volume", "date_weekday"]
+    cols_to_be_dropped = ["date_day", "open", "close", "high", "low", "adj_close", "volume", "date_weekday",
+                          "start_timestamp", "end_timestamp"]
     # Used in timeseries generator
     cols_to_be_scaled = ['num_comments', "score", 'pos', 'compound', 'neu', 'neg', 'n_posts',
                          "rel_change", 'price_ts']
