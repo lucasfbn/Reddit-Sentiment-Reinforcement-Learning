@@ -11,6 +11,7 @@ storage_path = base_path / "storage"
 data_path = storage_path / "data"
 datasets_data_path = data_path / "datasets"
 sentiment_data_path = data_path / "sentiment"
+eval_data_path = storage_path / "eval"
 models_path = storage_path / "models"
 tracking_path = storage_path / "tracking"
 
@@ -29,7 +30,7 @@ def s_path(folder, live=False):
     return sentiment_data_path / additional / folder
 
 
-def create_dir(path, fn, suffix):
+def create_dir(path, fn="", suffix=0):
     while os.path.exists(path / (fn + f"_{suffix}")):
         suffix += 1
     os.mkdir(path / (fn + f"_{suffix}"))
