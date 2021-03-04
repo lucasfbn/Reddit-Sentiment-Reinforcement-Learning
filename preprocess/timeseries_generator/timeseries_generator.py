@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
@@ -34,6 +35,34 @@ class TimeseriesGenerator(Preprocessor):
         grp["data"]["rel_change"] = rel_change
         return grp
 
+    def _reorder_cols(self, df):
+        # Make sure price col is the last col
+        cols = list(df.columns)
+        cols.remove("price_ts")
+        cols = cols + ["price_ts"]
+        df = df[cols]
+        return df
+
+    def pipeline(self):
+        processed_data = []
+        for grp in self.data:
+            grp = self._add_timeseries_price_col(grp)
+            grp = self._add_relative_change(grp)
+            # grp = self._extract_metadata(grp)
+            grp = self._model_specific(grp)
+
+            if grp is None:
+                continue
+
+            processed_data.append(grp)
+
+        self.data = processed_data
+        # self.save(self.data, self.fn_timeseries)
+        return self.data
+
+
+class TimeseriesGeneratorNN(TimeseriesGenerator):
+
     def _add_pre_data(self, grp):
         df = grp["data"]
 
@@ -52,17 +81,24 @@ class TimeseriesGenerator(Preprocessor):
         return grp
 
     def _scale(self, grp):
+
+        tracker.add({"scaled": True}, "TimeseriesGenerator")
+
         df = grp["data"]
-        price = df["price"].reset_index(drop=True)
-        tradeable = df["tradeable"].reset_index(drop=True)
-        date = df["date"].reset_index(drop=True)
 
         new_df = pd.DataFrame()
 
-        for col in self.cols_to_be_scaled:
+        # Get base cols (every unique col without are integer suffix)
+        base_cols = []
+        for col in df.columns:
+            col = re.sub("_\d+", "", col)  # neu_0 -> neu, price_ts -> price_ts. Only matches "_01" etc.
+            if col not in base_cols:
+                base_cols.append(col)
+
+        for col in base_cols:
             all_cols = []
             for df_col in df.columns:
-                df_col_raw = df_col.rsplit('_', 1)[0] # Gets rid of _n. For instance: score_0 -> score
+                df_col_raw = re.sub("_\d+", "", df_col)  # Gets rid of _n. For instance: score_0 -> score
                 if col == df_col_raw:
                     all_cols.append(df_col)
 
@@ -72,9 +108,6 @@ class TimeseriesGenerator(Preprocessor):
             temp = pd.DataFrame(temp.T, columns=all_cols)  # Transpose back
             new_df = new_df.merge(temp, how="right", left_index=True, right_index=True)
 
-        new_df["price"] = price
-        new_df["tradeable"] = tradeable
-        new_df["date"] = date
         grp["data"] = new_df
         return grp
 
@@ -83,19 +116,75 @@ class TimeseriesGenerator(Preprocessor):
             grp["data"] = grp["data"].tail(1)
         return grp
 
-    def pipeline(self):
-        processed_data = []
-        for grp in self.data:
-            grp = self._add_timeseries_price_col(grp)
-            grp = self._add_relative_change(grp)
-            grp = self._add_pre_data(grp)
+    def _extract_metadata(self, grp):
+        grp["metadata"] = grp["data"][["price", "tradeable", "date"]]
+        grp["data"] = grp["data"].drop(columns=["price", "tradeable", "date"])
+        return grp
 
-            if len(grp["data"]) == 0:
-                continue
+    def _del_metadata_from_data(self, grp):
+        df = grp["data"]
 
-            grp = self._scale(grp)
-            grp = self._live(grp)
-            processed_data.append(grp)
+        new_cols = []
+        for df_col in df.columns:
+            df_col_raw = re.sub("_\d+", "", df_col)  # Gets rid of _n. For instance: score_0 -> score
+            if df_col_raw not in ["price", "tradeable", "date"]:
+                new_cols.append(df_col)
 
-        self.data = processed_data
-        self.save(self.data, self.fn_timeseries)
+        grp["data"] = grp["data"][new_cols]
+        return grp
+
+    def _model_specific(self, grp):
+
+        tracker.add({"generator": self.__class__.__name__}, "TimeseriesGenerator")
+
+        grp = self._add_pre_data(grp)
+        grp = self._extract_metadata(grp)
+        if len(grp["data"]) == 0:
+            return None
+        grp = self._del_metadata_from_data(grp)
+
+        grp = self._scale(grp)
+        grp["data"] = self._reorder_cols(grp["data"])
+        grp = self._live(grp)
+        return grp
+
+
+class TimeseriesGeneratorCNN(TimeseriesGenerator):
+
+    def _scale(self, grp):
+
+        tracker.add({"scaled": True}, "TimeseriesGenerator")
+
+        a = grp["data"]
+        for i, df in enumerate(grp["data"]):
+            cols = df.columns
+            df = self.scaler.fit_transform(df)
+            grp["data"][i] = pd.DataFrame(df, columns=cols)
+        return grp
+
+    def _make_seq(self, df):
+        sequences = []
+
+        for i in range(len(df)):
+            if i > (len(df) - self.look_back):
+                break
+            sequences.append(df[i:i + self.look_back])
+        return sequences
+
+    def _extract_metadata(self, grp):
+        metadata = []
+        for i, seq in enumerate(grp["data"]):
+            metadata.append(seq.tail(1)[["price", "tradeable", "date"]])
+            grp["data"][i] = grp["data"][i].drop(columns=["price", "tradeable", "date"])
+        grp["metadata"] = pd.concat(metadata)
+        return grp
+
+    def _model_specific(self, grp):
+
+        tracker.add({"generator": self.__class__.__name__}, "TimeseriesGenerator")
+
+        grp["data"] = self._reorder_cols(grp["data"])
+        grp["data"] = self._make_seq(grp["data"])
+        grp = self._extract_metadata(grp)
+        grp = self._scale(grp)
+        return grp

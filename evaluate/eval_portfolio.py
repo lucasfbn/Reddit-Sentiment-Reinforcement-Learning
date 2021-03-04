@@ -67,8 +67,7 @@ class EvaluatePortfolio:
 
     def prepare(self):
         for grp in self.data:
-            df = grp["data"]
-            df = df[["price", "actions", "actions_outputs", "tradeable", "date"]]
+            df = grp["metadata"]
             df["actions"] = df["actions"].replace({0: "hold", 1: "buy", 2: "sell"})
             grp["data"] = df
 
@@ -318,7 +317,7 @@ class EvaluatePortfolio:
 
 if __name__ == "__main__":
     import paths
-    with open(paths.eval_data_path / "18-48 27_02-21.pkl", "rb") as f:
+    with open(paths.eval_data_path / "17-33 03_03-21.pkl", "rb") as f:
         data = pkl.load(f)
 
     ep = EvaluatePortfolio(eval_data=data)

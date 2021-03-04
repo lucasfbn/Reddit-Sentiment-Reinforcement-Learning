@@ -1,16 +1,9 @@
 import warnings
 
-from learning.agent import Agent
-from learning.env import StockEnv
 
-
-def deep_q_model(data, eval=False, model=None):
+def deep_q_model(data, agent, env, eval=False, model=None):
     if eval:
         warnings.warn("Eval is active.")
-
-    env = StockEnv()
-    state_size = data[0]["data"].shape[1] - 3  # -1 because we remove the "price", "tradeable" and "date" column
-    agent = Agent(state_size=state_size, action_size=3, memory_len=1000, eval=eval)
 
     n_episodes = 3
     batch_size = 32
@@ -23,8 +16,7 @@ def deep_q_model(data, eval=False, model=None):
     for i, grp in enumerate(data):
 
         print(f"{i + 1}/{len(data)} - Processing ticker: {grp['ticker']}")
-
-        df = grp["data"].drop(columns=["price", "tradeable", "date"])
+        x = grp["data"]
 
         if eval:
             actions = []
@@ -34,7 +26,7 @@ def deep_q_model(data, eval=False, model=None):
 
             print(f"Episode {e + 1}/{n_episodes}")
 
-            state = env.reset(df)
+            state = env.reset(x)
             done = False
 
             while not done:
@@ -62,8 +54,8 @@ def deep_q_model(data, eval=False, model=None):
                 agent.replay(batch_size)
 
         if eval:
-            grp["data"]["actions"] = actions
-            grp["data"]["actions_outputs"] = actions_outputs
+            grp["metadata"]["actions"] = actions
+            grp["metadata"]["actions_outputs"] = actions_outputs
 
     if eval:
         return data

@@ -1,5 +1,7 @@
 from collections import deque
 
+import numpy as np
+
 verbose = False
 
 if verbose:
@@ -10,12 +12,12 @@ else:
         pass
 
 
-class StockEnv:
+class Env:
 
     def __init__(self):
         self._state = None
 
-        self._df = None
+        self._x = None
         self._prices_raw = None
         self._inventory = deque()
         self.total_profit = 0
@@ -30,9 +32,9 @@ class StockEnv:
 
     def step(self, action):
 
-        current_price = self._state[len(self._state) - 1]
-
         reward = 0
+
+        current_price = self._current_price()
 
         if action == 1:
             self._inventory.append(current_price)
@@ -53,23 +55,56 @@ class StockEnv:
             else:
                 vprint(f"Attempted sell, but inventory is empty.")
 
-        done = True if len(self._df) == 0 else False
+        done = True if len(self._x) == 0 else False
 
         if not done:
-            next_state = self._df.popleft()
+            next_state = self._shape_state(self._x.popleft())
         else:
             next_state = None
         self._state = next_state
 
         return next_state, reward, done, None
 
+
+class Env_NN(Env):
     def _convert_df(self, df):
         return deque(df.values.tolist())
 
-    def reset(self, df):
-        self._df = self._convert_df(df)
+    def reset(self, x):
+        self._x = self._convert_df(x)
         self._inventory = deque()
         self.total_profit = 0
 
-        self._state = self._df.popleft()
+        self._state = self._x.popleft()
+        self._state = self._shape_state(self._state)
         return self._state
+
+    def _shape_state(self, state):
+        return np.array([state])
+
+    def _current_price(self):
+        shape = self._state.shape
+        last_element = self._state[0][shape[1] - 1]
+        return last_element
+
+
+class Env_CNN(Env):
+
+    def _shape_state(self, state):
+        state = state.values.reshape((1, state.shape[0], state.shape[1]))
+        return state
+
+    def reset(self, x):
+        self._x = deque(x)
+        self._inventory = deque()
+        self.total_profit = 0
+
+        self._state = self._x.popleft()
+        self._state = self._shape_state(self._state)
+        return self._state
+
+    def _current_price(self):
+        shape = self._state.shape
+        last_row = self._state[0][shape[1] - 1]
+        last_element = last_row[shape[2] - 1]
+        return last_element
