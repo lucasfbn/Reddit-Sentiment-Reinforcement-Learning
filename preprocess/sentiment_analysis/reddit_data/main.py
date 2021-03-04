@@ -137,6 +137,7 @@ def get(start, end, use_pushshift=False):
 if __name__ == '__main__':
     # hourly_scrape(0, 0)
     start = datetime(year=2020, month=12, day=13)
-    end = datetime(year=2021, month=1, day=13)
+    end = datetime(year=2021, month=1, day=27, hour=14)
     # get(start, end)
+    # historic_data(start, end)
     historic_data_wrapper(start, end, freq=3)
