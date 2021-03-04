@@ -8,13 +8,15 @@ from utils import tracker
 
 class TimeseriesGenerator(Preprocessor):
 
-    def __init__(self, look_back, scaler=MinMaxScaler(), live=False):
+    def __init__(self, look_back, scale=True, scaler=MinMaxScaler(), live=False):
         self.data = self.load(self.fn_cleaned)
         self.look_back = look_back
+        self.scale = scale
         self.scaler = scaler
         self.live = live
 
         tracker.add({"look_back": self.look_back,
+                     "scale": self.scale,
                      "scaler": self.scaler.__class__.__name__}, "TimeseriesGenerator")
 
     def _add_timeseries_price_col(self, grp):
@@ -82,7 +84,8 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
 
     def _scale(self, grp):
 
-        tracker.add({"scaled": True}, "TimeseriesGenerator")
+        if not self.scale:
+            return grp
 
         df = grp["data"]
 
@@ -152,10 +155,9 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
 class TimeseriesGeneratorCNN(TimeseriesGenerator):
 
     def _scale(self, grp):
+        if not self.scale:
+            return grp
 
-        tracker.add({"scaled": True}, "TimeseriesGenerator")
-
-        a = grp["data"]
         for i, df in enumerate(grp["data"]):
             cols = df.columns
             df = self.scaler.fit_transform(df)
