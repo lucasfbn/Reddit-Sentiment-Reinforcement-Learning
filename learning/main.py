@@ -39,6 +39,8 @@ def main(input_path, kind, eval=False, model_path=None):
         model.save(model_path)
         tracker.add({"model": model_path.name}, "Model")
 
+        agent.eval = True
+
         eval_data = deep_q_model(data, agent=agent, env=env, eval=True, model=model)
         eval_path = paths.eval_data_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}.pkl"
         with open(eval_path, "wb") as f:
@@ -58,7 +60,8 @@ def main(input_path, kind, eval=False, model_path=None):
 
 
 if __name__ == "__main__":
-    main(paths.datasets_data_path / "_1" / "timeseries.pkl",
+    model_path = paths.models_path / "21-50 04_03-21"
+    main(paths.datasets_data_path / "_3" / "timeseries.pkl",
          kind="CNN",
-         eval=False,
-         model_path=None)
+         eval=True,
+         model_path=model_path)

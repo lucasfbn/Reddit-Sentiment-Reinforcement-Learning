@@ -9,7 +9,7 @@ from tensorflow.keras.optimizers import Adam
 
 class Agent:
 
-    def __init__(self, state_size, action_size, memory_len=1000, eval=False):
+    def __init__(self, state_size, action_size, eval, memory_len=1000):
         self.state_size = state_size
         self.action_size = action_size
 
@@ -73,7 +73,7 @@ class NN_Agent(Agent):
 
 class CNN_Agent(Agent):
 
-    def __init__(self, state_size, action_size, feature_size, memory_len=1000, eval=False):
+    def __init__(self, state_size, action_size, feature_size, eval, memory_len=1000):
         super().__init__(state_size, action_size, memory_len=memory_len, eval=eval)
         self.feature_size = feature_size
 
