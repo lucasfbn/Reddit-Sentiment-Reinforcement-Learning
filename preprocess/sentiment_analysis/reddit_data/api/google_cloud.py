@@ -88,6 +88,9 @@ class BigQueryDB:
                     sub_period.append(diff)
             last_diff = diff
 
+        if sub_period:
+            periods.append(sub_period)
+
         min_max_subperiod = [{"start": start, "end": end, "min_date": str(min_date), "max_date": str(max_date)}]
         for sub_period in periods:
             min_max_subperiod.append({"min": str(sub_period[0]), "max": str(sub_period[len(sub_period) - 1])})
@@ -100,12 +103,12 @@ class BigQueryDB:
 
 
 if __name__ == '__main__':
-    start = datetime(year=2021, month=12, day=13)
-    end = datetime(year=2021, month=1, day=27, hour=14)
+    start = datetime(year=2021, month=2, day=27)
+    end = datetime(year=2021, month=3, day=9)
     # db = BigQueryDB()
     # df = db.download(start, end, fields=["author", "created_utc", "id", "num_comments", "title", "selftext", "subreddit"])
     # df.to_csv("raw.csv", sep=";", index=False)
 
     db = BigQueryDB()
-    db.detect_gaps()
+    db.detect_gaps(start, end)
     # db.upload(pd.DataFrame({"one": [1, 2, 3]}), dataset="data", table="test_subm1")
