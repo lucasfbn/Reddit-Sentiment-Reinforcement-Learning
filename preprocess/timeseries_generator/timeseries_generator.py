@@ -59,7 +59,7 @@ class TimeseriesGenerator(Preprocessor):
             processed_data.append(grp)
 
         self.data = processed_data
-        # self.save(self.data, self.fn_timeseries)
+        self.save(self.data, self.fn_timeseries)
         return self.data
 
 
