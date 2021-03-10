@@ -3,10 +3,10 @@ from datetime import datetime, timedelta
 import multiprocessing
 import math
 from utils import log
-import preprocess.sentiment_analysis.reddit_data.api.pushshift as pushshift
-import preprocess.sentiment_analysis.reddit_data.api.reddit as reddit
-from preprocess.sentiment_analysis.reddit_data.worker import workers
-from preprocess.sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
+import sentiment_analysis.reddit_data.api.pushshift as pushshift
+import sentiment_analysis.reddit_data.api.reddit as reddit
+from sentiment_analysis.reddit_data.worker import workers
+from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 
 subreddits = [
     "pennystocks",
