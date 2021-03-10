@@ -1,8 +1,8 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
-from preprocess.preprocessing_utils.preprocessor import Preprocessor
-from preprocess.preprocessing_utils.stock_prices import StockPrices
+from preprocessing.preprocessing_utils.preprocessor import Preprocessor
+from preprocessing.preprocessing_utils.stock_prices import StockPrices
 
 pd.options.mode.chained_assignment = None
 
