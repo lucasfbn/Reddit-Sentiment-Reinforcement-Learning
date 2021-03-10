@@ -14,7 +14,6 @@ class MergePreprocessing(Preprocessor):
     def __init__(self,
                  start_hour, start_min,
                  market_symbols=[],
-                 min_len_hype=7,
                  start_offset=30,
                  fill_gaps=True,
                  scale_cols_daywise=True,
@@ -26,7 +25,6 @@ class MergePreprocessing(Preprocessor):
         self.start_hour = start_hour
         self.start_min = start_min
         self.market_symbols = market_symbols
-        self.min_len_hype = min_len_hype
         self.start_offset = start_offset
         self.fill_gaps = fill_gaps
         self.scale_cols_daywise = scale_cols_daywise
@@ -36,7 +34,6 @@ class MergePreprocessing(Preprocessor):
         tracker.add({"start_hour": self.start_hour,
                      "start_min": self.start_min,
                      "market_symbols": self.market_symbols,
-                     "min_len_hype": self.min_len_hype,
                      "start_offset": self.start_offset,
                      "fill_gaps": self.fill_gaps,
                      "scale_cols_daywise": self.scale_cols_daywise,
@@ -83,7 +80,7 @@ class MergePreprocessing(Preprocessor):
         filtered_grps = []
 
         for grp in self.grps:
-            if len(grp["data"]) >= self.min_len_hype:
+            if len(grp["data"]) >= self.min_len:
                 filtered_grps.append(grp)
         self.grps = filtered_grps
 

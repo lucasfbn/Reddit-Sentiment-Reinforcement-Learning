@@ -4,13 +4,11 @@ from utils import tracker
 
 class Cleaner(Preprocessor):
 
-    def __init__(self, min_len_hype_price=6, keep_offset=6):
+    def __init__(self, keep_offset):
         self.data = self.load(self.fn_merge_hype_price)
-        self.min_len_hype_price = min_len_hype_price
         self.keep_offset = keep_offset
 
-        tracker.add({"min_len_hype_price": self.min_len_hype_price,
-                     "keep_offset": self.keep_offset}, "Cleaner")
+        tracker.add({"keep_offset": self.keep_offset}, "Cleaner")
 
     def _rename_cols(self):
         for grp in self.data:
@@ -43,7 +41,7 @@ class Cleaner(Preprocessor):
             df = grp["data"]
             temp = df.dropna()
 
-            if len(temp) >= self.min_len_hype_price and len(df) >= len(temp) + self.keep_offset:
+            if len(temp) >= self.min_len and len(df) >= len(temp) + self.keep_offset:
                 min_index = len(df) - len(temp) - self.keep_offset
                 grp["data"] = df.iloc[min_index:]
                 new_data.append(grp)
