@@ -1,6 +1,6 @@
 import praw
 from utils import dt_to_timestamp
-from preprocess.sentiment_analysis.reddit_data.api.api import API
+from sentiment_analysis.reddit_data.api.api import API
 
 
 class RedditAPI(API):

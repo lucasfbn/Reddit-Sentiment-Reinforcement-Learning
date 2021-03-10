@@ -110,5 +110,5 @@ if __name__ == '__main__':
     # df.to_csv("raw.csv", sep=";", index=False)
 
     db = BigQueryDB()
-    db.detect_gaps(start, end)
+    db.detect_gaps()
     # db.upload(pd.DataFrame({"one": [1, 2, 3]}), dataset="data", table="test_subm1")
