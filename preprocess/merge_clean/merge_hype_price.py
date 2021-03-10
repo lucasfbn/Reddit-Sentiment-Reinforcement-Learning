@@ -9,7 +9,7 @@ pd.options.mode.chained_assignment = None
 from utils import tracker
 
 
-class MergeHypePrice(Preprocessor):
+class MergePreprocessing(Preprocessor):
 
     def __init__(self,
                  start_hour, start_min,
