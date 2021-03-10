@@ -38,6 +38,6 @@ def create_dir(path, fn="", suffix=0):
 
 
 # sentiment analysis
-sentiment_analysis_path = base_path / "preprocess" / "sentiment_analysis"
+sentiment_analysis_path = base_path / "preprocessing" / "sentiment_analysis"
 ticker_folder = sentiment_analysis_path / "analyze" / "ticker" / "files"
 all_ticker = sentiment_analysis_path / "analyze" / "ticker" / "ticker.csv"
