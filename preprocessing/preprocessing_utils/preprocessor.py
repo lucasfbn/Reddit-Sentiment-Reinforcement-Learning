@@ -6,6 +6,8 @@ from utils import tracker
 
 
 class Preprocessor:
+    min_len = None
+
     fn_initial = "report.csv"
     fn_merge_hype_price = "merged.pkl"
     fn_cleaned = "cleaned.pkl"
@@ -26,7 +28,8 @@ class Preprocessor:
     target_path = None
     settings = {"used_price": use_price}
 
-    tracker.add({"use_price": use_price,
+    tracker.add({"min_len": min_len,
+                 "use_price": use_price,
                  "cols_to_be_scaled_daywise": cols_to_be_scaled_daywise,
                  "cols_to_be_dropped": cols_to_be_dropped,
                  "cols_to_be_scaled": cols_to_be_scaled}, "Preprocessor")
