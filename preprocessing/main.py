@@ -1,6 +1,6 @@
 import paths
 from preprocessing.preprocessing_utils.cleaner import Cleaner
-from preprocessing.preprocessing_utils.merge_hype_price import MergePreprocessing
+from preprocessing.preprocessing_utils.merge_preprocessing import MergePreprocessing
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
 from preprocessing.preprocessing_utils.timeseries_generator import TimeseriesGeneratorCNN
 from utils import tracker
