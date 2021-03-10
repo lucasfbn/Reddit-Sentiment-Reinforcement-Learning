@@ -1,8 +1,8 @@
 import paths
-from preprocess.preprocessing_utils.cleaner import Cleaner
-from preprocess.preprocessing_utils.merge_hype_price import MergePreprocessing
-from preprocess.preprocessing_utils.preprocessor import Preprocessor
-from preprocess.preprocessing_utils.timeseries_generator import TimeseriesGeneratorCNN
+from preprocessing.preprocessing_utils.cleaner import Cleaner
+from preprocessing.preprocessing_utils.merge_hype_price import MergePreprocessing
+from preprocessing.preprocessing_utils.preprocessor import Preprocessor
+from preprocessing.preprocessing_utils.timeseries_generator import TimeseriesGeneratorCNN
 from utils import tracker
 
 Preprocessor.source_path = paths.sentiment_data_path / "28-01-21 - 04-02-21_0"
