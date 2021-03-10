@@ -1,8 +1,8 @@
 import paths
-from preprocess.preprocessor import Preprocessor
-from preprocess.merge_clean.merge_hype_price import MergePreprocessing
-from preprocess.merge_clean.cleaner import Cleaner
-from preprocess.timeseries_generator.timeseries_generator import TimeseriesGenerator
+from preprocess.preprocessing_utils.preprocessor import Preprocessor
+from preprocess.preprocessing_utils.merge_hype_price import MergePreprocessing
+from preprocess.preprocessing_utils.cleaner import Cleaner
+from preprocess.preprocessing_utils.timeseries_generator import TimeseriesGenerator
 
 Preprocessor.target_path = paths.d_path(17)
 

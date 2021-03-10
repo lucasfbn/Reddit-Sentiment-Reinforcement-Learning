@@ -2,7 +2,7 @@ import re
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
-from preprocess.preprocessor import Preprocessor
+from preprocess.preprocessing_utils.preprocessor import Preprocessor
 from utils import tracker
 
 
