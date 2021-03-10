@@ -1,1 +1,9 @@
-{"Model": {"dataset": "_3", "kind": "CNN", "eval_path": "11-31 06_03-21.pkl", "profit": 1.0383843686108798, "balance": 1039.1591291057998}}
+{
+    "Model": {
+        "dataset": "_3",
+        "kind": "CNN",
+        "eval_path": "11-31 06_03-21.pkl",
+        "profit": 1.0383843686108798,
+        "balance": 1039.1591291057998
+    }
+}
