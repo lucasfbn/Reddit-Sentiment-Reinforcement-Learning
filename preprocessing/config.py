@@ -1,6 +1,5 @@
 import paths
 from preprocessing.preprocessing_utils.timeseries_generator import TimeseriesGeneratorCNN
-from utils import save_config
 
 general = dict(
     min_len=3,
@@ -29,6 +28,3 @@ timeseries_generator = dict(
     look_back=7,
     scale=True
 )
-
-
-save_config(configs=[general, merge_preprocessing, cleaner, timeseries_generator], kind="dataset")
