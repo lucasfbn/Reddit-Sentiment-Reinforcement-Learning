@@ -136,6 +136,16 @@ class BetaAPI(API):
         return df["id"].values.tolist()
 
 
+class ManualDownload(BetaAPI):
+
+    def __init__(self, data):
+        self.submissions = data
+
+    def get_submissions(self):
+        self.extract_relevant_data()
+        return self.to_df()
+
+
 def download():
     api = MainApi()
     db = BigQueryDB()
@@ -161,15 +171,13 @@ def download():
 
 
 if __name__ == "__main__":
+    import paths
+    import json
+
     start = datetime(year=2021, month=2, day=23, hour=21)
 
-    p = BetaAPI()
-    print(p.available())
-    res = p.get_submissions(start=start, subreddit="wallstreetbets")
-
-    # p = MainApi()
-    # df = p.get_submissions(start=1614067200, end=1614088800, subreddit="stocks")
-    # print()
-
-    # download()
-    print()
+    with open(paths.sentiment_data_path / "01-11-21 - 30-11-21_0_MANUAL" / "data.json") as f:
+        data = json.load(f)
+    md = ManualDownload(data)
+    df = md.get_submissions()
+    df.to_csv(paths.sentiment_data_path / "01-11-21 - 30-11-21_0_MANUAL" / "gc_dump.csv", sep=";")
