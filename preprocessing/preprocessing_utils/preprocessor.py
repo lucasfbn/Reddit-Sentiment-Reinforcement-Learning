@@ -23,6 +23,7 @@ class Preprocessor:
     # Used in timeseries generator
     cols_to_be_scaled = ['num_comments', "score", 'pos', 'compound', 'neu', 'neg', 'n_posts',
                          "rel_change", 'price_ts']
+    metadata_cols = ["price", "tradeable", "date", "available"]
 
     source_path = None
     target_path = None

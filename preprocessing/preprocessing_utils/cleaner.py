@@ -18,11 +18,6 @@ class Cleaner(Preprocessor):
         for grp in self.data:
             grp["data"]["price"] = grp["data"][self.use_price]
 
-    def _sort_chronologically(self):
-        for grp in self.data:
-            grp["data"]["date"] = grp["data"]['date_day'].dt.to_timestamp('s')
-            grp["data"] = grp["data"].sort_values(by=["date"])
-
     def _mark_tradeable(self):
         for grp in self.data:
             df = grp["data"]
@@ -74,7 +69,6 @@ class Cleaner(Preprocessor):
     def pipeline(self):
         self._rename_cols()
         self._assign_price_col()
-        self._sort_chronologically()
         self._mark_tradeable()
         self._forward_fill()
         self._drop_unnecessary()
