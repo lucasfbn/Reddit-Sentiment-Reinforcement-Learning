@@ -61,7 +61,7 @@ def main():
     config.eval_path = eval_path.name
     config.profit = ep.profit
     config.balance = ep.balance
-    save_config(config, kind="eval")
+    save_config([config], kind="eval")
 
 
 if __name__ == "__main__":
