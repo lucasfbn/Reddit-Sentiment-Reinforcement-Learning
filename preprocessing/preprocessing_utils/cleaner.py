@@ -8,8 +8,6 @@ class Cleaner(Preprocessor):
         self.data = self.load(self.fn_merge_hype_price)
         self.keep_offset = keep_offset
 
-        tracker.add({"keep_offset": self.keep_offset}, "Cleaner")
-
     def _rename_cols(self):
         for grp in self.data:
             grp["data"].columns = self.fix_cols(grp["data"].columns)

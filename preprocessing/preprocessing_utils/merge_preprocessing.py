@@ -31,15 +31,6 @@ class MergePreprocessing(Preprocessor):
         self.live = live
         self.limit = limit
 
-        tracker.add({"start_hour": self.start_hour,
-                     "start_min": self.start_min,
-                     "market_symbols": self.market_symbols,
-                     "start_offset": self.start_offset,
-                     "fill_gaps": self.fill_gaps,
-                     "scale_cols_daywise": self.scale_cols_daywise,
-                     "live": self.live,
-                     "limit": self.limit}, "MergeHypePrice")
-
     def _handle_time(self):
         self.df["time"] = pd.to_datetime(self.df["end"], format="%Y-%m-%d %H:%M")
         self.df = self.df.sort_values(by=["time"])
