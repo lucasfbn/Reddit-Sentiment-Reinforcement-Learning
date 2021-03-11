@@ -6,8 +6,6 @@ from preprocessing.preprocessing_utils.stock_prices import StockPrices
 
 pd.options.mode.chained_assignment = None
 
-from utils import tracker, log
-
 
 class MergePreprocessing(Preprocessor):
 

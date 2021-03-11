@@ -1,9 +1,9 @@
 import re
+
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
-from utils import tracker
 
 
 class TimeseriesGenerator(Preprocessor):

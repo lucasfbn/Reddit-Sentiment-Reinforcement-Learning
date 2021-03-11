@@ -1,5 +1,4 @@
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
-from utils import tracker
 
 
 class Cleaner(Preprocessor):

@@ -1,9 +1,9 @@
 import json
+from datetime import datetime
 
 import pandas as pd
 from pandas_gbq.gbq import GenericGBQException
 
-from datetime import datetime
 from utils import dt_to_timestamp, log
 
 

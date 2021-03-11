@@ -3,12 +3,12 @@ import pickle as pkl
 
 import pandas as pd
 
+import paths
+import sentiment_analysis.config as config
 from sentiment_analysis.analyze.analysis import SubmissionsHandler
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sentiment_analysis.reddit_data.preprocess.preprocess import Preprocessor
-import paths
-from utils import tracker, save_config
-import sentiment_analysis.config as config
+from utils import save_config
 
 
 class Dataset:

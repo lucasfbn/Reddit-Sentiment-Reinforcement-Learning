@@ -1,13 +1,14 @@
-import warnings
-import os
 import json
-import paths
 import logging
-import pandas as pd
+import os
 import time
+from datetime import datetime
 from pathlib import WindowsPath
 from types import SimpleNamespace
-from datetime import datetime
+
+import pandas as pd
+
+import paths
 
 logging.basicConfig(level=logging.INFO,
                     format="%(levelname)s %(asctime)s - %(message)s")
