@@ -6,6 +6,7 @@ import logging
 import pandas as pd
 import time
 from pathlib import WindowsPath
+from types import SimpleNamespace
 
 logging.basicConfig(level=logging.INFO,
                     format="%(levelname)s %(asctime)s - %(message)s")
@@ -125,3 +126,7 @@ def save_config(configs, kind):
         except PermissionError:
             print(f"Close {kind}.csv you retard.")
             time.sleep(3)
+
+
+class Config(SimpleNamespace):
+    pass
