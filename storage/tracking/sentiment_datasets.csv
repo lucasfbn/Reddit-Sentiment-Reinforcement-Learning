@@ -1,0 +1,2 @@
+start;end;path;fields;author_blacklist;cols_to_check_if_removed;cols_to_be_cleaned;max_subm_p_author_p_day;filter_authors;integrity;search_ticker_in_body;ticker_blacklist;body_col;cols_in_vader_merge
+2021-01-28 00:00:00;2021-02-04 00:00:00;;['author', 'created_utc', 'id', 'num_comments', 'score', 'title', 'selftext', 'subreddit'];[];['author', 'selftext', 'title'];['title'];1;True;True;True;['DD'];selftext;['id', 'num_comments', 'score', 'date', 'pos', 'compound', 'neu', 'neg', 'date_mesz']

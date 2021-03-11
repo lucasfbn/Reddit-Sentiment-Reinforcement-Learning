@@ -7,6 +7,7 @@ import pandas as pd
 import time
 from pathlib import WindowsPath
 from types import SimpleNamespace
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO,
                     format="%(levelname)s %(asctime)s - %(message)s")
@@ -107,6 +108,8 @@ def save_config(configs, kind):
 
             if isinstance(value, WindowsPath):
                 value = str(value.name)
+            elif isinstance(value, datetime):
+                value = str(value)
             elif not is_jsonable(value):
                 value = value.__qualname__
 
