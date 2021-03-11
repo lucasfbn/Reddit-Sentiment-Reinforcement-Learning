@@ -16,20 +16,6 @@ models_path = storage_path / "models"
 tracking_path = storage_path / "tracking"
 
 
-def d_path(folder):
-    if not os.path.exists(datasets_data_path / str(folder)):
-        create_dir(datasets_data_path, str(folder), "")
-
-    return datasets_data_path / str(folder)
-
-
-def s_path(folder, live=False):
-    additional = ""
-    if live:
-        additional = "live"
-    return sentiment_data_path / additional / folder
-
-
 def create_dir(path, fn="", suffix=0):
     while os.path.exists(path / (fn + f"_{suffix}")):
         suffix += 1
