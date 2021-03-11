@@ -35,11 +35,6 @@ class Dataset:
         self.grps = None
         self.report = None
 
-        tracker.add({"path": str(self.path.name),
-                     "start": str(self.start),
-                     "end": str(self.end),
-                     "fields": fields}, "Dataset")
-
     def _prepare_dir(self):
         n_folder = len([_ for _ in os.listdir(self.path) if os.path.isdir(self.path / _)])
         fn = f"{self.start.strftime('%d-%m-%y')} - {self.end.strftime('%d-%m-%y')}"
@@ -77,8 +72,6 @@ class Dataset:
             if len(grp["df"]) == 0:
                 raise ValueError(f"Df of grp {grp['id']} is 0.")
 
-        tracker.add({"check_integrity": True}, "Dataset")
-
     def analyze(self):
         if self.grps is None:
             with open(self.path / self.grps_fn, "rb") as f:
@@ -101,12 +94,9 @@ class Dataset:
 if __name__ == "__main__":
     from datetime import datetime
 
-    tracker.run_id = 1
-
-    start = datetime(year=2021, month=3, day=2)
-    end = datetime(year=2021, month=3, day=9)
-    path = paths.sentiment_data_path / "" / "13-01-21 - 13-02-21_0"
+    start = datetime(year=2020, month=11, day=1)
+    end = datetime(year=2020, month=12, day=1)
+    path = paths.sentiment_data_path / "" / "01-11-21 - 30-11-21_0_MANUAL"
     ds = Dataset(start, end, path_suffix="", path=None)
+    ds.df = pd.read_csv(path / "gc_dump.csv", sep=";")
     ds.create()
-
-    tracker.new(kind="sentiment")

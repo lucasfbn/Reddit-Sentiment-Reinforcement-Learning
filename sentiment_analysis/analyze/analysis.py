@@ -82,11 +82,6 @@ class Submissions:
         self.subreddit = subreddit
         self.search_ticker_in_body = search_ticker_in_body
 
-        tracker.add({"search_ticker_in_body": self.search_ticker_in_body,
-                     "body_col": self.body_col,
-                     "cols_in_vader_merge": self.cols_in_vader_merge,
-                     "ticker_blacklist": self.ticker_blacklist}, "Analyzer", only_once=True)
-
         self.valid_ticker = self._get_valid_ticker()
         self.submission_ticker = pd.DataFrame()
         self.ticker_aggregated = pd.DataFrame()
