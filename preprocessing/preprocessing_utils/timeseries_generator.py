@@ -8,9 +8,11 @@ from preprocessing.preprocessing_utils.preprocessor import Preprocessor
 
 class TimeseriesGenerator(Preprocessor):
 
-    def __init__(self, look_back, scale=True, scaler=MinMaxScaler(), live=False):
+    def __init__(self, look_back, metadata_cols, check_availability, scale=True, scaler=MinMaxScaler(), live=False):
         self.data = self.load(self.fn_cleaned)
         self.look_back = look_back
+        self.metadata_cols = metadata_cols
+        self.check_availability = check_availability
         self.scale = scale
         self.scaler = scaler
         self.live = live
@@ -162,10 +164,18 @@ class TimeseriesGeneratorCNN(TimeseriesGenerator):
         sequences = []
 
         for i in range(len(df)):
-            available = df["available"].iloc[i]
-            if not available or (i - self.look_back < 0):
-                continue
-            sequences.append(df[i - self.look_back:i])
+
+            if self.check_availability:
+                available = df["available"].iloc[i]
+                if not available or (i - self.look_back < 0):
+                    continue
+                else:
+                    sequences.append(df[i - self.look_back:i])
+            else:
+                if i > (len(df) - self.look_back):
+                    break
+                sequences.append(df[i:i + self.look_back])
+
         assert len(sequences) > 0
         return sequences
 
