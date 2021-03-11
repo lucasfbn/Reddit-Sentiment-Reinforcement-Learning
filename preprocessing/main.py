@@ -4,6 +4,10 @@ from preprocessing.preprocessing_utils.merge_preprocessing import MergePreproces
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
 from preprocessing.preprocessing_utils.timeseries_generator import TimeseriesGeneratorCNN
 import preprocessing.config as config
+from utils import save_config
+
+save_config(configs=[config.general, config.merge_preprocessing, config.cleaner, config.timeseries_generator],
+            kind="dataset")
 
 Preprocessor.min_len = config.general.min_len
 Preprocessor.source_path = config.general.source_path
