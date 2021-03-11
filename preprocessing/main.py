@@ -3,38 +3,34 @@ from preprocessing.preprocessing_utils.cleaner import Cleaner
 from preprocessing.preprocessing_utils.merge_preprocessing import MergePreprocessing
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
 from preprocessing.preprocessing_utils.timeseries_generator import TimeseriesGeneratorCNN
-from utils import tracker
+import preprocessing.config as config
 
-Preprocessor.source_path = paths.sentiment_data_path / "28-01-21 - 04-02-21_0"
-# Preprocessor.target_path = paths.create_dir(paths.datasets_data_path)
-Preprocessor.target_path = paths.datasets_data_path / "_7"
-
-tracker.add({"source_path": str(Preprocessor.source_path.name),
-             "target_path": str(Preprocessor.target_path.name)}, "Main")
-
-Preprocessor.min_len = 2
+Preprocessor.min_len = config.general.min_len
+Preprocessor.source_path = config.general.source_path
+Preprocessor.target_path = config.general.target_path
 
 mhp = MergePreprocessing(
-    start_hour=21,
-    start_min=0,
-    market_symbols=[],
-    start_offset=30,
-    fill_gaps=False,
-    scale_cols_daywise=False,
-    live=False,
-    limit=None
+    start_hour=config.merge_preprocessing.start_hour,
+    start_min=config.merge_preprocessing.start_min,
+    market_symbols=config.merge_preprocessing.market_symbols,
+    start_offset=config.merge_preprocessing.start_offset,
+    fill_gaps=config.merge_preprocessing.fill_gaps,
+    scale_cols_daywise=config.merge_preprocessing.scale_cols_daywise,
+    live=config.merge_preprocessing.live,
+    limit=config.merge_preprocessing.limit,
 )
 mhp.pipeline()
 
 c = Cleaner(
-    keep_offset=7
+    keep_offset=config.cleaner.keep_offset
 )
-# c.pipeline()
+c.pipeline()
 #
-tsg = TimeseriesGeneratorCNN(
-    look_back=7,
-    scale=True
-)
-# tsg.pipeline()
 
-tracker.new(kind="datasets")
+tsg = config.timeseries_generator.kind
+tsg = tsg(
+    look_back=config.timeseries_generator.look_back,
+    scale=config.timeseries_generator.scale
+)
+
+tsg.pipeline()
