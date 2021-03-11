@@ -168,16 +168,18 @@ class TimeseriesGeneratorCNN(TimeseriesGenerator):
         sequences = []
 
         for i in range(len(df)):
-            if i > (len(df) - self.look_back):
-                break
-            sequences.append(df[i:i + self.look_back])
+            available = df["available"].iloc[i]
+            if not available or (i - self.look_back < 0):
+                continue
+            sequences.append(df[i - self.look_back:i])
+        assert len(sequences) > 0
         return sequences
 
     def _extract_metadata(self, grp):
         metadata = []
         for i, seq in enumerate(grp["data"]):
-            metadata.append(seq.tail(1)[["price", "tradeable", "date"]])
-            grp["data"][i] = grp["data"][i].drop(columns=["price", "tradeable", "date"])
+            metadata.append(seq.tail(1)[self.metadata_cols])
+            grp["data"][i] = grp["data"][i].drop(columns=self.metadata_cols)
         grp["metadata"] = pd.concat(metadata)
         return grp
 

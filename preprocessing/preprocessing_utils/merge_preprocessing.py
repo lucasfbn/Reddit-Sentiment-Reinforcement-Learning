@@ -6,7 +6,7 @@ from preprocessing.preprocessing_utils.stock_prices import StockPrices
 
 pd.options.mode.chained_assignment = None
 
-from utils import tracker
+from utils import tracker, log
 
 
 class MergePreprocessing(Preprocessor):
@@ -80,9 +80,30 @@ class MergePreprocessing(Preprocessor):
         filtered_grps = []
 
         for grp in self.grps:
-            if len(grp["data"]) >= self.min_len:
+            if len(grp["data"]) > self.min_len:
                 filtered_grps.append(grp)
         self.grps = filtered_grps
+
+    def _mark_available(self):
+        """
+        Used during training. Marks the entries that should be taken into account while training. For instance, if we
+        set min_len to 2, we, in reality, are not able to trade the instances prior to the entry which fulfills the
+        min len.
+        Example:
+            min_len = 3
+            04.01 - first entry, NOT tradeable
+            05.01 - second entry, NOT tradeable
+            06.01 - third entry, IS tradeable
+
+        E.g. the non tradeable entries will be taken into account historically but will not be used as individual
+         sequences.
+
+        :return:
+        """
+        for grp in self.grps:
+            # Basically a list where index 0 to min_len is False and the rest is True
+            available = [False] * self.min_len + [True] * (len(grp["data"]) - self.min_len)
+            grp["data"]["available"] = available
 
     def _handle_gaps(self):
         """
@@ -93,12 +114,15 @@ class MergePreprocessing(Preprocessor):
         if not self.fill_gaps:
             return
 
+        raise NotImplemented("HANDLE GAPS CURRENTLY FILLS NANS WITH 0. THIS IS NOT COMPATIBLE WITH THE CURRENT"
+                             "IMPLEMENTATION OF THE 'available' COLUMN.")
+
         for grp in self.grps:
             df = grp["data"]
             min_date = df["date_day"].min().to_timestamp()
             max_date = df["date_day"].max().to_timestamp()
 
-            # Created temp df with the daterange between min and max date in original df
+            # Create temp df with the daterange between min and max date in original df
             temp = pd.DataFrame()
             temp["date_day"] = pd.date_range(start=min_date, end=max_date)
             temp["date_day"] = temp["date_day"].dt.to_period("D")
@@ -118,13 +142,32 @@ class MergePreprocessing(Preprocessor):
 
         self.grps = new_grps
 
+    def _sort_chronologically(self):
+        for grp in self.grps:
+            grp["data"]["date"] = grp["data"]['date_day'].dt.to_timestamp('s')
+            grp["data"] = grp["data"].sort_values(by=["date"])
+
+    def _backfill_availability(self):
+        for grp in self.grps:
+
+            # If the first element in the available column is nan we set it to False. Since we use ffill to fill the
+            # nans we need a value in the first row.
+            first_availability = grp["data"]["available"].iloc[0]
+            if first_availability != True:
+                grp["data"]["available"].iloc[0] = False
+
+            grp["data"]["available"] = grp["data"]["available"].fillna(method="ffill")
+
     def pipeline(self):
         self._handle_time()
         self._filter_market_symbol()
         self._scale_daywise()
         self._grp_by()
         self._drop_short()
+        self._mark_available()
         self._limit()
         self._handle_gaps()
         self._add_stock_prices()
+        self._sort_chronologically()
+        self._backfill_availability()
         self.save(self.grps, self.fn_merge_hype_price)
