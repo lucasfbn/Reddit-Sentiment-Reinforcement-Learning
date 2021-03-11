@@ -11,6 +11,8 @@ class MergePreprocessing(Preprocessor):
 
     def __init__(self,
                  start_hour, start_min,
+                 min_len,
+                 cols_to_be_scaled_daywise,
                  market_symbols=[],
                  start_offset=30,
                  fill_gaps=True,
@@ -22,10 +24,12 @@ class MergePreprocessing(Preprocessor):
         self.grps = []
         self.start_hour = start_hour
         self.start_min = start_min
+        self.min_len = min_len
         self.market_symbols = market_symbols
         self.start_offset = start_offset
         self.fill_gaps = fill_gaps
         self.scale_cols_daywise = scale_cols_daywise
+        self.cols_to_be_scaled_daywise = cols_to_be_scaled_daywise
         self.live = live
         self.limit = limit
 
