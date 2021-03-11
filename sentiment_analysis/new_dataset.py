@@ -95,7 +95,9 @@ class Dataset:
         self.preprocess()
         self._check_integrity()
         self.analyze()
-        save_config(config, kind="sentiments")
+        
+        config.general.path = self.path
+        save_config([config.general, config.gc, config.preprocess, config.check, config.submissions], kind="sentiments")
 
 
 if __name__ == "__main__":
