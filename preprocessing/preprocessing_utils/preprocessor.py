@@ -33,7 +33,8 @@ class Preprocessor:
                  "use_price": use_price,
                  "cols_to_be_scaled_daywise": cols_to_be_scaled_daywise,
                  "cols_to_be_dropped": cols_to_be_dropped,
-                 "cols_to_be_scaled": cols_to_be_scaled}, "Preprocessor")
+                 "cols_to_be_scaled": cols_to_be_scaled,
+                 "metadata_cols": metadata_cols}, "Preprocessor")
 
     def fix_cols(self, cols):
         new_cols = []
