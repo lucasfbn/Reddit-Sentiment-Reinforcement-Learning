@@ -10,10 +10,8 @@ from utils import *
 
 class SubmissionsHandler:
 
-    def __init__(self, data, upload=False, upload_all_at_once=True, **kwargs):
+    def __init__(self, data, **kwargs):
         self.data = data
-        self.upload = upload
-        self.upload_all_at_once = upload_all_at_once
         self.kwargs = kwargs
         self.processed_data = pd.DataFrame()
 
@@ -30,32 +28,12 @@ class SubmissionsHandler:
                                      end_timestamp=d["end_timestamp"],
                                      subreddit=d["subreddit"])
             result = submission.analyze()
-            if not self.upload_all_at_once:
-                self._upload(result)
             self.processed_data = self.processed_data.append(result)
-
-        if self.upload_all_at_once:
-            self._upload()
 
         return self.processed_data
 
-    def _upload(self, data=None):
-
-        if not self.upload:
-            return
-
-        if data is None:
-            data = self.processed_data
-
-        log.info(f"Uploading... Rows: {len(data)}")
-        db = BigQueryDB()
-        db.upload(data, "processed_data", "ticker")
-
 
 class Submissions:
-    ticker_blacklist = ["DD"]
-    body_col = "selftext"
-    cols_in_vader_merge = ["id", "num_comments", "score", "date", "pos", "compound", "neu", "neg", "date_mesz"]
 
     def __init__(self,
                  run_id,
@@ -65,6 +43,9 @@ class Submissions:
                  end_timestamp,
                  subreddit,
                  search_ticker_in_body,
+                 ticker_blacklist,
+                 body_col,
+                 cols_in_vader_merge,
                  path=None,
                  df=None):
 
@@ -81,6 +62,9 @@ class Submissions:
         self.start_timestamp, self.end_timestamp = start_timestamp, end_timestamp
         self.subreddit = subreddit
         self.search_ticker_in_body = search_ticker_in_body
+        self.ticker_blacklist = ticker_blacklist
+        self.body_col = body_col
+        self.cols_in_vader_merge = cols_in_vader_merge
 
         self.valid_ticker = self._get_valid_ticker()
         self.submission_ticker = pd.DataFrame()
