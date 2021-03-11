@@ -29,13 +29,6 @@ class Preprocessor:
     target_path = None
     settings = {"used_price": use_price}
 
-    tracker.add({"min_len": min_len,
-                 "use_price": use_price,
-                 "cols_to_be_scaled_daywise": cols_to_be_scaled_daywise,
-                 "cols_to_be_dropped": cols_to_be_dropped,
-                 "cols_to_be_scaled": cols_to_be_scaled,
-                 "metadata_cols": metadata_cols}, "Preprocessor")
-
     def fix_cols(self, cols):
         new_cols = []
         for col in cols:

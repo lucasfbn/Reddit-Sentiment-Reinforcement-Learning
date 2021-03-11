@@ -15,10 +15,6 @@ class TimeseriesGenerator(Preprocessor):
         self.scaler = scaler
         self.live = live
 
-        tracker.add({"look_back": self.look_back,
-                     "scale": self.scale,
-                     "scaler": self.scaler.__class__.__name__}, "TimeseriesGenerator")
-
     def _add_timeseries_price_col(self, grp):
         grp["data"]["price_ts"] = grp["data"]["price"]
         return grp
@@ -138,8 +134,6 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
 
     def _model_specific(self, grp):
 
-        tracker.add({"generator": self.__class__.__name__}, "TimeseriesGenerator")
-
         grp = self._add_pre_data(grp)
         grp = self._extract_metadata(grp)
         if len(grp["data"]) == 0:
@@ -184,8 +178,6 @@ class TimeseriesGeneratorCNN(TimeseriesGenerator):
         return grp
 
     def _model_specific(self, grp):
-
-        tracker.add({"generator": self.__class__.__name__}, "TimeseriesGenerator")
 
         grp["data"] = self._reorder_cols(grp["data"])
         grp["data"] = self._make_seq(grp["data"])
