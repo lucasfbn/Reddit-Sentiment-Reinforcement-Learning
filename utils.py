@@ -3,6 +3,9 @@ import os
 import json
 import paths
 import logging
+import pandas as pd
+import time
+from pathlib import WindowsPath
 
 logging.basicConfig(level=logging.INFO,
                     format="%(levelname)s %(asctime)s - %(message)s")
@@ -51,12 +54,21 @@ class Tracker:
 
     def new(self, kind):
 
-        n_tracking_ids = len([_ for _ in os.listdir(paths.tracking_path / kind)
-                              if os.path.isfile(paths.tracking_path / kind / _)])
+        # n_tracking_ids = len([_ for _ in os.listdir(paths.tracking_path / kind)
+        #                       if os.path.isfile(paths.tracking_path / kind / _)])
         self.arguments = self._flatten(self.arguments)
-        with open(paths.tracking_path / kind / f"{n_tracking_ids + 1}.json", "w+") as f:
-            json.dump(self.arguments, f)
-        log.info(f"Created tracker file: {n_tracking_ids + 1}.json")
+
+        path = paths.tracking_path / f"{kind}.csv"
+        if os.path.exists(path):
+            df = pd.read_csv(path, sep=";")
+            df = df.append(pd.DataFrame(self.arguments))
+        else:
+            df = pd.DataFrame(self.arguments)
+        df.to_csv(path, sep=";", index=False)
+
+        # with open(paths.tracking_path / kind / f"{n_tracking_ids + 1}.json", "w+") as f:
+        #     json.dump(self.arguments, f)
+        # log.info(f"Created tracker file: {n_tracking_ids + 1}.json")
 
     def add_to(self, run_id, kind):
         with open(paths.tracking_path / kind / f"{run_id}.json") as f:
@@ -77,7 +89,43 @@ class Tracker:
 
 tracker = Tracker()
 
+
+def save_config(configs, kind):
+    def is_jsonable(x):
+        try:
+            json.dumps(x)
+            return True
+        except (TypeError, OverflowError):
+            return False
+
+    flattened = {}
+
+    for config in configs:
+        for key, value in config.items():
+
+            if isinstance(value, WindowsPath):
+                value = str(value.name)
+            elif not is_jsonable(value):
+                value = value.__qualname__
+
+            flattened[key] = [value]
+
+    path = paths.tracking_path / f"{kind}.csv"
+    if os.path.exists(path):
+        df = pd.read_csv(path, sep=";")
+        df = df.append(pd.DataFrame(flattened))
+    else:
+        df = pd.DataFrame(flattened)
+
+    while True:
+        try:
+            df.to_csv(path, sep=";", index=False)
+            break
+        except PermissionError:
+            print(f"Close {kind}.csv you retard.")
+            time.sleep(3)
+
+
 if __name__ == '__main__':
-    tracker.add({"test5": 1}, "hallo1")
-    # tracker.new()
-    tracker.add_to(5)
+    tracker.add({"test5": 3}, "hallo1")
+    tracker.new(kind="eval")
