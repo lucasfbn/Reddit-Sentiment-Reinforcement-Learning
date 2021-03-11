@@ -163,9 +163,7 @@ if __name__ == "__main__":
     with open("raw.pkl", "rb") as f:
         data = pkl.load(f)
 
-    sh = SubmissionsHandler(data,
-                            upload=False,
-                            upload_all_at_once=False)
+    sh = SubmissionsHandler(data)
     p_data = sh.process()
     p_data.to_csv("report.csv", sep=";", index=False)
     print()

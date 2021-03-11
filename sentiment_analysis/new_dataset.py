@@ -7,7 +7,8 @@ from sentiment_analysis.analyze.analysis import SubmissionsHandler
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sentiment_analysis.reddit_data.preprocess.preprocess import Preprocessor
 import paths
-from utils import tracker
+from utils import tracker, save_config
+import sentiment_analysis.config as config
 
 
 class Dataset:
@@ -15,21 +16,16 @@ class Dataset:
     grps_fn = "grps.pkl"
     report_fn = "report.csv"
 
-    def __init__(self, start, end,
-                 fields=["author", "created_utc", "id", "num_comments", "score", "title", "selftext", "subreddit"],
-                 path_suffix="",
-                 upload_report=False,
-                 path=None):
-        self.start = start
-        self.end = end
-        self.fields = fields
-        self.upload_report = upload_report
+    def __init__(self):
+        self.start = config.general.start
+        self.end = config.general.end
+        self.check_integrity = config.check.integrity
 
-        if path is None:
-            self.path = paths.sentiment_data_path / path_suffix
+        if config.general.path is None:
+            self.path = paths.sentiment_data_path
             self._prepare_dir()
         else:
-            self.path = path
+            self.path = config.general.path
 
         self.df = None
         self.grps = None
@@ -46,20 +42,29 @@ class Dataset:
                 self.df = pd.read_csv(self.path / self.gc_dump_fn, sep=";")
             except FileNotFoundError:
                 db = BigQueryDB()
-                self.df = db.download(self.start, self.end, self.fields)
+                self.df = db.download(self.start, self.end, config.gc.fields)
                 self.df.to_csv(self.path / self.gc_dump_fn, sep=";", index=False)
 
     def preprocess(self):
         if self.df is None:
             self.df = pd.read_csv(self.path / self.gc_dump_fn, sep=";")
 
-        prep = Preprocessor(df=self.df, max_subm_p_author_p_day=1)
+        prep = Preprocessor(df=self.df,
+                            author_blacklist=config.preprocess.author_blacklist,
+                            cols_to_check_if_removed=config.preprocess.cols_to_check_if_removed,
+                            cols_to_be_cleaned=config.preprocess.cols_to_be_cleaned,
+                            max_subm_p_author_p_day=config.preprocess.max_subm_p_author_p_day,
+                            filter_authors=config.preprocess.filter_authors)
         self.grps = prep.exec()
 
         with open(self.path / self.grps_fn, "wb") as f:
             pkl.dump(self.grps, f)
 
-    def check_integrity(self):
+    def _check_integrity(self):
+
+        if not self.check_integrity:
+            return
+
         if self.grps is None:
             with open(self.path / self.grps_fn, "rb") as f:
                 self.grps = pkl.load(f)
@@ -78,25 +83,22 @@ class Dataset:
                 self.grps = pkl.load(f)
 
         sh = SubmissionsHandler(data=self.grps,
-                                upload=self.upload_report,
-                                upload_all_at_once=False,
-                                search_ticker_in_body=True)
+                                search_ticker_in_body=config.submissions.search_ticker_in_body,
+                                ticker_blacklist=config.submissions.ticker_blacklist,
+                                body_col=config.submissions.body_col,
+                                cols_in_vader_merge=config.submissions.cols_in_vader_merge)
         p_data = sh.process()
         p_data.to_csv(self.path / self.report_fn, sep=";", index=False)
 
     def create(self):
         self.get_from_gc()
         self.preprocess()
-        self.check_integrity()
+        self._check_integrity()
         self.analyze()
+        save_config(config, kind="sentiments")
 
 
 if __name__ == "__main__":
-    from datetime import datetime
-
-    start = datetime(year=2020, month=11, day=1)
-    end = datetime(year=2020, month=12, day=1)
-    path = paths.sentiment_data_path / "" / "01-11-21 - 30-11-21_0_MANUAL"
-    ds = Dataset(start, end, path_suffix="", path=None)
-    ds.df = pd.read_csv(path / "gc_dump.csv", sep=";")
+    ds = Dataset()
+    # ds.df = pd.read_csv(path / "gc_dump.csv", sep=";")
     ds.create()
