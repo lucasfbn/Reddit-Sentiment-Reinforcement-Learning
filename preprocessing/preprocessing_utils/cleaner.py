@@ -3,9 +3,12 @@ from preprocessing.preprocessing_utils.preprocessor import Preprocessor
 
 class Cleaner(Preprocessor):
 
-    def __init__(self, keep_offset):
+    def __init__(self, keep_offset, cols_to_be_dropped, use_price, min_len):
         self.data = self.load(self.fn_merge_hype_price)
+        self.cols_to_be_dropped = cols_to_be_dropped
         self.keep_offset = keep_offset
+        self.use_price = use_price
+        self.min_len = min_len
 
     def _rename_cols(self):
         for grp in self.data:
