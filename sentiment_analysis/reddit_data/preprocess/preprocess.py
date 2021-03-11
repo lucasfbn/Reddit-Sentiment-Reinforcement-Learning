@@ -2,18 +2,20 @@ import pickle as pkl
 
 import pandas as pd
 
-from utils import *
+from utils import drop_stats, log
 
 
 class Preprocessor:
-    author_blacklist = []
-    cols_to_check_if_removed = ["author", "selftext", "title"]
-    cols_to_be_cleaned = ["title"]
 
     def __init__(self,
+                 author_blacklist,
+                 cols_to_check_if_removed,
+                 cols_to_be_cleaned,
                  max_subm_p_author_p_day,
+                 filter_authors,
                  path=None,
                  df=None):
+
         if path is None and df is None:
             raise ValueError("Specify either a path or a df.")
 
@@ -22,8 +24,12 @@ class Preprocessor:
         else:
             self.df = df
 
+        self.author_blacklist = author_blacklist
+        self.cols_to_check_if_removed = cols_to_check_if_removed
+        self.cols_to_be_cleaned = cols_to_be_cleaned
         self.max_subm_p_author_p_day = max_subm_p_author_p_day
         self.grps = []
+        self.filter_authors = filter_authors
 
     def _add_date_col(self):
         self.df["date_full"] = pd.to_datetime(self.df["created_utc"], unit="s")
@@ -46,6 +52,10 @@ class Preprocessor:
 
     @drop_stats
     def _filter_authors(self):
+
+        if not self.filter_authors:
+            return
+
         filtered_rows = []
 
         cols = self.df.columns
@@ -76,8 +86,7 @@ class Preprocessor:
             self.df[col] = self.df[col].str.replace('[^\w\s,.?!()-+:"]', '', regex=True)
 
     def _groupby_date(self):
-        grp_by = "start"
-        grps = self.df.groupby(grp_by)
+        grps = self.df.groupby("start")
 
         new_grps = []
         for name, grp in grps:
@@ -99,7 +108,11 @@ class Preprocessor:
 
 
 if __name__ == '__main__':
-    prep = Preprocessor(max_subm_p_author_p_day=1,
+    prep = Preprocessor(author_blacklist=[],
+                        cols_to_check_if_removed=["author", "selftext", "title"],
+                        cols_to_be_cleaned=["title"],
+                        max_subm_p_author_p_day=1,
+                        filter_authors=True,
                         path="gc_dump.csv")
     grps = prep.exec()
     with open("raw.pkl", "wb") as f:
