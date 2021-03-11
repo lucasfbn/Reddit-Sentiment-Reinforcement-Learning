@@ -1,6 +1,6 @@
-from utils import Config
 import paths
 from preprocessing.preprocessing_utils.timeseries_generator import TimeseriesGeneratorCNN
+from utils import Config
 
 general = Config(**dict(
     min_len=3,

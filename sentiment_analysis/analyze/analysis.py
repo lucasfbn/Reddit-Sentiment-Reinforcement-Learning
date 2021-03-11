@@ -1,9 +1,6 @@
 import pickle as pkl
 
-import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-
-from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 
 from utils import *
 

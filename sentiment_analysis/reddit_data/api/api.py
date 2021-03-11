@@ -1,5 +1,4 @@
 import pandas as pd
-from utils import drop_stats
 
 
 class API:

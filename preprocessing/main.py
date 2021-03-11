@@ -1,9 +1,7 @@
-import paths
+import preprocessing.config as config
 from preprocessing.preprocessing_utils.cleaner import Cleaner
 from preprocessing.preprocessing_utils.merge_preprocessing import MergePreprocessing
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
-from preprocessing.preprocessing_utils.timeseries_generator import TimeseriesGeneratorCNN
-import preprocessing.config as config
 from utils import save_config
 
 Preprocessor.min_len = config.general.min_len

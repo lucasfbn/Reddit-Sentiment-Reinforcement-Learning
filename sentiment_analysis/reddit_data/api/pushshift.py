@@ -1,11 +1,11 @@
-from datetime import datetime
 import time
+from datetime import datetime
 
 import requests
-from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
-from sentiment_analysis.reddit_data.api.api import API
 from psaw import PushshiftAPI
 
+from sentiment_analysis.reddit_data.api.api import API
+from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from utils import dt_to_timestamp, log
 
 
