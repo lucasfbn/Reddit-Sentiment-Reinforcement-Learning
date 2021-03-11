@@ -101,6 +101,7 @@ def save_config(configs, kind):
     flattened = {}
 
     for config in configs:
+        config = vars(config)
         for key, value in config.items():
 
             if isinstance(value, WindowsPath):
@@ -124,8 +125,3 @@ def save_config(configs, kind):
         except PermissionError:
             print(f"Close {kind}.csv you retard.")
             time.sleep(3)
-
-
-if __name__ == '__main__':
-    tracker.add({"test5": 3}, "hallo1")
-    tracker.new(kind="eval")

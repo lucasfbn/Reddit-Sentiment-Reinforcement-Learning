@@ -1,0 +1,3 @@
+min_len;source_path;target_path;start_hour;start_min;market_symbols;start_offset;fill_gaps;scale_cols_daywise;live;limit;keep_offset;kind;look_back;scale
+3;13-01-21 - 25-01-21_0;_6;21;0;[];30;False;False;False;;7;TimeseriesGeneratorCNN;7;True
+3;13-01-21 - 25-01-21_0;_6;21;0;[];30;False;False;False;;7;TimeseriesGeneratorCNN;7;True

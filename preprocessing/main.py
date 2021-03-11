@@ -6,9 +6,6 @@ from preprocessing.preprocessing_utils.timeseries_generator import TimeseriesGen
 import preprocessing.config as config
 from utils import save_config
 
-save_config(configs=[config.general, config.merge_preprocessing, config.cleaner, config.timeseries_generator],
-            kind="dataset")
-
 Preprocessor.min_len = config.general.min_len
 Preprocessor.source_path = config.general.source_path
 Preprocessor.target_path = config.general.target_path
@@ -29,7 +26,6 @@ c = Cleaner(
     keep_offset=config.cleaner.keep_offset
 )
 c.pipeline()
-#
 
 tsg = config.timeseries_generator.kind
 tsg = tsg(
@@ -38,3 +34,6 @@ tsg = tsg(
 )
 
 tsg.pipeline()
+
+save_config(configs=[config.general, config.merge_preprocessing, config.cleaner, config.timeseries_generator],
+            kind="dataset")

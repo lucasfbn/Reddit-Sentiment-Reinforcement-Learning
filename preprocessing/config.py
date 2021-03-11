@@ -1,14 +1,16 @@
+from types import SimpleNamespace
+
 import paths
 from preprocessing.preprocessing_utils.timeseries_generator import TimeseriesGeneratorCNN
 
-general = dict(
+general = SimpleNamespace(**dict(
     min_len=3,
     source_path=paths.sentiment_data_path / "13-01-21 - 25-01-21_0",
     # target_path=paths.create_dir(paths.datasets_data_path),
     target_path=paths.datasets_data_path / "_6"
-)
+))
 
-merge_preprocessing = dict(
+merge_preprocessing = SimpleNamespace(**dict(
     start_hour=21,
     start_min=0,
     market_symbols=[],
@@ -17,14 +19,14 @@ merge_preprocessing = dict(
     scale_cols_daywise=False,
     live=False,
     limit=None
-)
+))
 
-cleaner = dict(
+cleaner = SimpleNamespace(**dict(
     keep_offset=7
-)
+))
 
-timeseries_generator = dict(
+timeseries_generator = SimpleNamespace(**dict(
     kind=TimeseriesGeneratorCNN,
     look_back=7,
     scale=True
-)
+))
