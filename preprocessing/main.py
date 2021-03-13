@@ -19,7 +19,7 @@ mhp = MergePreprocessing(
     live=config.merge_preprocessing.live,
     limit=config.merge_preprocessing.limit,
 )
-mhp.pipeline()
+# mhp.pipeline()
 
 c = Cleaner(
     keep_offset=config.cleaner.keep_offset,
@@ -27,14 +27,15 @@ c = Cleaner(
     use_price=config.cleaner.use_price,
     min_len=config.general.min_len
 )
-c.pipeline()
+# c.pipeline()
 
 tsg = config.timeseries_generator.kind
 tsg = tsg(
     metadata_cols=config.timeseries_generator.metadata_cols,
     check_availability=config.timeseries_generator.check_availability,
     look_back=config.timeseries_generator.look_back,
-    scale=config.timeseries_generator.scale
+    scale=config.timeseries_generator.scale,
+    keep_unscaled=config.timeseries_generator.keep_unscaled
 )
 
 tsg.pipeline()

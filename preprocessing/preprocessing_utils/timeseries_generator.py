@@ -2,19 +2,22 @@ import re
 
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.compose import ColumnTransformer
 
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
 
 
 class TimeseriesGenerator(Preprocessor):
 
-    def __init__(self, look_back, metadata_cols, check_availability, scale=True, scaler=MinMaxScaler(), live=False):
+    def __init__(self, look_back, metadata_cols, check_availability, scale=True, scaler=MinMaxScaler(),
+                 keep_unscaled=False, live=False):
         self.data = self.load(self.fn_cleaned)
         self.look_back = look_back
         self.metadata_cols = metadata_cols
         self.check_availability = check_availability
         self.scale = scale
         self.scaler = scaler
+        self.keep_unscaled = keep_unscaled
         self.live = live
 
     def _add_timeseries_price_col(self, grp):
@@ -154,10 +157,23 @@ class TimeseriesGeneratorCNN(TimeseriesGenerator):
         if not self.scale:
             return grp
 
+        cols_to_be_scaled = [col for col in grp["data"][0] if "unscaled" not in col]
+
         for i, df in enumerate(grp["data"]):
             cols = df.columns
-            df = self.scaler.fit_transform(df)
+
+            ct = ColumnTransformer(
+                [("_", self.scaler, cols_to_be_scaled)], remainder="passthrough"
+            )
+            df = ct.fit_transform(df)
             grp["data"][i] = pd.DataFrame(df, columns=cols)
+        return grp
+
+    def _copy_unscaled(self, grp):
+        if self.keep_unscaled:
+            for df in grp["data"]:
+                for col in df.columns:
+                    df[f"{col}_unscaled"] = df[col]
         return grp
 
     def _make_seq(self, df):
@@ -192,5 +208,6 @@ class TimeseriesGeneratorCNN(TimeseriesGenerator):
         grp["data"] = self._reorder_cols(grp["data"])
         grp["data"] = self._make_seq(grp["data"])
         grp = self._extract_metadata(grp)
+        grp = self._copy_unscaled(grp)
         grp = self._scale(grp)
         return grp

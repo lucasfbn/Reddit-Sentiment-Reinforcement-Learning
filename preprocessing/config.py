@@ -4,9 +4,9 @@ from utils import Config
 
 general = Config(**dict(
     min_len=6,
-    source_path=paths.sentiment_data_path / "02-03-21 - 09-03-21_0",
-    target_path=paths.create_dir(paths.datasets_data_path),
-    # target_path=paths.datasets_data_path / "_13"
+    source_path=paths.sentiment_data_path / "13-01-21 - 25-01-21_3",
+    # target_path=paths.create_dir(paths.datasets_data_path),
+    target_path=paths.datasets_data_path / "_1"
 ))
 
 merge_preprocessing = Config(**dict(
@@ -33,5 +33,6 @@ timeseries_generator = Config(**dict(
     look_back=7,
     metadata_cols=["price", "tradeable", "date", "available"],
     check_availability=False,
-    scale=True
+    scale=True,
+    keep_unscaled=True
 ))
