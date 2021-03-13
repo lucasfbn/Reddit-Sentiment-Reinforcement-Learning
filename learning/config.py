@@ -5,7 +5,7 @@ from learning.main import main
 # general = Config(**dict(
 #     data_path=paths.eval_data_path / "21-50 04_03-21.pkl",
 #     kind="CNN",
-#     eval=False,
+#     evaluate=False,
 #     model_path=None
 # ))
 #
@@ -21,7 +21,7 @@ from learning.main import main
 configs = [[Config(**dict(
     data_path=paths.eval_data_path / "21-50 04_03-21.pkl",
     kind="CNN",
-    eval=False,
+    evaluate=False,
     model_path=None
 )), Config(**dict(
     gamma=0.95,
@@ -34,7 +34,7 @@ configs = [[Config(**dict(
            [Config(**dict(
                data_path=paths.eval_data_path / "21-50 04_03-21.pkl",
                kind="CNN",
-               eval=False,
+               evaluate=False,
                model_path=None
            )), Config(**dict(
                gamma=0.95,
@@ -49,7 +49,8 @@ configs = [[Config(**dict(
 
 new_configs = []
 for c in configs:
-    new_configs.append(c * 3)
+    new_configs.append(c)
+    new_configs.append(c)
 
 # configs = [(general, agent)]
 

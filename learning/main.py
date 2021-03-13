@@ -20,33 +20,35 @@ def main(config):
         agent = CNN_Agent(state_size=shape[0], action_size=3, feature_size=shape[1],
                           gamma=config.agent.gamma, epsilon=config.agent.epsilon,
                           epsilon_decay=config.agent.epsilon_decay, epsilon_min=config.agent.epsilon_min,
-                          randomness=config.agent.randomness, memory_len=config.agent.memory_len, eval=eval)
+                          randomness=config.agent.randomness, memory_len=config.agent.memory_len,
+                          evaluate=config.general.evaluate)
         agent.build_model()
         env = Env_CNN()
     else:
         agent = NN_Agent(state_size=data[0]["data"].shape[1], action_size=3,
                          gamma=config.agent.gamma, epsilon=config.agent.epsilon,
                          epsilon_decay=config.agent.epsilon_decay, epsilon_min=config.agent.epsilon_min,
-                         randomness=config.agent.randomness, memory_len=config.agent.memory_len, eval=eval)
+                         randomness=config.agent.randomness, memory_len=config.agent.memory_len,
+                         evaluate=config.general.evaluate)
         agent.build_model()
         env = Env_NN()
 
-    if config.general.eval:
+    if config.general.evaluate:
         model_path = config.general.model_path
         model = tf.keras.models.load_model(model_path)
-        eval_data = deep_q_model(data, agent=agent, env=env, eval=True, model=model)
+        eval_data = deep_q_model(data, agent=agent, env=env, evaluate=True, model=model)
 
         eval_path = paths.eval_data_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}.pkl"
         with open(eval_path, "wb") as f:
             pkl.dump(eval_data, f)
     else:
-        model = deep_q_model(data, agent=agent, env=env, eval=False)
+        model = deep_q_model(data, agent=agent, env=env, evaluate=False)
         model_path = paths.models_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}"
         model.save(model_path)
 
-        agent.eval = True
+        agent.evaluate = True
 
-        eval_data = deep_q_model(data, agent=agent, env=env, eval=True, model=model)
+        eval_data = deep_q_model(data, agent=agent, env=env, evaluate=True, model=model)
         eval_path = paths.eval_data_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}.pkl"
         with open(eval_path, "wb") as f:
             pkl.dump(eval_data, f)
