@@ -9,8 +9,10 @@ from tensorflow.keras.optimizers import Adam
 
 class Agent:
 
-    def __init__(self, state_size, action_size, eval, memory_len=1000):
-        self.state_size = state_size
+    def __init__(self, state_size, action_size, eval, feature_size=None, memory_len=1000):
+
+        self.feature_size = feature_size  # Num of features
+        self.state_size = state_size  # Length of time series
         self.action_size = action_size
 
         self.memory = deque(maxlen=memory_len)
@@ -72,10 +74,6 @@ class NN_Agent(Agent):
 
 
 class CNN_Agent(Agent):
-
-    def __init__(self, state_size, action_size, feature_size, eval, memory_len=1000):
-        super().__init__(state_size, action_size, memory_len=memory_len, eval=eval)
-        self.feature_size = feature_size
 
     def build_model(self):
         model = Sequential()
