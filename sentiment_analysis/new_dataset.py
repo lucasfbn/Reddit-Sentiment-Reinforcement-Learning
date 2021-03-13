@@ -42,7 +42,8 @@ class Dataset:
                 self.df = pd.read_csv(self.path / self.gc_dump_fn, sep=";")
             except FileNotFoundError:
                 db = BigQueryDB()
-                self.df = db.download(self.start, self.end, config.gc.fields)
+                self.df = db.download(self.start, self.end, config.gc.fields,
+                                      check_duplicates=config.gc.check_duplicates)
                 self.df.to_csv(self.path / self.gc_dump_fn, sep=";", index=False)
 
     def preprocess(self):
@@ -95,7 +96,7 @@ class Dataset:
         self.preprocess()
         self._check_integrity()
         self.analyze()
-        
+
         config.general.path = self.path
         save_config([config.general, config.gc, config.preprocess, config.check, config.submissions], kind="sentiments")
 

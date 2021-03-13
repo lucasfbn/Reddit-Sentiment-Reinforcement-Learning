@@ -1,15 +1,17 @@
-from utils import Config
 from datetime import datetime
+
 import paths
+from utils import Config
 
 general = Config(**dict(
-    start=datetime(year=2021, month=1, day=28),
-    end=datetime(year=2021, month=2, day=4),
-    # path=paths.sentiment_data_path / "28-01-21 - 04-02-21_1",
+    start=datetime(year=2021, month=1, day=13),
+    end=datetime(year=2021, month=1, day=25),
+    # path=paths.sentiment_data_path / "13-01-21 - 25-01-21_1",
     path=None,
 ))
 
 gc = Config(**dict(
+    check_duplicates=True,
     fields=["author", "created_utc", "id", "num_comments", "score", "title", "selftext", "subreddit"]
 ))
 
@@ -26,7 +28,7 @@ check = Config(**dict(
 ))
 
 submissions = Config(**dict(
-    search_ticker_in_body=True,
+    search_ticker_in_body=False,
     ticker_blacklist=["DD"],
     body_col="selftext",
     cols_in_vader_merge=["id", "num_comments", "score", "date", "pos", "compound", "neu", "neg", "date_mesz"],
