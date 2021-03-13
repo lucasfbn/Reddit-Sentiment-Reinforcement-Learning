@@ -59,6 +59,8 @@ def save_config(configs, kind):
     else:
         df = pd.DataFrame(flattened)
 
+    df["time"] = datetime.now()
+
     while True:
         try:
             df.to_csv(path, sep=";", index=False)
@@ -70,3 +72,8 @@ def save_config(configs, kind):
 
 class Config(SimpleNamespace):
     pass
+
+
+if __name__ == '__main__':
+    c = Config(**dict(test=12))
+    save_config([c], "test")
