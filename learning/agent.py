@@ -25,6 +25,8 @@ class Agent:
 
         # Whether to use exploration or not
         self.randomness = randomness
+        self.rnd_counter = 0
+        self.act_counter = 0
         # Exploration rate
         self.epsilon = epsilon
         # Over time, decay epsilon rate
@@ -35,13 +37,23 @@ class Agent:
         self.model = None
 
     def act(self, state):
+        self.act_counter += 1
         if not self.evaluate and self.randomness and np.random.rand() <= self.epsilon:
+            self.rnd_counter += 1
             return random.randrange(self.action_size), -1
         act_values = self.model.predict(state)
         return np.argmax(act_values[0]), np.max(act_values[0])
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
+
+    def _handle_epsilon(self):
+        if self.epsilon > self.epsilon_min:
+            new_epsilon = self.epsilon * self.epsilon_decay
+            if new_epsilon <= self.epsilon_min:
+                self.epsilon = self.epsilon_min
+            else:
+                self.epsilon *= self.epsilon_decay
 
     def replay(self, batch_size):
         minibatch = random.sample(self.memory, batch_size)
@@ -58,8 +70,7 @@ class Agent:
 
             self.model.fit(state, target_f, epochs=1, verbose=0)
 
-        if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
+        self._handle_epsilon()
 
     def get_model(self):
         return self.model
