@@ -9,7 +9,7 @@ from learning.agent import CNN_Agent, NN_Agent
 from learning.env import Env_NN, Env_CNN
 from learning.model import deep_q_model
 from utils import save_config
-from learning.config import config
+from learning.config import config, configs
 
 
 def main(config):
@@ -71,3 +71,11 @@ def main(config):
 
 if __name__ == "__main__":
     main(config)
+
+    # for nc in configs:
+    #     config = Config(**dict(
+    #         general=nc[0],
+    #         agent=nc[1],
+    #         model=nc[2]
+    #     ))
+    #     main(config)
