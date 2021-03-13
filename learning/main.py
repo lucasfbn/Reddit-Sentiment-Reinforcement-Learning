@@ -12,22 +12,27 @@ from utils import save_config
 
 
 def main(config):
-    with open(config.data_path, "rb") as f:
+    with open(config.general.data_path, "rb") as f:
         data = pkl.load(f)
 
-    if config.kind == "CNN":
+    if config.general.kind == "CNN":
         shape = data[0]["data"][0].shape
         agent = CNN_Agent(state_size=shape[0], action_size=3, feature_size=shape[1],
-                          memory_len=1000, eval=eval)
+                          gamma=config.agent.gamma, epsilon=config.agent.epsilon,
+                          epsilon_decay=config.agent.epsilon_decay, epsilon_min=config.agent.epsilon_min,
+                          randomness=config.agent.randomness, memory_len=config.agent.memory_len, eval=eval)
         agent.build_model()
         env = Env_CNN()
     else:
-        agent = NN_Agent(state_size=data[0]["data"].shape[1], action_size=3, memory_len=1000, eval=eval)
+        agent = NN_Agent(state_size=data[0]["data"].shape[1], action_size=3,
+                         gamma=config.agent.gamma, epsilon=config.agent.epsilon,
+                         epsilon_decay=config.agent.epsilon_decay, epsilon_min=config.agent.epsilon_min,
+                         randomness=config.agent.randomness, memory_len=config.agent.memory_len, eval=eval)
         agent.build_model()
         env = Env_NN()
 
-    if config.eval:
-        model_path = config.model_path
+    if config.general.eval:
+        model_path = config.general.model_path
         model = tf.keras.models.load_model(model_path)
         eval_data = deep_q_model(data, agent=agent, env=env, eval=True, model=model)
 
@@ -50,9 +55,9 @@ def main(config):
     ep.act()
     ep.force_sell()
 
-    config.data_path = config.data_path.parent.name
-    config.model_path = model_path
-    config.eval_path = eval_path.name
-    config.profit = ep.profit
-    config.balance = ep.balance
-    save_config([config], kind="eval")
+    config.general.data_path = config.general.data_path.parent.name
+    config.general.model_path = model_path
+    config.general.eval_path = eval_path.name
+    config.general.profit = ep.profit
+    config.general.balance = ep.balance
+    save_config([config.general, config.agent], kind="eval")
