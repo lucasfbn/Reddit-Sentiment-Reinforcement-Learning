@@ -34,39 +34,34 @@ def main(config):
         agent.build_model()
         env = Env_NN()
 
-    if config.general.evaluate:
-        model_path = config.general.model_path
-        model = tf.keras.models.load_model(model_path)
-        eval_data = deep_q_model(data, agent=agent, env=env, n_episodes=config.model.n_episodes,
-                                 batch_size=config.model.batch_size, evaluate=True, model=model)
-
-        eval_path = paths.eval_data_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}.pkl"
-        with open(eval_path, "wb") as f:
-            pkl.dump(eval_data, f)
-    else:
+    model = None
+    if not config.general.evaluate:
         model = deep_q_model(data, agent=agent, env=env, n_episodes=config.model.n_episodes,
                              batch_size=config.model.batch_size, evaluate=False)
-        model_path = paths.models_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}"
-        model.save(model_path)
+        config.general.model_path = paths.models_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}"
+        model.save(config.general.model_path)
 
-        agent.evaluate = True
+    if model is None:
+        assert config.general.evaluate is True
+        model = tf.keras.models.load_model(config.general.model_path)
 
-        eval_data = deep_q_model(data, agent=agent, env=env, n_episodes=config.model.n_episodes,
-                                 batch_size=config.model.batch_size, evaluate=True, model=model)
-        eval_path = paths.eval_data_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}.pkl"
-        with open(eval_path, "wb") as f:
-            pkl.dump(eval_data, f)
+    agent.evaluate = True
+    eval_data = deep_q_model(data, agent=agent, env=env, n_episodes=config.model.n_episodes,
+                             batch_size=config.model.batch_size, evaluate=True, model=model)
+    eval_path = paths.eval_data_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}.pkl"
+    with open(eval_path, "wb") as f:
+        pkl.dump(eval_data, f)
 
     ep = EvaluatePortfolio(eval_data)
     ep.act()
     ep.force_sell()
 
     config.general.data_path = config.general.data_path.parent.name
-    config.general.model_path = model_path
+    config.general.model_path = config.general.model_path
     config.general.eval_path = eval_path.name
     config.general.profit = ep.profit
     config.general.balance = ep.balance
-    save_config([config.general, config.agent], kind="eval")
+    save_config([config.general, config.agent, config.model], kind="eval")
 
 
 if __name__ == "__main__":
