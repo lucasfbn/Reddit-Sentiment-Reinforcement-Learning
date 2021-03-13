@@ -8,17 +8,10 @@ from evaluate.eval_portfolio import EvaluatePortfolio
 from learning.agent import CNN_Agent, NN_Agent
 from learning.env import Env_NN, Env_CNN
 from learning.model import deep_q_model
-from utils import save_config, Config
-
-config = Config(**dict(
-    data_path=paths.datasets_data_path / "_9" / "timeseries.pkl",
-    kind="CNN",
-    eval=True,
-    model_path=paths.models_path / "21-50 04_03-21"
-))
+from utils import save_config
 
 
-def main():
+def main(config):
     with open(config.data_path, "rb") as f:
         data = pkl.load(f)
 
@@ -57,12 +50,9 @@ def main():
     ep.act()
     ep.force_sell()
 
+    config.data_path = config.data_path.parent.name
     config.model_path = model_path
     config.eval_path = eval_path.name
     config.profit = ep.profit
     config.balance = ep.balance
     save_config([config], kind="eval")
-
-
-if __name__ == "__main__":
-    main()
