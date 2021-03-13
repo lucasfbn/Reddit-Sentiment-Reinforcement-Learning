@@ -52,14 +52,14 @@ def save_config(configs, kind):
 
             flattened[key] = [value]
 
+    flattened["time"] = datetime.now()
+
     path = paths.tracking_path / f"{kind}.csv"
     if os.path.exists(path):
         df = pd.read_csv(path, sep=";")
         df = df.append(pd.DataFrame(flattened))
     else:
         df = pd.DataFrame(flattened)
-
-    df["time"] = datetime.now()
 
     while True:
         try:
