@@ -103,12 +103,15 @@ class BigQueryDB:
 
 
 if __name__ == '__main__':
-    start = datetime(year=2021, month=2, day=27)
-    end = datetime(year=2021, month=3, day=9)
-    # db = BigQueryDB()
-    # df = db.download(start, end, fields=["author", "created_utc", "id", "num_comments", "title", "selftext", "subreddit"])
+    start=datetime(year=2021, month=1, day=13)
+    end=datetime(year=2021, month=1, day=25)
+    db = BigQueryDB()
+    df = db.download(start, end,
+                     fields=["author", "created_utc", "id", "num_comments", "title", "selftext", "subreddit"],
+                     check_duplicates=False)
+    print()
     # df.to_csv("raw.csv", sep=";", index=False)
 
-    db = BigQueryDB()
-    db.detect_gaps()
+    # db = BigQueryDB()
+    # db.detect_gaps()
     # db.upload(pd.DataFrame({"one": [1, 2, 3]}), dataset="data", table="test_subm1")
