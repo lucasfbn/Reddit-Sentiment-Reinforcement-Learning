@@ -1,12 +1,12 @@
 import warnings
 
 
-def deep_q_model(data, agent, env, evaluate=False, model=None):
+def deep_q_model(data, agent, env, n_episodes=3, batch_size=32, evaluate=False, model=None):
     if evaluate:
         warnings.warn("Eval is active.")
 
-    n_episodes = 3
-    batch_size = 32
+    n_episodes = n_episodes
+    batch_size = batch_size
 
     if evaluate:
         agent.model = model
