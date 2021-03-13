@@ -9,7 +9,9 @@ from tensorflow.keras.optimizers import Adam
 
 class Agent:
 
-    def __init__(self, state_size, action_size, eval, feature_size=None, memory_len=1000):
+    def __init__(self, state_size, action_size, eval,
+                 gamma=0.95, epsilon=1.0, epsilon_decay=0.999, epsilon_min=0.15, randomness=True, memory_len=1000,
+                 feature_size=None):
 
         self.feature_size = feature_size  # Num of features
         self.state_size = state_size  # Length of time series
@@ -19,19 +21,21 @@ class Agent:
         self.eval = eval
 
         # Discount future rewards
-        self.gamma = 0.95
+        self.gamma = gamma
 
+        # Whether to use exploration or not
+        self.randomness = randomness
         # Exploration rate
-        self.epsilon = 1.0
+        self.epsilon = epsilon
         # Over time, decay epsilon rate
-        self.epsilon_decay = 0.999
+        self.epsilon_decay = epsilon_decay
         # To still explore we set a minimum epsilon which will not be influenced by the epsilon decay
-        self.epsilon_min = 0.15
+        self.epsilon_min = epsilon_min
 
         self.model = None
 
     def act(self, state):
-        if np.random.rand() <= self.epsilon and not self.eval:
+        if not self.eval and self.randomness and np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size), -1
         act_values = self.model.predict(state)
         return np.argmax(act_values[0]), np.max(act_values[0])
