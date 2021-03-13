@@ -1,14 +1,14 @@
 import warnings
 
 
-def deep_q_model(data, agent, env, eval=False, model=None):
-    if eval:
+def deep_q_model(data, agent, env, evaluate=False, model=None):
+    if evaluate:
         warnings.warn("Eval is active.")
 
     n_episodes = 3
     batch_size = 32
 
-    if eval:
+    if evaluate:
         agent.model = model
         n_episodes = 1
         batch_size = 0
@@ -18,7 +18,7 @@ def deep_q_model(data, agent, env, eval=False, model=None):
         print(f"{i + 1}/{len(data)} - Processing ticker: {grp['ticker']}")
         x = grp["data"]
 
-        if eval:
+        if evaluate:
             actions = []
             actions_outputs = []
 
@@ -33,7 +33,7 @@ def deep_q_model(data, agent, env, eval=False, model=None):
 
                 action, action_output = agent.act(state)
 
-                if eval:
+                if evaluate:
                     actions.append(action)
                     actions_outputs.append(action_output)
 
@@ -42,22 +42,22 @@ def deep_q_model(data, agent, env, eval=False, model=None):
                 if done:
                     break
 
-                if not eval:
+                if not evaluate:
                     agent.remember(state, action, reward, next_state, done)
 
                 state = next_state
 
-            if not eval and len(agent.memory) > batch_size:
+            if not evaluate and len(agent.memory) > batch_size:
                 # Note that agent.memory is a queue and we do not delete elements when replaying. Therefore, yes, we will
                 # replay on the first loop when agent.memory == batch_size BUT we do not delete the content of the queue.
                 # So it grows and eventually will throw out "old" state/action pairs.
                 agent.replay(batch_size)
 
-        if eval:
+        if evaluate:
             grp["metadata"]["actions"] = actions
             grp["metadata"]["actions_outputs"] = actions_outputs
 
-    if eval:
+    if evaluate:
         return data
     else:
         return agent.get_model()

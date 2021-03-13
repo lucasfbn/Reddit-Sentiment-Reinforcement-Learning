@@ -9,7 +9,7 @@ from tensorflow.keras.optimizers import Adam
 
 class Agent:
 
-    def __init__(self, state_size, action_size, eval,
+    def __init__(self, state_size, action_size, evaluate,
                  gamma=0.95, epsilon=1.0, epsilon_decay=0.999, epsilon_min=0.15, randomness=True, memory_len=1000,
                  feature_size=None):
 
@@ -18,7 +18,7 @@ class Agent:
         self.action_size = action_size
 
         self.memory = deque(maxlen=memory_len)
-        self.eval = eval
+        self.evaluate = evaluate
 
         # Discount future rewards
         self.gamma = gamma
@@ -35,7 +35,7 @@ class Agent:
         self.model = None
 
     def act(self, state):
-        if not self.eval and self.randomness and np.random.rand() <= self.epsilon:
+        if not self.evaluate and self.randomness and np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size), -1
         act_values = self.model.predict(state)
         return np.argmax(act_values[0]), np.max(act_values[0])
