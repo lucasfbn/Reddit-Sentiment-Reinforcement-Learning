@@ -64,28 +64,88 @@ class Agent:
     def get_model(self):
         return self.model
 
+    def build_model(self, name):
 
-class NN_Agent(Agent):
+        def nn():
+            model = Sequential()
+            model.add(Dense(units=42, input_shape=(self.state_size,), activation="relu"))
+            # model.add(Dense(units=21, activation="relu"))
+            # model.add(Dense(units=8, activation="relu"))
+            model.add(Dense(self.action_size, activation="linear"))
+            model.compile(loss="mse", optimizer=Adam())
+            return model
 
-    def build_model(self):
-        model = Sequential()
-        model.add(Dense(units=42, input_shape=(self.state_size,), activation="relu"))
-        # model.add(Dense(units=21, activation="relu"))
-        # model.add(Dense(units=8, activation="relu"))
-        model.add(Dense(self.action_size, activation="linear"))
-        model.compile(loss="mse", optimizer=Adam())
-        self.model = model
+        def cnn1():
+            model = Sequential()
+            model.add(Conv1D(filters=64, kernel_size=2, activation='relu',
+                             input_shape=(self.state_size, self.feature_size)))
+            model.add(MaxPooling1D(pool_size=2))
+            model.add(Flatten())
+            model.add(Dense(50, activation='relu'))
+            model.add(Dense(self.action_size, activation="linear"))
+            model.compile(loss="mse", optimizer=Adam())
+            return model
 
+        def cnn2():
+            model = Sequential()
+            model.add(Conv1D(filters=96, kernel_size=2, activation='relu',
+                             input_shape=(self.state_size, self.feature_size)))
+            model.add(MaxPooling1D(pool_size=2))
+            model.add(Flatten())
+            model.add(Dense(75, activation='relu'))
+            model.add(Dense(self.action_size, activation="linear"))
+            model.compile(loss="mse", optimizer=Adam())
+            return model
 
-class CNN_Agent(Agent):
+        def cnn3():
+            model = Sequential()
+            model.add(Conv1D(filters=32, kernel_size=2, activation='relu',
+                             input_shape=(self.state_size, self.feature_size)))
+            model.add(MaxPooling1D(pool_size=2))
+            model.add(Flatten())
+            model.add(Dense(25, activation='relu'))
+            model.add(Dense(self.action_size, activation="linear"))
+            model.compile(loss="mse", optimizer=Adam())
+            return model
 
-    def build_model(self):
-        model = Sequential()
-        model.add(Conv1D(filters=64, kernel_size=2, activation='relu',
-                         input_shape=(self.state_size, self.feature_size)))
-        model.add(MaxPooling1D(pool_size=2))
-        model.add(Flatten())
-        model.add(Dense(50, activation='relu'))
-        model.add(Dense(self.action_size, activation="linear"))
-        model.compile(loss="mse", optimizer=Adam())
-        self.model = model
+        def cnn4():
+            model = Sequential()
+            model.add(Conv1D(filters=64, kernel_size=3, activation='relu',
+                             input_shape=(self.state_size, self.feature_size)))
+            model.add(MaxPooling1D(pool_size=2))
+            model.add(Flatten())
+            model.add(Dense(50, activation='relu'))
+            model.add(Dense(self.action_size, activation="linear"))
+            model.compile(loss="mse", optimizer=Adam())
+            return model
+
+        def cnn5():
+            model = Sequential()
+            model.add(Conv1D(filters=64, kernel_size=2, activation='relu',
+                             input_shape=(self.state_size, self.feature_size)))
+            model.add(MaxPooling1D(pool_size=2))
+            model.add(Conv1D(filters=64, kernel_size=2, activation='relu'))
+            model.add(MaxPooling1D(pool_size=2))
+            model.add(Flatten())
+            model.add(Dense(50, activation='relu'))
+            model.add(Dense(self.action_size, activation="linear"))
+            model.compile(loss="mse", optimizer=Adam())
+            return model
+
+        def cnn6():
+            model = Sequential()
+            model.add(Conv1D(filters=64, kernel_size=3, activation='relu',
+                             input_shape=(self.state_size, self.feature_size)))
+            model.add(MaxPooling1D(pool_size=3))
+            model.add(Conv1D(filters=64, kernel_size=1, activation='relu'))
+            model.add(MaxPooling1D(pool_size=1))
+            model.add(Flatten())
+            model.add(Dense(50, activation='relu'))
+            model.add(Dense(self.action_size, activation="linear"))
+            model.compile(loss="mse", optimizer=Adam())
+            return model
+
+        models = {
+            "cnn1": cnn1(), "cnn2": cnn2(), "cnn3": cnn3(), "cnn4": cnn4(), "cnn5": cnn5(), "cnn6": cnn6()
+        }
+        self.model = models[name]
