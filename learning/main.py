@@ -6,10 +6,10 @@ import tensorflow as tf
 import paths
 from evaluate.eval_portfolio import EvaluatePortfolio
 from learning.agent import Agent
-from learning.env import Env_NN, Env_CNN
-from learning.model import deep_q_model
-from utils import save_config, Config
 from learning.config import configs
+from learning.env import Env_NN, Env_CNN
+from learning.model import DeepQ
+from utils import save_config, Config
 
 
 def main(config):
@@ -34,10 +34,12 @@ def main(config):
         agent.build_model(config.model.name)
         env = Env_NN()
 
+    deep_q = DeepQ(data, agent, env)
+
     model = None
     if not config.general.evaluate:
-        model = deep_q_model(data, agent=agent, env=env, n_episodes=config.model.n_episodes,
-                             batch_size=config.model.batch_size, evaluate=False)
+        model = deep_q.train(n_episodes=config.model.n_episodes, batch_size=config.model.batch_size)
+
         config.general.model_path = paths.models_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}"
         model.save(config.general.model_path)
 
@@ -45,9 +47,8 @@ def main(config):
         assert config.general.evaluate is True
         model = tf.keras.models.load_model(config.general.model_path)
 
-    agent.evaluate = True
-    eval_data = deep_q_model(data, agent=agent, env=env, n_episodes=config.model.n_episodes,
-                             batch_size=config.model.batch_size, evaluate=True, model=model)
+    eval_data = deep_q.evaluate(model=model)
+
     eval_path = paths.eval_data_path / f"{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}.pkl"
     with open(eval_path, "wb") as f:
         pkl.dump(eval_data, f)
