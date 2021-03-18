@@ -5,11 +5,11 @@ import tensorflow as tf
 
 import paths
 from evaluate.eval_portfolio import EvaluatePortfolio
-from learning.agent import CNN_Agent, NN_Agent
+from learning.agent import Agent
 from learning.env import Env_NN, Env_CNN
 from learning.model import deep_q_model
-from utils import save_config
-from learning.config import config, configs
+from utils import save_config, Config
+from learning.config import configs
 
 
 def main(config):
@@ -18,20 +18,20 @@ def main(config):
 
     if config.general.kind == "CNN":
         shape = data[0]["data"][0].shape
-        agent = CNN_Agent(state_size=shape[0], action_size=3, feature_size=shape[1],
-                          gamma=config.agent.gamma, epsilon=config.agent.epsilon,
-                          epsilon_decay=config.agent.epsilon_decay, epsilon_min=config.agent.epsilon_min,
-                          randomness=config.agent.randomness, memory_len=config.agent.memory_len,
-                          evaluate=config.general.evaluate)
-        agent.build_model()
+        agent = Agent(state_size=shape[0], action_size=3, feature_size=shape[1],
+                      gamma=config.agent.gamma, epsilon=config.agent.epsilon,
+                      epsilon_decay=config.agent.epsilon_decay, epsilon_min=config.agent.epsilon_min,
+                      randomness=config.agent.randomness, memory_len=config.agent.memory_len,
+                      evaluate=config.general.evaluate)
+        agent.build_model(config.model.name)
         env = Env_CNN()
     else:
-        agent = NN_Agent(state_size=data[0]["data"].shape[1], action_size=3,
-                         gamma=config.agent.gamma, epsilon=config.agent.epsilon,
-                         epsilon_decay=config.agent.epsilon_decay, epsilon_min=config.agent.epsilon_min,
-                         randomness=config.agent.randomness, memory_len=config.agent.memory_len,
-                         evaluate=config.general.evaluate)
-        agent.build_model()
+        agent = Agent(state_size=data[0]["data"].shape[1], action_size=3,
+                      gamma=config.agent.gamma, epsilon=config.agent.epsilon,
+                      epsilon_decay=config.agent.epsilon_decay, epsilon_min=config.agent.epsilon_min,
+                      randomness=config.agent.randomness, memory_len=config.agent.memory_len,
+                      evaluate=config.general.evaluate)
+        agent.build_model(config.model.name)
         env = Env_NN()
 
     model = None
@@ -65,12 +65,12 @@ def main(config):
 
 
 if __name__ == "__main__":
-    main(config)
+    # main(config)
 
-    # for nc in configs:
-    #     config = Config(**dict(
-    #         general=nc[0],
-    #         agent=nc[1],
-    #         model=nc[2]
-    #     ))
-    #     main(config)
+    for nc in configs:
+        config = Config(**dict(
+            general=nc[0],
+            agent=nc[1],
+            model=nc[2]
+        ))
+        main(config)
