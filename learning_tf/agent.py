@@ -26,141 +26,75 @@ from tf_agents.utils import common
 
 tf.compat.v1.enable_v2_behavior()
 
-from learning_tf.env import TradingEnv, EnvCNN
-import paths
-import pickle as pkl
 
-with open(paths.datasets_data_path / "_13" / "timeseries.pkl", "rb") as f:
-    data = pkl.load(f)
+class Agent:
 
-env = tf_py_environment.TFPyEnvironment(EnvCNN(data))
+    def __init__(self, env):
+        self.env = env
+        self.agent = None
 
-# q_net = q_network.QNetwork(input_tensor_spec=env.observation_spec(),
-#                            action_spec=env.action_spec(),
-#                            conv_layer_params=([(64, 3, 1)]))
+        self._model = None
+        self._optimizer = None
 
-layers = []
-layers.append(Conv1D(filters=32, kernel_size=7, activation='relu',
-                     input_shape=(7, 9)))
-# layers.append(MaxPooling1D(pool_size=2))
-layers.append(Flatten())
-layers.append(Dense(50, activation='relu'))
-layers.append(Dense(3, activation=None))
+    def initialize_model(self):
+        layers = []
+        layers.append(Conv1D(filters=32, kernel_size=7, activation='relu',
+                             input_shape=(7, 9)))
+        # layers.append(MaxPooling1D(pool_size=2))
+        layers.append(Flatten())
+        layers.append(Dense(50, activation='relu'))
+        layers.append(Dense(3, activation=None))
 
-q_net = sequential.Sequential(layers)
+        self._model = sequential.Sequential(layers)
+        self._optimizer = tf.keras.optimizers.Adam()
 
-optimizer = tf.keras.optimizers.Adam()
+    def initialize_agent(self):
+        self.agent = dqn_agent.DqnAgent(self.env.time_step_spec(),
+                                        self.env.action_spec(),
+                                        q_network=self._model,
+                                        optimizer=self._optimizer,
+                                        td_errors_loss_fn=common.element_wise_squared_loss,
+                                        train_step_counter=tf.Variable(0))
 
-train_step_counter = tf.Variable(0)
+        self.agent.initialize()
 
-agent = dqn_agent.DqnAgent(env.time_step_spec(),
-                           env.action_spec(),
-                           q_network=q_net,
-                           optimizer=optimizer,
-                           td_errors_loss_fn=common.element_wise_squared_loss,
-                           train_step_counter=train_step_counter)
+    def get_agent(self):
+        return self.agent
 
-agent.initialize()
+def game_agent(env, num_actions):
+    # Define a helper function to create Dense layers configured with the right
+    # activation and kernel initializer.
+    def dense_layer(num_units):
+        return tf.keras.layers.Dense(
+            num_units,
+            activation=tf.keras.activations.relu,
+            kernel_initializer=tf.keras.initializers.VarianceScaling(
+                scale=2.0, mode='fan_in', distribution='truncated_normal'))
 
-# How long should training run?
-num_iterations = 1000
-# How many initial random steps, before training start, to
-# collect initial data.
-initial_collect_steps = 10
-# How many steps should we run each iteration to collect
-# data from.
-collect_steps_per_iteration = 50
-# How much data should we store for training examples.
-replay_buffer_max_length = 10000
+    # QNetwork consists of a sequence of Dense layers followed by a dense layer
+    # with `num_actions` units to generate one q_value per available action as
+    # it's output.
+    dense_layers = [dense_layer(num_units) for num_units in (100, 50)]
+    q_values_layer = tf.keras.layers.Dense(
+        num_actions,
+        activation=None,
+        kernel_initializer=tf.keras.initializers.RandomUniform(
+            minval=-0.03, maxval=0.03),
+        bias_initializer=tf.keras.initializers.Constant(-0.2))
+    q_net = sequential.Sequential(dense_layers + [q_values_layer])
 
-batch_size = 64
-# learning_rate = 1e-4
-# How often should the program provide an update.
-log_interval = 10
+    optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
 
-# How many episodes should the program use for each evaluation.
-num_eval_episodes = 5
-# How often should an evaluation occur.
-eval_interval = 100
+    train_step_counter = tf.Variable(0)
 
-random_policy = random_tf_policy.RandomTFPolicy(env.time_step_spec(),
-                                                env.action_spec())
+    agent = dqn_agent.DqnAgent(
+        env.time_step_spec(),
+        env.action_spec(),
+        q_network=q_net,
+        optimizer=optimizer,
+        td_errors_loss_fn=common.element_wise_squared_loss,
+        train_step_counter=train_step_counter)
 
+    agent.initialize()
+    return agent
 
-def compute_avg_return(environment, policy, num_episodes=10):
-    total_return = 0.0
-    for _ in range(num_episodes):
-        print(_)
-
-        time_step = environment.reset()
-        episode_return = 0.0
-
-        while not time_step.is_last():
-            action_step = policy.action(time_step)
-            time_step = environment.step(action_step.action)
-            if time_step.is_last():
-                print("isch last")
-            episode_return += time_step.reward
-        total_return += episode_return
-
-    avg_return = total_return / num_episodes
-    return avg_return.numpy()[0]
-
-
-replay_buffer = tf_uniform_replay_buffer.TFUniformReplayBuffer(
-    data_spec=agent.collect_data_spec,
-    batch_size=env.batch_size,
-    max_length=replay_buffer_max_length)
-
-
-def collect_step(environment, policy, buffer):
-    time_step = environment.current_time_step()
-    action_step = policy.action(time_step)
-    next_time_step = environment.step(action_step.action)
-    traj = trajectory.from_transition(time_step, action_step, next_time_step)
-
-    # Add trajectory to the replay buffer
-    buffer.add_batch(traj)
-
-
-def collect_data(env, policy, buffer, steps):
-    for _ in range(steps):
-        collect_step(env, policy, buffer)
-
-
-collect_data(env, random_policy, replay_buffer, initial_collect_steps)
-
-dataset = replay_buffer.as_dataset(
-    num_parallel_calls=3,
-    sample_batch_size=batch_size,
-    num_steps=2).prefetch(3)
-iterator = iter(dataset)
-
-agent.train = common.function(agent.train)
-
-# Reset the train step
-agent.train_step_counter.assign(0)
-
-# Evaluate the agent's policy once before training.
-avg_return = compute_avg_return(env, agent.policy, num_eval_episodes)
-returns = [avg_return]
-
-for _ in range(num_iterations):
-
-    # Collect a few steps using collect_policy and save to the replay buffer.
-    collect_data(env, agent.collect_policy, replay_buffer, collect_steps_per_iteration)
-
-    # Sample a batch of data from the buffer and update the agent's network.
-    experience, unused_info = next(iterator)
-    train_loss = agent.train(experience).loss
-
-    step = agent.train_step_counter.numpy()
-    print(step)
-
-    if step % log_interval == 0:
-        print('step = {0}: loss = {1}'.format(step, train_loss))
-
-    if step % eval_interval == 0:
-        avg_return = compute_avg_return(env, agent.policy, num_eval_episodes)
-        print('step = {0}: Average Return = {1}'.format(step, avg_return))
-        returns.append(avg_return)
