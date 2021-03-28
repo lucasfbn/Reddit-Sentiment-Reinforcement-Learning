@@ -36,7 +36,7 @@ tf.compat.v1.enable_v2_behavior()
 from learning_tf.env import TradingEnv, EnvCNN
 import paths
 import pickle as pkl
-from learning_tf.agent_ import Agent, game_agent
+from learning_tf.agent import Agent, game_agent
 
 
 class Training:
