@@ -66,11 +66,9 @@ class Env:
 
 
 class Env_NN(Env):
-    def _convert_df(self, df):
-        return deque(df.values.tolist())
 
     def reset(self, x):
-        self._x = self._convert_df(x)
+        self._x = deque(x)
         self._inventory = deque()
         self.total_profit = 0
 
@@ -79,7 +77,7 @@ class Env_NN(Env):
         return self._state
 
     def _shape_state(self, state):
-        return np.array([state])
+        return np.array(state)
 
     def _current_price(self):
         shape = self._state.shape

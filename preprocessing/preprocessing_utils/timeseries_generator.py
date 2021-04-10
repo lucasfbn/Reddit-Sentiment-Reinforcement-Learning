@@ -137,6 +137,15 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
         grp["data"] = grp["data"][new_cols]
         return grp
 
+    def _convert_to_list(self, grp):
+
+        grp = grp.to_dict(orient="records")
+        new_grp = []
+        for timeseries in grp:
+            new_grp.append(pd.DataFrame([timeseries]))
+
+        return new_grp
+
     def _model_specific(self, grp):
 
         grp = self._add_pre_data(grp)
@@ -150,6 +159,7 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
         grp = self._scale(grp)
         grp["data"] = self._reorder_cols(grp["data"])
         grp = self._live(grp)
+        grp["data"] = self._convert_to_list(grp["data"])
         return grp
 
 
