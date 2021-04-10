@@ -98,7 +98,8 @@ class Dataset:
         self.analyze()
 
         config.general.path = self.path
-        save_config([config.general, config.gc, config.preprocess, config.check, config.submissions], kind="sentiments")
+        save_config([config.general, config.gc, config.preprocess, config.check, config.submissions],
+                    kind="sentiment_dataset")
 
 
 if __name__ == "__main__":
