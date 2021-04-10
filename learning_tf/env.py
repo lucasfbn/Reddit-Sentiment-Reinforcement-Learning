@@ -31,8 +31,11 @@ class TradingEnv(py_environment.PyEnvironment):
         self._reward = 0
 
         self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=2, name='action')
-        self._observation_spec = array_spec.BoundedArraySpec(shape=((1, 7, 9)), dtype=np.float32, minimum=0,
+        self._observation_spec = array_spec.BoundedArraySpec(shape=((1, 72)), dtype=np.float32, minimum=0,
                                                              name='observation')
+        # self._observation_spec = array_spec.BoundedArraySpec(shape=((1, 7, 9)), dtype=np.float32, minimum=0,
+        #                                                      name='observation')
+
         self._state = None
 
     def action_spec(self):
@@ -40,9 +43,6 @@ class TradingEnv(py_environment.PyEnvironment):
 
     def observation_spec(self):
         return self._observation_spec
-
-    def _reset(self):
-        pass
 
     def _calculate_margin(self, current_price):
         margin = 0
@@ -97,20 +97,6 @@ class TradingEnv(py_environment.PyEnvironment):
             self._state = self._shape_state(self._x.popleft())
             return ts.transition(self._state, reward=self._reward, discount=1.0)
 
-
-class EnvCNN(TradingEnv):
-
-    def _shape_state(self, state):
-        state = state.values.reshape((1, state.shape[0], state.shape[1]))
-        state = np.asarray(state).astype('float32')
-        return state
-
-    def _current_price(self):
-        shape = self._state.shape
-        last_row = self._state[0][shape[1] - 1]
-        last_element = last_row[shape[2] - 1]
-        return last_element
-
     def _next_timeseries(self):
         self._x = self._data.popleft()["data"]
         self._x = deque(self._x)
@@ -138,18 +124,46 @@ class EnvCNN(TradingEnv):
         return ts.restart(self._state)
 
 
+class EnvNN(TradingEnv):
+
+    def _shape_state(self, state):
+        state = np.asarray(state).astype("float32")
+        return state
+
+    def _current_price(self):
+        shape = self._state.shape
+        last_element = self._state[0][shape[1] - 1]
+        return last_element
+
+class EnvCNN(TradingEnv):
+
+    def _shape_state(self, state):
+        state = state.values.reshape((1, state.shape[0], state.shape[1]))
+        state = np.asarray(state).astype('float32')
+        return state
+
+    def _current_price(self):
+        shape = self._state.shape
+        last_row = self._state[0][shape[1] - 1]
+        last_element = last_row[shape[2] - 1]
+        return last_element
+
+
 if __name__ == '__main__':
     import paths
     import pickle as pkl
 
-    with open(paths.datasets_data_path / "_13" / "timeseries.pkl", "rb") as f:
+    with open(paths.datasets_data_path / "_0" / "timeseries.pkl", "rb") as f:
         data = pkl.load(f)
     # data = data[:2]
 
-    ev = EnvCNN(data)
-    ev._reset()
+    ev = EnvNN(data)
 
-    for _ in range(20):
-        ev._step(1)
+    print(utils.validate_py_environment(ev, episodes=5))
 
-    ev._reset()
+    # ev._reset()
+    #
+    # for _ in range(20):
+    #     ev._step(1)
+    #
+    # ev._reset()
