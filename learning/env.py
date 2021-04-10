@@ -1,5 +1,5 @@
 from collections import deque
-
+from abc import ABC, abstractmethod
 import numpy as np
 
 verbose = False
@@ -12,7 +12,7 @@ else:
         pass
 
 
-class Env:
+class Env(ABC):
 
     def __init__(self):
         self._state = None
@@ -64,9 +64,6 @@ class Env:
 
         return next_state, reward, done, None
 
-
-class Env_NN(Env):
-
     def reset(self, x):
         self._x = deque(x)
         self._inventory = deque()
@@ -75,6 +72,17 @@ class Env_NN(Env):
         self._state = self._x.popleft()
         self._state = self._shape_state(self._state)
         return self._state
+
+    @abstractmethod
+    def _shape_state(self, state):
+        pass
+
+    @abstractmethod
+    def _current_price(self):
+        pass
+
+
+class Env_NN(Env):
 
     def _shape_state(self, state):
         return np.array(state)
@@ -90,15 +98,6 @@ class Env_CNN(Env):
     def _shape_state(self, state):
         state = state.values.reshape((1, state.shape[0], state.shape[1]))
         return state
-
-    def reset(self, x):
-        self._x = deque(x)
-        self._inventory = deque()
-        self.total_profit = 0
-
-        self._state = self._x.popleft()
-        self._state = self._shape_state(self._state)
-        return self._state
 
     def _current_price(self):
         shape = self._state.shape
