@@ -146,6 +146,6 @@ class Agent:
             return model
 
         models = {
-            "cnn1": cnn1(), "cnn2": cnn2(), "cnn3": cnn3(), "cnn4": cnn4(), "cnn5": cnn5(), "cnn6": cnn6()
+            "nn": nn, "cnn1": cnn1, "cnn2": cnn2, "cnn3": cnn3, "cnn4": cnn4, "cnn5": cnn5, "cnn6": cnn6
         }
-        self.model = models[name]
+        self.model = models[name]()
