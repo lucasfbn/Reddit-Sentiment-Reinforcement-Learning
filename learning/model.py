@@ -1,4 +1,9 @@
+import datetime
+
 from tqdm import tqdm
+
+import paths
+from utils import log
 
 
 class DeepQ:
@@ -16,6 +21,9 @@ class DeepQ:
         return prgb
 
     def _episode(self, data_prg_iter, batch_size):
+
+        episode_profit = 0
+
         for grp in data_prg_iter:
 
             actions = []
@@ -43,6 +51,8 @@ class DeepQ:
 
                 state = next_state
 
+            episode_profit += self.env.total_profit
+
             if not self._evaluate and len(self.agent.memory) > batch_size:
                 # Note that agent.memory is a queue and we do not delete elements when replaying. Therefore, yes, we will
                 # replay on the first loop when agent.memory == batch_size BUT we do not delete the content of the queue.
@@ -53,10 +63,18 @@ class DeepQ:
                 grp["metadata"]["actions"] = actions
                 grp["metadata"]["actions_outputs"] = actions_outputs
 
+        return episode_profit
+
     def train(self, n_episodes, batch_size):
-        for e in range(n_episodes):
-            self._episode(data_prg_iter=self._generate_progressbar(e, n_episodes),
-                          batch_size=batch_size)
+        for e in range(1, n_episodes + 1):
+            episode_profit = self._episode(data_prg_iter=self._generate_progressbar(e, n_episodes),
+                                           batch_size=batch_size)
+            log.info(f"Episode profit: {episode_profit}")
+
+            if e % 10 == 0:
+                self.agent.model.save(
+                    paths.models_temp_path / f"temp_{datetime.datetime.now().strftime('%H-%M %d_%m-%y')}")
+
         return self.agent.get_model()
 
     def evaluate(self, model):
