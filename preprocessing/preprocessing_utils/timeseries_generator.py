@@ -121,8 +121,8 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
         return grp
 
     def _extract_metadata(self, grp):
-        grp["metadata"] = grp["data"][["price", "tradeable", "date"]]
-        grp["data"] = grp["data"].drop(columns=["price", "tradeable", "date"])
+        grp["metadata"] = grp["data"][self.metadata_cols]
+        grp["data"] = grp["data"].drop(columns=self.metadata_cols)
         return grp
 
     def _del_metadata_from_data(self, grp):
@@ -131,7 +131,7 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
         new_cols = []
         for df_col in df.columns:
             df_col_raw = re.sub("_\d+", "", df_col)  # Gets rid of _n. For instance: score_0 -> score
-            if df_col_raw not in ["price", "tradeable", "date"]:
+            if df_col_raw not in self.metadata_cols:
                 new_cols.append(df_col)
 
         grp["data"] = grp["data"][new_cols]
@@ -140,9 +140,11 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
     def _model_specific(self, grp):
 
         grp = self._add_pre_data(grp)
-        grp = self._extract_metadata(grp)
+
         if len(grp["data"]) == 0:
             return None
+
+        grp = self._extract_metadata(grp)
         grp = self._del_metadata_from_data(grp)
 
         grp = self._scale(grp)
