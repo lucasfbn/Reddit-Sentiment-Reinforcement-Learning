@@ -317,7 +317,7 @@ class EvaluatePortfolio:
 
 if __name__ == "__main__":
     import paths
-    with open(paths.eval_data_path / "17-33 03_03-21.pkl", "rb") as f:
+    with open(paths.eval_data_path / "16-57 03_03-21.pkl", "rb") as f:
         data = pkl.load(f)
 
     ep = EvaluatePortfolio(eval_data=data)
