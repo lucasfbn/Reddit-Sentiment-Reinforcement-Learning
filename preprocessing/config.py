@@ -5,8 +5,8 @@ from utils import Config
 general = Config(**dict(
     min_len=6,
     source_path=paths.sentiment_data_path / "13-01-21 - 25-01-21_3",
-    # target_path=paths.create_dir(paths.datasets_data_path),
-    target_path=paths.datasets_data_path / "_1"
+    target_path=paths.create_dir(paths.datasets_data_path),
+    # target_path=paths.datasets_data_path / "_1"
 ))
 
 merge_preprocessing = Config(**dict(
