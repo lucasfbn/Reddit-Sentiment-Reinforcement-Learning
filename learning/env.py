@@ -18,7 +18,6 @@ class Env:
         self._state = None
 
         self._x = None
-        self._prices_raw = None
         self._inventory = deque()
         self.total_profit = 0
 
