@@ -36,13 +36,22 @@ class Agent:
         self._model = None
         self._optimizer = None
 
+    # def initialize_model(self):
+    #     layers = []
+    #     layers.append(Conv1D(filters=32, kernel_size=3, activation='relu',
+    #                          input_shape=(7, 9)))
+    #     # layers.append(MaxPooling1D(pool_size=2))
+    #     layers.append(Flatten())
+    #     layers.append(Dense(50, activation='relu'))
+    #     layers.append(Dense(3, activation=None))
+    #
+    #     self._model = sequential.Sequential(layers)
+    #     self._optimizer = tf.keras.optimizers.Adam()
+
     def initialize_model(self):
         layers = []
-        layers.append(Conv1D(filters=32, kernel_size=7, activation='relu',
-                             input_shape=(7, 9)))
-        # layers.append(MaxPooling1D(pool_size=2))
-        layers.append(Flatten())
-        layers.append(Dense(50, activation='relu'))
+        # input_shape = (72,),
+        layers.append(Dense(units=42, activation="relu", input_shape=(1, 72)))
         layers.append(Dense(3, activation=None))
 
         self._model = sequential.Sequential(layers)
@@ -60,6 +69,7 @@ class Agent:
 
     def get_agent(self):
         return self.agent
+
 
 def game_agent(env, num_actions):
     # Define a helper function to create Dense layers configured with the right
@@ -97,4 +107,3 @@ def game_agent(env, num_actions):
 
     agent.initialize()
     return agent
-
