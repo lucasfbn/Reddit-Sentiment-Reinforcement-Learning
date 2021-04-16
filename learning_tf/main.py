@@ -174,7 +174,7 @@ with open(paths.datasets_data_path / "_0" / "timeseries.pkl", "rb") as f:
 env = tf_py_environment.TFPyEnvironment(EnvNN(data))
 
 agent = Agent(env)
-agent.initialize_model()
+agent.initialize_nn_model()
 agent.initialize_agent()
 agent = agent.get_agent()
 
