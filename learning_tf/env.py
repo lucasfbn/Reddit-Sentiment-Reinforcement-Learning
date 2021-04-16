@@ -31,7 +31,7 @@ class TradingEnv(py_environment.PyEnvironment):
         self._reward = 0
 
         self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=2, name='action')
-        self._observation_spec = array_spec.BoundedArraySpec(shape=((1, 72)), dtype=np.float32, minimum=0,
+        self._observation_spec = array_spec.BoundedArraySpec(shape=((72,)), dtype=np.float32, minimum=0,
                                                              name='observation')
         # self._observation_spec = array_spec.BoundedArraySpec(shape=((1, 7, 9)), dtype=np.float32, minimum=0,
         #                                                      name='observation')
@@ -128,12 +128,14 @@ class EnvNN(TradingEnv):
 
     def _shape_state(self, state):
         state = np.asarray(state).astype("float32")
+        state = state.reshape((state.shape[1],))
         return state
 
     def _current_price(self):
         shape = self._state.shape
-        last_element = self._state[0][shape[1] - 1]
+        last_element = self._state[shape[0] - 1]
         return last_element
+
 
 class EnvCNN(TradingEnv):
 
@@ -159,9 +161,10 @@ if __name__ == '__main__':
 
     ev = EnvNN(data)
 
-    print(utils.validate_py_environment(ev, episodes=5))
+    # print(utils.validate_py_environment(ev, episodes=5))
 
-    # ev._reset()
+    ev._reset()
+    ev._step(0)
     #
     # for _ in range(20):
     #     ev._step(1)
