@@ -36,22 +36,21 @@ class Agent:
         self._model = None
         self._optimizer = None
 
-    # def initialize_model(self):
-    #     layers = []
-    #     layers.append(Conv1D(filters=32, kernel_size=3, activation='relu',
-    #                          input_shape=(7, 9)))
-    #     # layers.append(MaxPooling1D(pool_size=2))
-    #     layers.append(Flatten())
-    #     layers.append(Dense(50, activation='relu'))
-    #     layers.append(Dense(3, activation=None))
-    #
-    #     self._model = sequential.Sequential(layers)
-    #     self._optimizer = tf.keras.optimizers.Adam()
-
-    def initialize_model(self):
+    def initialize_cnn_model(self):
         layers = []
-        # input_shape = (72,),
-        layers.append(Dense(units=42, activation="relu", input_shape=(1, 72)))
+        layers.append(Conv1D(filters=32, kernel_size=3, activation='relu',
+                             input_shape=(7, 9)))
+        # layers.append(MaxPooling1D(pool_size=2))
+        layers.append(Flatten())
+        layers.append(Dense(50, activation='relu'))
+        layers.append(Dense(3, activation=None))
+
+        self._model = sequential.Sequential(layers)
+        self._optimizer = tf.keras.optimizers.Adam()
+
+    def initialize_nn_model(self):
+        layers = []
+        layers.append(Dense(units=42, activation="relu", input_shape=(72,)))
         layers.append(Dense(3, activation=None))
 
         self._model = sequential.Sequential(layers)
