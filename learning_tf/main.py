@@ -8,6 +8,9 @@ import numpy as np
 # import PIL.Image
 from tf_agents.specs import tensor_spec
 
+import mlflow
+from mlflow import log_param, log_metric
+
 from tqdm.auto import tqdm
 from utils import log
 from tf_agents.metrics import py_metrics
@@ -33,10 +36,11 @@ from tf_agents.utils import common
 
 tf.compat.v1.enable_v2_behavior()
 
-from learning_tf.env import TradingEnv, EnvCNN
+from learning_tf.env import TradingEnv, EnvCNN, EnvNN
 import paths
 import pickle as pkl
 from learning_tf.agent import Agent, game_agent
+import utils
 
 
 class Training:
@@ -143,6 +147,8 @@ class Training:
         log.info("Training...")
         for _ in range(self.n_training_episodes):
 
+            mlflow.log_metric("e", _)
+
             # Collect a few steps using collect_policy and save to the replay buffer.
             self.collect_data(policy=self.agent.collect_policy, steps=1)
 
@@ -161,11 +167,11 @@ class Training:
                 returns.append(avg_return)
 
 
-with open(paths.datasets_data_path / "_13" / "timeseries.pkl", "rb") as f:
+with open(paths.datasets_data_path / "_0" / "timeseries.pkl", "rb") as f:
     data = pkl.load(f)
 
 # env = tf_py_environment.TFPyEnvironment(suite_gym.load('CartPole-v0'))
-env = tf_py_environment.TFPyEnvironment(EnvCNN(data))
+env = tf_py_environment.TFPyEnvironment(EnvNN(data))
 
 agent = Agent(env)
 agent.initialize_model()
@@ -176,6 +182,9 @@ agent = agent.get_agent()
 # num_actions = action_tensor_spec.maximum - action_tensor_spec.minimum + 1
 # agent = game_agent(env, num_actions)
 
-t = Training(env=env, agent=agent, n_training_episodes=10000, n_eval_episodes=10, collect_steps_per_iteration=1,
-             initial_data_collect_runs=5000)
-t.run()
+mlflow.set_tracking_uri(paths.mlflow_path)
+mlflow.set_experiment("Model")
+with mlflow.start_run():
+    t = Training(env=env, agent=agent, n_training_episodes=10000, n_eval_episodes=10, collect_steps_per_iteration=1,
+                 initial_data_collect_runs=5000)
+    t.run()
