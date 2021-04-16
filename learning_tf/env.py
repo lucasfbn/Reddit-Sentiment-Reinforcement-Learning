@@ -31,11 +31,6 @@ class TradingEnv(py_environment.PyEnvironment):
         self._reward = 0
 
         self._action_spec = array_spec.BoundedArraySpec(shape=(), dtype=np.int32, minimum=0, maximum=2, name='action')
-        self._observation_spec = array_spec.BoundedArraySpec(shape=((72,)), dtype=np.float32, minimum=0,
-                                                             name='observation')
-        # self._observation_spec = array_spec.BoundedArraySpec(shape=((1, 7, 9)), dtype=np.float32, minimum=0,
-        #                                                      name='observation')
-
         self._state = None
 
     def action_spec(self):
@@ -125,6 +120,8 @@ class TradingEnv(py_environment.PyEnvironment):
 
 
 class EnvNN(TradingEnv):
+    _observation_spec = array_spec.BoundedArraySpec(shape=((72,)), dtype=np.float32, minimum=0,
+                                                    name='observation')
 
     def _shape_state(self, state):
         state = np.asarray(state).astype("float32")
@@ -138,6 +135,8 @@ class EnvNN(TradingEnv):
 
 
 class EnvCNN(TradingEnv):
+    _observation_spec = array_spec.BoundedArraySpec(shape=((1, 7, 9)), dtype=np.float32, minimum=0,
+                                                    name='observation')
 
     def _shape_state(self, state):
         state = state.values.reshape((1, state.shape[0], state.shape[1]))
