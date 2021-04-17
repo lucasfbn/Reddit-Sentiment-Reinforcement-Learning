@@ -3,9 +3,12 @@ import logging
 import os
 import time
 from datetime import datetime
-from pathlib import WindowsPath
+from pathlib import WindowsPath, Path
 from types import SimpleNamespace
+import tempfile
+import pickle as pkl
 
+import mlflow
 import pandas as pd
 
 import paths
@@ -72,6 +75,35 @@ def save_config(configs, kind):
 
 class Config(SimpleNamespace):
     pass
+
+
+def mlflow_log_file(file, fn):
+    """
+    mlflow.set_tracking_uri(paths.mlflow_path)
+    mlflow.set_experiment("Testing")  #
+    mlflow.start_run()
+
+    mlflow_log_file({"test": 1}, "test.json")
+
+    mlflow.end_run()
+    """
+    
+    kind = fn.split(".")[1]
+    assert kind in ["pkl", "json"]
+
+    with tempfile.TemporaryDirectory() as tmpdirname:
+        print('created temporary directory', tmpdirname)
+
+        tmpdirname_path = Path(tmpdirname)
+
+        if kind == "pkl":
+            with open(tmpdirname_path / fn, "wb") as f:
+                pkl.dump(file, f)
+        elif kind == "json":
+            with open(tmpdirname_path / fn, "w+") as f:
+                json.dump(file, f)
+
+        mlflow.log_artifact((tmpdirname_path / fn).as_posix())
 
 
 if __name__ == '__main__':
