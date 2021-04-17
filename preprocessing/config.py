@@ -1,12 +1,9 @@
 import paths
-from preprocessing.preprocessing_utils.timeseries_generator import TimeseriesGeneratorCNN, TimeseriesGeneratorNN
 from utils import Config
 
 general = Config(**dict(
     min_len=6,
-    source_path=paths.sentiment_data_path / "28-01-21 - 04-02-21_0",
-    target_path=paths.create_dir(paths.datasets_data_path),
-    # target_path=paths.datasets_data_path / "_0"
+    from_run_id="97ba9499d6b745229d2fdc0d6d80af78"
 ))
 
 merge_preprocessing = Config(**dict(
@@ -29,7 +26,7 @@ cleaner = Config(**dict(
 ))
 
 timeseries_generator = Config(**dict(
-    kind=TimeseriesGeneratorNN,
+    kind="nn",
     look_back=7,
     metadata_cols=["price", "tradeable", "date", "available"],
     check_availability=False,

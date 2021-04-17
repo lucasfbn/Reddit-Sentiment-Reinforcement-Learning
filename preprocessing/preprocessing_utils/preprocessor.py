@@ -3,6 +3,7 @@ import pickle as pkl
 import pandas as pd
 
 import paths
+from utils import mlflow_log_file
 
 
 class Preprocessor:
@@ -41,5 +42,4 @@ class Preprocessor:
             raise ValueError("Invalid filename.")
 
     def save(self, data, fn):
-        with open(Preprocessor.target_path / fn, "wb") as f:
-            pkl.dump(data, f)
+        mlflow_log_file(data, fn)
