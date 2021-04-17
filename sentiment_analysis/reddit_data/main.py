@@ -3,12 +3,14 @@ import multiprocessing
 from datetime import datetime, timedelta
 
 import pandas as pd
+import mlflow
 
 import sentiment_analysis.reddit_data.api.pushshift as pushshift
 import sentiment_analysis.reddit_data.api.reddit as reddit
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sentiment_analysis.reddit_data.worker import workers
-from utils import log
+from utils import log, mlflow_log_file
+import paths
 
 subreddits = [
     "pennystocks",
@@ -86,7 +88,6 @@ def historic_data(start, end):
     db.upload(parent_df, dataset="data", table="submissions")
 
 
-
 def hourly_scrape(data, context):
     end = datetime.now()
     start = end - timedelta(hours=1)
@@ -136,10 +137,24 @@ def get(start, end, use_pushshift=False):
     db.upload(submissions, dataset="data", table="submissions")
 
 
+def detect_gaps():
+    mlflow.set_tracking_uri(paths.mlflow_path)
+    mlflow.set_experiment("Gaps")
+    mlflow.start_run()
+
+    db = BigQueryDB()
+    gaps = db.detect_gaps(save_json=False)
+    mlflow_log_file(gaps, "gaps.json")
+
+    mlflow.end_run()
+
+
 if __name__ == '__main__':
     # hourly_scrape(0, 0)
-    start = datetime(year=2020, month=12, day=13)
-    end = datetime(year=2021, month=1, day=27, hour=14)
+    # start = datetime(year=2020, month=12, day=13)
+    # end = datetime(year=2021, month=1, day=27, hour=14)
     # get(start, end)
     # historic_data(start, end)
-    historic_data_wrapper(start, end, freq=3)
+    # historic_data_wrapper(start, end, freq=3)
+
+    detect_gaps()
