@@ -1,7 +1,5 @@
-import os
-import pickle as pkl
+import warnings
 
-import pandas as pd
 import mlflow
 
 import paths
@@ -46,6 +44,7 @@ class Dataset:
     def _check_integrity(self):
 
         if not self.check_integrity:
+            warnings.warn("Check integrity if off.")
             return
 
         db = BigQueryDB()
@@ -83,7 +82,6 @@ if __name__ == "__main__":
     mlflow.start_run()
 
     ds = Dataset()
-    # ds.df = pd.read_csv(path / "gc_dump.csv", sep=";")
     ds.create()
 
     mlflow.end_run()
