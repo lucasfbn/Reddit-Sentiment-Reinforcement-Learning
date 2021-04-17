@@ -69,11 +69,13 @@ class Dataset:
         if self.grps is None:
             with open(self.path / self.grps_fn, "rb") as f:
                 self.grps = pkl.load(f)
-        daterange = pd.date_range(start=self.start, end=self.end - pd.Timedelta(hours=1), freq="H")
 
-        if len(daterange) != len(self.grps):
-            raise ValueError(
-                f"The dataset is missing entries. len daterange: {len(daterange)}, len grps: {len(self.grps)}.")
+        db = BigQueryDB()
+        gaps = db.detect_gaps(self.start, self.end, save_json=False)
+
+        if len(gaps) > 1:  # One entry is always meta data
+            raise ValueError(f"The dataset is missing entries. Gaps: {gaps}")
+
         for grp in self.grps:
             if len(grp["df"]) == 0:
                 raise ValueError(f"Df of grp {grp['id']} is 0.")
