@@ -2,13 +2,14 @@ import os
 import pickle as pkl
 
 import pandas as pd
+import mlflow
 
 import paths
 import sentiment_analysis.config as config
 from sentiment_analysis.analyze.analysis import SubmissionsHandler
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sentiment_analysis.reddit_data.preprocess.preprocess import Preprocessor
-from utils import save_config
+from utils import save_config, mlflow_log_file
 
 
 class Dataset:
@@ -21,35 +22,17 @@ class Dataset:
         self.end = config.general.end
         self.check_integrity = config.check.integrity
 
-        if config.general.path is None:
-            self.path = paths.sentiment_data_path
-            self._prepare_dir()
-        else:
-            self.path = config.general.path
-
         self.df = None
         self.grps = None
         self.report = None
 
-    def _prepare_dir(self):
-        n_folder = len([_ for _ in os.listdir(self.path) if os.path.isdir(self.path / _)])
-        fn = f"{self.start.strftime('%d-%m-%y')} - {self.end.strftime('%d-%m-%y')}"
-        self.path = paths.create_dir(self.path, fn, 0)
-
     def get_from_gc(self):
-        if self.df is None:
-            try:
-                self.df = pd.read_csv(self.path / self.gc_dump_fn, sep=";")
-            except FileNotFoundError:
-                db = BigQueryDB()
-                self.df = db.download(self.start, self.end, config.gc.fields,
-                                      check_duplicates=config.gc.check_duplicates)
-                self.df.to_csv(self.path / self.gc_dump_fn, sep=";", index=False)
+        db = BigQueryDB()
+        self.df = db.download(self.start, self.end, config.gc.fields,
+                              check_duplicates=config.gc.check_duplicates)
+        mlflow_log_file(self.df, self.gc_dump_fn)
 
     def preprocess(self):
-        if self.df is None:
-            self.df = pd.read_csv(self.path / self.gc_dump_fn, sep=";")
-
         prep = Preprocessor(df=self.df,
                             author_blacklist=config.preprocess.author_blacklist,
                             cols_to_check_if_removed=config.preprocess.cols_to_check_if_removed,
@@ -58,40 +41,32 @@ class Dataset:
                             filter_authors=config.preprocess.filter_authors)
         self.grps = prep.exec()
 
-        with open(self.path / self.grps_fn, "wb") as f:
-            pkl.dump(self.grps, f)
+        mlflow_log_file(self.grps, self.grps_fn)
 
     def _check_integrity(self):
 
         if not self.check_integrity:
             return
 
-        if self.grps is None:
-            with open(self.path / self.grps_fn, "rb") as f:
-                self.grps = pkl.load(f)
-
         db = BigQueryDB()
         gaps = db.detect_gaps(self.start, self.end, save_json=False)
 
         if len(gaps) > 1:  # One entry is always meta data
-            raise ValueError(f"The dataset is missing entries. Gaps: {gaps}")
+            mlflow_log_file(gaps, "gaps.json")
+            raise ValueError(f"The dataset is missing entries. Logged data to mlflow run.")
 
         for grp in self.grps:
             if len(grp["df"]) == 0:
                 raise ValueError(f"Df of grp {grp['id']} is 0.")
 
     def analyze(self):
-        if self.grps is None:
-            with open(self.path / self.grps_fn, "rb") as f:
-                self.grps = pkl.load(f)
-
         sh = SubmissionsHandler(data=self.grps,
                                 search_ticker_in_body=config.submissions.search_ticker_in_body,
                                 ticker_blacklist=config.submissions.ticker_blacklist,
                                 body_col=config.submissions.body_col,
                                 cols_in_vader_merge=config.submissions.cols_in_vader_merge)
         p_data = sh.process()
-        p_data.to_csv(self.path / self.report_fn, sep=";", index=False)
+        mlflow_log_file(p_data, self.report_fn)
 
     def create(self):
         self.get_from_gc()
@@ -99,12 +74,16 @@ class Dataset:
         self._check_integrity()
         self.analyze()
 
-        config.general.path = self.path
-        save_config([config.general, config.gc, config.preprocess, config.check, config.submissions],
-                    kind="sentiment_dataset")
+        save_config([config.general, config.gc, config.preprocess, config.check, config.submissions])
 
 
 if __name__ == "__main__":
+    mlflow.set_tracking_uri(paths.mlflow_path)
+    mlflow.set_experiment("Sentiment_Datasets")  #
+    mlflow.start_run()
+
     ds = Dataset()
     # ds.df = pd.read_csv(path / "gc_dump.csv", sep=";")
     ds.create()
+
+    mlflow.end_run()
