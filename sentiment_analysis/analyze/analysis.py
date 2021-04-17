@@ -1,6 +1,6 @@
 import pandas as pd
 
-pd.set_option('mode.chained_assignment', 'raise')
+pd.set_option('mode.chained_assignment', None)
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 from utils import *
