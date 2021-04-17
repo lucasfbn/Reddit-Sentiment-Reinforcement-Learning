@@ -5,37 +5,87 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 from tensorforce import Runner, Agent, Environment
 from learning_tensorforce.env import EnvNN
+from evaluate.eval_portfolio import EvaluatePortfolio
 
+from tqdm import tqdm
 import paths
 import pickle as pkl
 import mlflow
 
 
-def save_agent(agent, path=None):
-    if path is None:
-        artifact_uri = mlflow.get_artifact_uri()
-        artifact_uri = "C:" + artifact_uri.split(":")[2]
-        path = artifact_uri + "/model"
-    agent.save(directory=path, format='numpy')
+class RLAgent:
 
+    def __init__(self, environment, train_data, test_data=None):
+        self.train_data = train_data
+        self.test_data = test_data
 
-def main(data):
-    EnvNN.data = data
-    environment = Environment.create(environment=EnvNN)
+        self.artifact_path = None if mlflow.active_run() is None else "C:" + mlflow.get_artifact_uri().split(":")[2]
 
-    agent = Agent.create(
-        agent='ppo', environment=environment,
-        memory=2000, batch_size=32, exploration=0.01
-    )
+        self.environment = environment
+        self.agent = None
 
-    runner = Runner(agent=agent, environment=environment)
-    runner.run(num_episodes=2000)
-    runner.close()
+        self._agent_saved = False
 
-    save_agent(agent)
+    def load_agent(self, artifact_path):
+        self.agent = Agent.load(directory=artifact_path + "/model", format='numpy')
 
-    agent.close()
-    environment.close()
+    def save_agent(self):
+        if self.artifact_path is not None:
+            path = self.artifact_path + "/model"
+            self.agent.save(directory=path, format='numpy')
+
+    def _eval(self, data, suffix):
+
+        env = self.environment()
+
+        for grp in tqdm(data):
+
+            actions = []
+            actions_outputs = []
+
+            for state in grp["data"]:
+                state = env._shape_state(state)
+                action = self.agent.act(state, independent=True)
+                actions.append(action)
+                actions_outputs.append(1)
+
+            grp["metadata"]["actions"] = actions
+            grp["metadata"]["actions_outputs"] = actions_outputs
+
+        if self.artifact_path is not None:
+            with open(self.artifact_path + f"/eval_{suffix}.pkl", "wb") as f:
+                pkl.dump(data, f)
+
+        ep = EvaluatePortfolio(data)
+        ep.act()
+        ep.force_sell()
+
+        mlflow.log_metrics({f"Profit_{suffix}": ep.profit, f"Balance_{suffix}": ep.balance})
+
+    def eval_agent(self):
+        self._eval(self.train_data, "train")
+
+        if self.test_data is not None:
+            self._eval(self.test_data, "test")
+
+    def train(self):
+        EnvNN.data = self.train_data
+        environment = Environment.create(environment=self.environment)
+
+        self.agent = Agent.create(
+            agent='ppo', environment=environment,
+            memory=2000, batch_size=32, exploration=0.01
+        )
+
+        runner = Runner(agent=self.agent, environment=environment)
+        runner.run(num_episodes=2000)
+        runner.close()
+
+        self.save_agent()
+        self.eval_agent()
+
+        self.agent.close()
+        environment.close()
 
 
 if __name__ == '__main__':
@@ -45,6 +95,12 @@ if __name__ == '__main__':
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Testing")  #
     mlflow.start_run()
-    main(data)
+    # main(data)
+
+    rla = RLAgent(environment=EnvNN, train_data=data)
+    rla.train()
+    # rla.load_agent(
+    #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/1/59939e3fa05949fdabe4d0a8df4abe09/artifacts")
+    rla.eval_agent()
 
     mlflow.end_run()
