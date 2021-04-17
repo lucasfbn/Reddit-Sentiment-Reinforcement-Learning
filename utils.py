@@ -92,8 +92,6 @@ def mlflow_log_file(file, fn):
     assert kind in ["pkl", "json"]
 
     with tempfile.TemporaryDirectory() as tmpdirname:
-        print('created temporary directory', tmpdirname)
-
         tmpdirname_path = Path(tmpdirname)
 
         if kind == "pkl":
