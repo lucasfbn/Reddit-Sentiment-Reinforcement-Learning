@@ -74,7 +74,7 @@ def mlflow_log_file(file, fn):
     """
 
     kind = fn.split(".")[1]
-    assert kind in ["pkl", "json"]
+    assert kind in ["pkl", "json", "csv"]
 
     with tempfile.TemporaryDirectory() as tmpdirname:
         tmpdirname_path = Path(tmpdirname)
@@ -85,17 +85,20 @@ def mlflow_log_file(file, fn):
         elif kind == "json":
             with open(tmpdirname_path / fn, "w+") as f:
                 json.dump(file, f)
+        elif kind == "csv":
+            file.to_csv(tmpdirname_path / fn, sep=";", index=False)
 
         mlflow.log_artifact((tmpdirname_path / fn).as_posix())
 
 
 if __name__ == '__main__':
-    mlflow.set_tracking_uri(paths.mlflow_path)
-    mlflow.set_experiment("Testing")
 
+    df = pd.DataFrame({"Hallo": [1,2,3], "Tsch": [4,5,6]})
+
+    mlflow.set_tracking_uri(paths.mlflow_path)
+    mlflow.set_experiment("Testing")  #
     mlflow.start_run()
 
-    c = Config(**dict(test=12, ja="hallo"))
-    save_config([c], "test")
+    mlflow_log_file(df, "test.csv")
 
     mlflow.end_run()
