@@ -1,17 +1,11 @@
 import copy
-import logging
-import random
 from collections import deque
 
+import mlflow
 import numpy as np
 from tensorforce import Environment
 
 from utils import log
-
-import mlflow
-
-
-# log.level = logging.DEBUG
 
 
 class Env(Environment):
@@ -42,6 +36,9 @@ class Env(Environment):
     def actions(self):
         raise NotImplemented
 
+    def max_episode_timesteps(self):
+        raise NotImplemented
+
     def _shape_state(self, state):
         raise NotImplemented
 
@@ -56,7 +53,7 @@ class Env(Environment):
 
         return margin
 
-    def _handle_counter(self, reward):
+    def _handle_step_counter(self, reward):
         self._episode_reward += reward
 
         if reward == 0.0:
@@ -72,8 +69,6 @@ class Env(Environment):
 
         reward = 0
         current_price = self._current_price()
-
-        # self._reward += random.randint(0, 100)
 
         if actions == 1:
             self._inventory.append(current_price)
@@ -97,10 +92,21 @@ class Env(Environment):
         if len(self._x) == 0:
             self._episode_ended = True
 
-        self._handle_counter(reward)
+        self._handle_step_counter(reward)
         self._state = next_state
 
         return next_state, self._episode_ended, reward
+
+    def _handle_reset_counter(self):
+        mlflow.log_metric("full run reward", self._episode_reward, step=self._episode_counter)
+        mlflow.log_metric("n_even_rewards", self._even_reward_counter, step=self._episode_counter)
+        mlflow.log_metric("n_pos_rewards", self._pos_reward_counter, step=self._episode_counter)
+        mlflow.log_metric("n_neg_rewards", self._neg_reward_counter, step=self._episode_counter)
+
+        self._episode_reward = 0
+        self._even_reward_counter = 0
+        self._neg_reward_counter = 0
+        self._pos_reward_counter = 0
 
     def reset(self):
         self._episode_ended = False
@@ -111,15 +117,7 @@ class Env(Environment):
 
         if self._counter >= len(self._episode_data):
             self._counter = 0
-            mlflow.log_metric("full run reward", self._episode_reward, step=self._episode_counter)
-            mlflow.log_metric("n_even_rewards", self._even_reward_counter, step=self._episode_counter)
-            mlflow.log_metric("n_pos_rewards", self._pos_reward_counter, step=self._episode_counter)
-            mlflow.log_metric("n_neg_rewards", self._neg_reward_counter, step=self._episode_counter)
-
-            self._episode_reward = 0
-            self._even_reward_counter = 0
-            self._neg_reward_counter = 0
-            self._pos_reward_counter = 0
+            self._handle_reset_counter()
 
         mlflow.log_metric("counter", self._counter, step=self._episode_counter)
 
@@ -140,6 +138,9 @@ class EnvNN(Env):
 
     def actions(self):
         return dict(type="int", num_values=3)
+
+    def max_episode_timesteps(self):
+        return 53
 
     def _shape_state(self, state):
         state = np.asarray(state).astype("float32")
