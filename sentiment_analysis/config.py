@@ -4,10 +4,8 @@ import paths
 from utils import Config
 
 general = Config(**dict(
-    start=datetime(year=2021, month=1, day=13),
-    end=datetime(year=2021, month=1, day=25),
-    # path=paths.sentiment_data_path / "13-01-21 - 25-01-21_1",
-    path=None,
+    start=datetime(year=2021, month=3, day=18),
+    end=datetime(year=2021, month=3, day=25),
 ))
 
 gc = Config(**dict(
@@ -24,7 +22,7 @@ preprocess = Config(**dict(
 ))
 
 check = Config(**dict(
-    integrity=True
+    integrity=False
 ))
 
 submissions = Config(**dict(
