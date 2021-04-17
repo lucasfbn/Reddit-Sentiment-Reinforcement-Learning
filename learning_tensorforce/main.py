@@ -8,6 +8,8 @@ from learning_tensorforce.env import EnvNN
 from evaluate.eval_portfolio import EvaluatePortfolio
 
 from tqdm import tqdm
+
+from utils import mlflow_log_file
 import paths
 import pickle as pkl
 import mlflow
@@ -55,8 +57,7 @@ class RLAgent:
             grp["metadata"]["actions_outputs"] = actions_outputs
 
         if self.artifact_path is not None:
-            with open(self.artifact_path + f"/eval_{suffix}.pkl", "wb") as f:
-                pkl.dump(data, f)
+            mlflow_log_file(data, f"eval_{suffix}.pkl")
 
         ep = EvaluatePortfolio(data)
         ep.act()
