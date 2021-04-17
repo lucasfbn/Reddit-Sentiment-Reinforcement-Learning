@@ -50,8 +50,11 @@ class Agent:
 
     def initialize_nn_model(self):
         layers = []
-        layers.append(Dense(units=42, activation="relu", input_shape=(72,)))
-        layers.append(Dense(3, activation=None))
+        layers.append(Dense(units=42, activation="relu", input_shape=(72,),
+                            kernel_initializer=tf.keras.initializers.VarianceScaling(
+                                scale=2.0, mode='fan_in', distribution='truncated_normal')))
+        layers.append(Dense(3, activation=None, kernel_initializer=tf.keras.initializers.RandomUniform(
+            minval=-0.03, maxval=0.03)))
 
         self._model = sequential.Sequential(layers)
         self._optimizer = tf.keras.optimizers.Adam()

@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import copy
+import random
 
 import numpy as np
 import tensorflow as tf
@@ -23,6 +24,8 @@ class TradingEnv(py_environment.PyEnvironment):
         super().__init__()
 
         self._episode_data = data
+        self._counter = 0
+
         self._data = deque(copy.deepcopy(data))
         self._x = None
         self._inventory = deque()
@@ -61,10 +64,9 @@ class TradingEnv(py_environment.PyEnvironment):
 
     def _step(self, action):
 
-        if self._end_of_timeseries:
-            self._next_timeseries()
-
         current_price = self._current_price()
+
+        self._reward += random.randint(0, 100)
 
         if action == 1:
             self._inventory.append(current_price)
@@ -83,7 +85,8 @@ class TradingEnv(py_environment.PyEnvironment):
             else:
                 log.debug(f"Attempted sell, but inventory is empty.")
 
-        self._handle_timeseries()
+        if len(self._x) == 0:
+            self._episode_ended = True
 
         if self._episode_ended:
             return ts.termination(self._state, self._reward)
@@ -105,9 +108,12 @@ class TradingEnv(py_environment.PyEnvironment):
         self._end_of_timeseries = False
         self._episode_ended = False
 
-        self._data = deque(copy.deepcopy(self._episode_data))
+        self._x = copy.deepcopy(self._episode_data[self._counter]["data"])
+        self._counter += 1
 
-        self._x = self._data.popleft()["data"]
+        if self._counter >= len(self._episode_data):
+            self._counter = 0
+
         self._x = deque(self._x)
 
         self._inventory = deque()
@@ -153,19 +159,29 @@ class EnvCNN(TradingEnv):
 if __name__ == '__main__':
     import paths
     import pickle as pkl
+    from learning_tf.dummy_data_generator import DummyData
 
     with open(paths.datasets_data_path / "_0" / "timeseries.pkl", "rb") as f:
         data = pkl.load(f)
     # data = data[:2]
 
+    data = DummyData(10000).generate()
+
     ev = EnvNN(data)
+    ev._observation_spec = array_spec.BoundedArraySpec(shape=((1,)), dtype=np.float32, minimum=0,
+                                                       name='observation')
 
     # print(utils.validate_py_environment(ev, episodes=5))
 
     ev._reset()
-    ev._step(0)
-    #
-    # for _ in range(20):
-    #     ev._step(1)
+    ev._reset()
+
+    for _ in range(200):
+        step = ev._step(1)
+        print(step)
+
+        if step.step_type == np.array([2]):
+            print(ev._reset())
+
     #
     # ev._reset()
