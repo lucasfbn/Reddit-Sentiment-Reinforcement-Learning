@@ -1,12 +1,12 @@
 import json
 import logging
 import os
+import pickle as pkl
+import tempfile
 import time
 from datetime import datetime
 from pathlib import WindowsPath, Path
 from types import SimpleNamespace
-import tempfile
-import pickle as pkl
 
 import mlflow
 import pandas as pd
@@ -87,7 +87,7 @@ def mlflow_log_file(file, fn):
 
     mlflow.end_run()
     """
-    
+
     kind = fn.split(".")[1]
     assert kind in ["pkl", "json"]
 
