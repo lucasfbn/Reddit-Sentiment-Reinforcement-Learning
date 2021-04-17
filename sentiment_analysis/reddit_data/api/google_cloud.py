@@ -6,6 +6,7 @@ from pandas_gbq.gbq import GenericGBQException
 
 from utils import dt_to_timestamp, log
 
+
 class BigQueryDB:
 
     def __init__(self):
@@ -101,9 +102,10 @@ class BigQueryDB:
             print(min_max_subperiod)
         return min_max_subperiod
 
+
 if __name__ == '__main__':
-    start=datetime(year=2021, month=1, day=13)
-    end=datetime(year=2021, month=1, day=25)
+    start = datetime(year=2021, month=3, day=18)
+    end = datetime(year=2021, month=3, day=25)
     # db = BigQueryDB()
     # df = db.download(start, end,
     #                  fields=["author", "created_utc", "id", "num_comments", "title", "selftext", "subreddit"],
@@ -112,5 +114,5 @@ if __name__ == '__main__':
     # df.to_csv("raw.csv", sep=";", index=False)
 
     db = BigQueryDB()
-    db.detect_gaps()
+    db.detect_gaps(start=start, end=end)
     # db.upload(pd.DataFrame({"one": [1, 2, 3]}), dataset="data", table="test_subm1")
