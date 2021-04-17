@@ -6,7 +6,6 @@ from pandas_gbq.gbq import GenericGBQException
 
 from utils import dt_to_timestamp, log
 
-
 class BigQueryDB:
 
     def __init__(self):
@@ -100,7 +99,7 @@ class BigQueryDB:
                 json.dump(min_max_subperiod, f)
         else:
             print(min_max_subperiod)
-
+        return min_max_subperiod
 
 if __name__ == '__main__':
     start=datetime(year=2021, month=1, day=13)
