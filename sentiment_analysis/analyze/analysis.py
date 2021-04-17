@@ -1,5 +1,6 @@
-import pickle as pkl
+import pandas as pd
 
+pd.set_option('mode.chained_assignment', 'raise')
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 from utils import *
