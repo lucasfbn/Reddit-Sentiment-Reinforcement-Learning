@@ -32,7 +32,7 @@ def dt_to_timestamp(time):
     return int(time.timestamp())
 
 
-def save_config(configs, kind):
+def save_config(configs):
     def is_jsonable(x):
         try:
             json.dumps(x)
@@ -53,24 +53,9 @@ def save_config(configs, kind):
             elif not is_jsonable(value):
                 value = value.__qualname__
 
-            flattened[key] = [value]
+            flattened[key] = value
 
-    flattened["time"] = datetime.now()
-
-    path = paths.tracking_path / f"{kind}.csv"
-    if os.path.exists(path):
-        df = pd.read_csv(path, sep=";")
-        df = df.append(pd.DataFrame(flattened))
-    else:
-        df = pd.DataFrame(flattened)
-
-    while True:
-        try:
-            df.to_csv(path, sep=";", index=False)
-            break
-        except PermissionError:
-            print(f"Close {kind}.csv you retard.")
-            time.sleep(3)
+    mlflow.log_params(flattened)
 
 
 class Config(SimpleNamespace):
@@ -105,5 +90,12 @@ def mlflow_log_file(file, fn):
 
 
 if __name__ == '__main__':
-    c = Config(**dict(test=12))
+    mlflow.set_tracking_uri(paths.mlflow_path)
+    mlflow.set_experiment("Testing")
+
+    mlflow.start_run()
+
+    c = Config(**dict(test=12, ja="hallo"))
     save_config([c], "test")
+
+    mlflow.end_run()
