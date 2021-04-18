@@ -9,12 +9,6 @@ base_path = Path(__file__).parent
 
 storage_path = base_path / "storage"
 data_path = storage_path / "data"
-datasets_data_path = data_path / "datasets"
-sentiment_data_path = data_path / "sentiment"
-eval_data_path = storage_path / "eval"
-models_path = storage_path / "models"
-models_temp_path = models_path / "temp"
-tracking_path = storage_path / "tracking"
 mlflow_path = f"file:///{(storage_path / 'mlflow' / 'mlruns').as_posix()}"
 
 
