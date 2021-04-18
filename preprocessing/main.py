@@ -14,7 +14,7 @@ from utils import save_config, Config
 def main():
     from_run_id = config.general.from_run_id
     from_run = mlflow.get_run(from_run_id)
-    from_artifact_path = Path("C:" + from_run.info.artifact_uri.split(":")[2])
+    from_artifact_path = paths.artifact_path(from_run.info.artifact_uri)
 
     meta_data = Config(**dict(
         start=from_run.data.params["start"],
@@ -22,7 +22,7 @@ def main():
         from_run_id=from_run_id
     ))
 
-    to_artifact_path = Path("C:" + mlflow.get_artifact_uri().split(":")[2])
+    to_artifact_path = paths.artifact_path(mlflow.get_artifact_uri())
 
     Preprocessor.source_path = from_artifact_path
     Preprocessor.target_path = to_artifact_path
