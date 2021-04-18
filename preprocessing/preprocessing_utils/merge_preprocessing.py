@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
-from preprocessing.preprocessing_utils.stock_prices import StockPrices
+from preprocessing.preprocessing_utils.stock_prices import StockPrices, IndexPerformance
 
 pd.options.mode.chained_assignment = None
 
@@ -33,6 +33,9 @@ class MergePreprocessing(Preprocessor):
         self.live = live
         self.limit = limit
 
+        self._min_date = None
+        self._max_date = None
+
     def _handle_time(self):
         self.df["time"] = pd.to_datetime(self.df["end"], format="%Y-%m-%d %H:%M")
         self.df = self.df.sort_values(by=["time"])
@@ -40,6 +43,9 @@ class MergePreprocessing(Preprocessor):
                                                                  minutes=self.start_min) + pd.Timedelta(days=1)
 
         self.df["date_day"] = pd.to_datetime(self.df['time_shifted']).dt.to_period('D')
+
+        self._min_date = self.df["date_day"].min()
+        self._max_date = self.df["date_day"].max()
 
     def _filter_market_symbol(self):
         if self.market_symbols:
@@ -140,6 +146,13 @@ class MergePreprocessing(Preprocessor):
             grp["data"]["date"] = grp["data"]['date_day'].dt.to_timestamp('s')
             grp["data"] = grp["data"].sort_values(by=["date"])
 
+    def _add_index_comparison(self):
+        ip = IndexPerformance(min_date=self._min_date, max_date=self._max_date)
+        ip.calc_index_comparison()
+
+        for grp in self.grps:
+            grp["index_comparison"] = ip.get_index_comparison()
+
     def _backfill_availability(self):
         for grp in self.grps:
 
@@ -162,5 +175,6 @@ class MergePreprocessing(Preprocessor):
         self._handle_gaps()
         self._add_stock_prices()
         self._sort_chronologically()
+        self._add_index_comparison()
         self._backfill_availability()
         self.save(self.grps, self.fn_merge_hype_price)
