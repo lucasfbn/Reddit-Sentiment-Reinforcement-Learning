@@ -10,6 +10,7 @@ base_path = Path(__file__).parent
 storage_path = base_path / "storage"
 data_path = storage_path / "data"
 mlflow_path = f"file:///{(storage_path / 'mlflow' / 'mlruns').as_posix()}"
+artifact_path = lambda artifact_uri: Path("C:" + artifact_uri.split(":")[2])
 
 
 def create_dir(path, fn="", suffix=0):
