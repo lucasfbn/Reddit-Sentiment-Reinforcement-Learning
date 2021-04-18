@@ -8,6 +8,9 @@ import paths
 class DatasetLoader:
 
     def __init__(self, run_ids: list):
+        mlflow.set_tracking_uri(paths.mlflow_path)
+        mlflow.set_experiment("Datasets")
+
         self.run_ids = run_ids
 
         self.data = []
@@ -22,6 +25,7 @@ class DatasetLoader:
         return self.data
 
     def merge(self):
+        self.load()
         flattened = [item for sublist in self.data for item in sublist]
         self.data = flattened
         return self.data
@@ -36,4 +40,3 @@ if __name__ == "__main__":
     a = dl.load()
     merged = dl.merge()
     print()
-
