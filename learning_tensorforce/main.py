@@ -14,6 +14,8 @@ import paths
 import pickle as pkl
 import mlflow
 
+from preprocessing.dataset_loader import DatasetLoader
+
 
 class RLAgent:
 
@@ -63,7 +65,8 @@ class RLAgent:
         ep.act()
         ep.force_sell()
 
-        mlflow.log_metrics({f"Profit_{suffix}": ep.profit, f"Balance_{suffix}": ep.balance})
+        mlflow.log_metrics({f"Profit_{suffix}": ep.profit, f"Balance_{suffix}": ep.balance,
+                            f"Index_perf_{suffix}": data["index_comparison"]["perf"]})
 
         if not self._agent_saved:
             self.save_agent()
@@ -72,7 +75,9 @@ class RLAgent:
         self._eval(self.train_data, "train")
 
         if self.test_data is not None:
-            self._eval(self.test_data, "test")
+
+            for i, test_data in enumerate(self.test_data):
+                self._eval(self.test_data, f"test_{i}")
 
     def train(self):
         EnvNN.data = self.train_data
@@ -95,21 +100,20 @@ class RLAgent:
 
 
 if __name__ == '__main__':
-    with open(paths.datasets_data_path / "_0" / "timeseries.pkl", "rb") as f:
-        data = pkl.load(f)
+    training_ids = ["58d6faa3746b46b7839f62fcb03239ea", "82e8310bd4134c45a071ce6d5175b297",
+                    "7caf13efeaf14d879bbcd693143e2b8a"]
+    test_ids = ["b1af9027e200433f880122645cab22eb", "fd8fde5f6325439d91080feca3731aa9",
+                "0149e640c1c94b90bf7816754343a521"]
 
-    with open(paths.datasets_data_path / "_3" / "timeseries.pkl", "rb") as f:
-        test_data = pkl.load(f)
+    training_data = DatasetLoader(training_ids).load().merge()
+    test_data = DatasetLoader(test_ids).load()
 
     mlflow.set_tracking_uri(paths.mlflow_path)
-    mlflow.set_experiment("Testing")  #
+    mlflow.set_experiment("Learning")
     mlflow.start_run()
-    # main(data)
 
-    rla = RLAgent(environment=EnvNN, train_data=data, test_data=test_data)
+    rla = RLAgent(environment=EnvNN, train_data=training_data, test_data=test_data)
     # rla.train()
-    rla.load_agent(
-        "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/1/59939e3fa05949fdabe4d0a8df4abe09/artifacts")
-    rla.eval_agent()
+    # rla.eval_agent()
 
     mlflow.end_run()
