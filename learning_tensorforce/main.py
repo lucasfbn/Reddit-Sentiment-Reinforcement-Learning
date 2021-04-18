@@ -61,23 +61,23 @@ class RLAgent:
         if self.artifact_path is not None:
             mlflow_log_file(data, f"eval_{suffix}.pkl")
 
-        ep = EvaluatePortfolio(data)
+        ep = EvaluatePortfolio(data, max_buy_output=2)
         ep.act()
         ep.force_sell()
 
         mlflow.log_metrics({f"Profit_{suffix}": ep.profit, f"Balance_{suffix}": ep.balance,
-                            f"Index_perf_{suffix}": data["index_comparison"]["perf"]})
+                            f"Index_perf_{suffix}": data[0]["index_comparison"]["perf"]})
 
         if not self._agent_saved:
             self.save_agent()
 
     def eval_agent(self):
-        self._eval(self.train_data, "train")
+        # self._eval(self.train_data, "train")
 
         if self.test_data is not None:
 
-            for i, test_data in enumerate(self.test_data):
-                self._eval(self.test_data, f"test_{i}")
+            for i, data in enumerate(self.test_data):
+                self._eval(data, f"test_{i}")
 
     def train(self):
         EnvNN.data = self.train_data
@@ -89,7 +89,7 @@ class RLAgent:
         )
 
         runner = Runner(agent=self.agent, environment=environment)
-        runner.run(num_episodes=2000)
+        runner.run(num_episodes=15000)
         runner.close()
 
         self.save_agent()
@@ -105,15 +105,16 @@ if __name__ == '__main__':
     test_ids = ["b1af9027e200433f880122645cab22eb", "fd8fde5f6325439d91080feca3731aa9",
                 "0149e640c1c94b90bf7816754343a521"]
 
-    training_data = DatasetLoader(training_ids).load().merge()
-    test_data = DatasetLoader(test_ids).load()
+    training_data = DatasetLoader(training_ids).merge()
+    test_data = DatasetLoader(training_ids + test_ids).load()
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Learning")
     mlflow.start_run()
 
     rla = RLAgent(environment=EnvNN, train_data=training_data, test_data=test_data)
-    # rla.train()
+    rla.train()
+    # rla.load_agent("C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/ed688c07f09c4daebb854e7badccc0a7/artifacts/")
     # rla.eval_agent()
 
     mlflow.end_run()
