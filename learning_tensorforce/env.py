@@ -134,13 +134,21 @@ class Env(Environment):
 class EnvNN(Env):
 
     def states(self):
-        return dict(type="float", shape=(72,))
+        shape = self.data[0]["data"][0].shape
+        return dict(type="float", shape=(shape[1],))
 
     def actions(self):
         return dict(type="int", num_values=3)
 
     def max_episode_timesteps(self):
-        return 53
+
+        max_ = 0
+
+        for d in self.data:
+            if len(d["data"]) > max_:
+                max_ = len(d["data"])
+
+        return max_
 
     def _shape_state(self, state):
         state = np.asarray(state).astype("float32")
@@ -158,16 +166,19 @@ if __name__ == "__main__":
     import pickle as pkl
     import random
 
+    from preprocessing.dataset_loader import DatasetLoader
+
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Testing")  #
     mlflow.start_run()
 
-    with open(paths.datasets_data_path / "_0" / "timeseries.pkl", "rb") as f:
-        data = pkl.load(f)
-
+    dl = DatasetLoader(["7caf13efeaf14d879bbcd693143e2b8a"])
+    dl.load()
+    data = dl.merge()
     EnvNN.data = data
 
     env = EnvNN()
+    a = env.states()
 
     for _ in range(10000):
         states = env.reset()
