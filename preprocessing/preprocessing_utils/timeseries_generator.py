@@ -1,10 +1,12 @@
 import re
 
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
 from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import MinMaxScaler
+from tqdm import tqdm
 
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
+from utils import log
 
 
 class TimeseriesGenerator(Preprocessor):
@@ -20,11 +22,13 @@ class TimeseriesGenerator(Preprocessor):
         self.keep_unscaled = keep_unscaled
         self.live = live
 
-    def _add_timeseries_price_col(self, grp):
+    @staticmethod
+    def add_timeseries_price_col(grp):
         grp["data"]["price_ts"] = grp["data"]["price"]
         return grp
 
-    def _add_relative_change(self, grp):
+    @staticmethod
+    def add_relative_change(grp):
         df = grp["data"]
         prices = df["price"].values.tolist()
 
@@ -38,7 +42,8 @@ class TimeseriesGenerator(Preprocessor):
         grp["data"]["rel_change"] = rel_change
         return grp
 
-    def _reorder_cols(self, grp):
+    @staticmethod
+    def reorder_cols(grp):
         # Make sure price col is the last col
         df = grp["data"]
         cols = list(df.columns)
@@ -49,18 +54,21 @@ class TimeseriesGenerator(Preprocessor):
         return grp
 
     def pipeline(self):
+        log.info("Running timeseries generator...")
         processed_data = []
-        for grp in self.data:
-            grp = self._add_timeseries_price_col(grp)
-            grp = self._add_relative_change(grp)
+        for grp in tqdm(self.data):
+            grp = self.add_timeseries_price_col(grp)
+            grp = self.add_relative_change(grp)
 
-            grp = self._reorder_cols(grp)
+            grp = self.reorder_cols(grp)
             grp = self.make_sequence(grp)
-            grp = self.extract_metadata(grp)
-            grp = self.apply_scaling(grp)
 
             if grp is None:
                 continue
+
+            grp = self.extract_metadata(grp)
+            grp = self.apply_scaling(grp)
+            grp = self.to_list(grp)
 
             processed_data.append(grp)
 
@@ -71,19 +79,19 @@ class TimeseriesGenerator(Preprocessor):
     def apply_scaling(self, grp):
         raise NotImplemented
 
-    def handle_unscaled(self, grp):
-        raise NotImplemented
-
     def extract_metadata(self, grp):
         raise NotImplemented
 
     def make_sequence(self, grp):
         raise NotImplemented
 
+    def to_list(self, grp):
+        raise NotImplemented
+
 
 class TimeseriesGeneratorNN(TimeseriesGenerator):
 
-    def _add_pre_data(self, grp):
+    def make_sequence(self, grp):
         df = grp["data"]
 
         shifted = []
@@ -97,10 +105,14 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
             suffix_counter += 2
 
         df = df.dropna()
+
+        if len(df) == 0:
+            return None
+
         grp["data"] = df
         return grp
 
-    def _scale(self, grp):
+    def apply_scaling(self, grp):
 
         if not self.scale:
             return grp
@@ -137,9 +149,11 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
             grp["data"] = grp["data"].tail(1)
         return grp
 
-    def _extract_metadata(self, grp):
+    def extract_metadata(self, grp):
         grp["metadata"] = grp["data"][self.metadata_cols]
         grp["data"] = grp["data"].drop(columns=self.metadata_cols)
+
+        grp = self._del_metadata_from_data(grp)
         return grp
 
     def _del_metadata_from_data(self, grp):
@@ -154,35 +168,19 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
         grp["data"] = grp["data"][new_cols]
         return grp
 
-    def _convert_to_list(self, grp):
-
-        grp = grp.to_dict(orient="records")
+    def to_list(self, grp):
+        df = grp["data"]
+        df = df.to_dict(orient="records")
         new_grp = []
-        for timeseries in grp:
+        for timeseries in df:
             new_grp.append(pd.DataFrame([timeseries]))
-
-        return new_grp
-
-    def _model_specific(self, grp):
-
-        grp = self._add_pre_data(grp)
-
-        if len(grp["data"]) == 0:
-            return None
-
-        grp = self._extract_metadata(grp)
-        grp = self._del_metadata_from_data(grp)
-
-        grp = self._scale(grp)
-        grp["data"] = self._reorder_cols(grp["data"])
-        grp = self._live(grp)
-        grp["data"] = self._convert_to_list(grp["data"])
+        grp["data"] = new_grp
         return grp
 
 
 class TimeseriesGeneratorCNN(TimeseriesGenerator):
 
-    def _scale(self, grp):
+    def apply_scaling(self, grp):
         if not self.scale:
             return grp
 
@@ -198,14 +196,8 @@ class TimeseriesGeneratorCNN(TimeseriesGenerator):
             grp["data"][i] = pd.DataFrame(df, columns=cols)
         return grp
 
-    def _copy_unscaled(self, grp):
-        if self.keep_unscaled:
-            for df in grp["data"]:
-                for col in df.columns:
-                    df[f"{col}_unscaled"] = df[col]
-        return grp
-
-    def _make_seq(self, df):
+    def make_sequence(self, grp):
+        df = grp["data"]
         sequences = []
 
         for i in range(len(df)):
@@ -222,9 +214,10 @@ class TimeseriesGeneratorCNN(TimeseriesGenerator):
                 sequences.append(df[i:i + self.look_back])
 
         assert len(sequences) > 0
-        return sequences
+        grp["data"] = sequences
+        return grp
 
-    def _extract_metadata(self, grp):
+    def extract_metadata(self, grp):
         metadata = []
         for i, seq in enumerate(grp["data"]):
             metadata.append(seq.tail(1)[self.metadata_cols])
@@ -232,11 +225,5 @@ class TimeseriesGeneratorCNN(TimeseriesGenerator):
         grp["metadata"] = pd.concat(metadata)
         return grp
 
-    def _model_specific(self, grp):
-
-        grp["data"] = self._reorder_cols(grp["data"])
-        grp["data"] = self._make_seq(grp["data"])
-        grp = self._extract_metadata(grp)
-        grp = self._copy_unscaled(grp)
-        grp = self._scale(grp)
+    def to_list(self, grp):
         return grp
