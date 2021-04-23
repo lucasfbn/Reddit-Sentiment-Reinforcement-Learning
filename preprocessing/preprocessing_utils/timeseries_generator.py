@@ -38,21 +38,26 @@ class TimeseriesGenerator(Preprocessor):
         grp["data"]["rel_change"] = rel_change
         return grp
 
-    def _reorder_cols(self, df):
+    def _reorder_cols(self, grp):
         # Make sure price col is the last col
+        df = grp["data"]
         cols = list(df.columns)
         cols.remove("price_ts")
         cols = cols + ["price_ts"]
         df = df[cols]
-        return df
+        grp["data"] = df
+        return grp
 
     def pipeline(self):
         processed_data = []
         for grp in self.data:
             grp = self._add_timeseries_price_col(grp)
             grp = self._add_relative_change(grp)
-            # grp = self._extract_metadata(grp)
-            grp = self._model_specific(grp)
+
+            grp = self._reorder_cols(grp)
+            grp = self.make_sequence(grp)
+            grp = self.extract_metadata(grp)
+            grp = self.apply_scaling(grp)
 
             if grp is None:
                 continue
@@ -62,6 +67,18 @@ class TimeseriesGenerator(Preprocessor):
         self.data = processed_data
         self.save(self.data, self.fn_timeseries)
         return self.data
+
+    def apply_scaling(self, grp):
+        raise NotImplemented
+
+    def handle_unscaled(self, grp):
+        raise NotImplemented
+
+    def extract_metadata(self, grp):
+        raise NotImplemented
+
+    def make_sequence(self, grp):
+        raise NotImplemented
 
 
 class TimeseriesGeneratorNN(TimeseriesGenerator):
