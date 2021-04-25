@@ -42,4 +42,5 @@ class Preprocessor:
             raise ValueError("Invalid filename.")
 
     def save(self, data, fn):
+        assert fn is not None
         mlflow_log_file(data, fn)
