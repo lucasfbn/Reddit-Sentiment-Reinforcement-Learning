@@ -2,8 +2,8 @@ import paths
 from utils import Config
 
 general = Config(**dict(
-    min_len=6,
-    from_run_id="97ba9499d6b745229d2fdc0d6d80af78"
+    min_len=2,
+    from_run_id="aa5ab2f67d684b64995dfe29872804f0"
 ))
 
 merge_preprocessing = Config(**dict(
@@ -26,10 +26,9 @@ cleaner = Config(**dict(
 ))
 
 timeseries_generator = Config(**dict(
-    kind="nn",
     look_back=7,
     metadata_cols=["price", "tradeable", "date", "available"],
-    check_availability=False,
+    check_availability=True,
     scale=True,
     keep_unscaled=False
 ))
