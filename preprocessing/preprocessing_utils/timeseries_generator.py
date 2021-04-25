@@ -10,6 +10,7 @@ from utils import log
 
 
 class TimeseriesGenerator(Preprocessor):
+    fn = None
 
     def __init__(self, look_back, metadata_cols, check_availability, scale=True, scaler=MinMaxScaler(),
                  keep_unscaled=False, live=False):
@@ -73,7 +74,7 @@ class TimeseriesGenerator(Preprocessor):
             processed_data.append(grp)
 
         self.data = processed_data
-        self.save(self.data, self.fn_timeseries)
+        self.save(self.data, self.fn)
         return self.data
 
     def apply_scaling(self, grp):
@@ -90,6 +91,7 @@ class TimeseriesGenerator(Preprocessor):
 
 
 class TimeseriesGeneratorNN(TimeseriesGenerator):
+    fn = "nn_input.pkl"
 
     def make_sequence(self, grp):
         df = grp["data"]
@@ -179,6 +181,7 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
 
 
 class TimeseriesGeneratorCNN(TimeseriesGenerator):
+    fn = "cnn_input.pkl"
 
     def apply_scaling(self, grp):
         if not self.scale:
@@ -227,3 +230,14 @@ class TimeseriesGeneratorCNN(TimeseriesGenerator):
 
     def to_list(self, grp):
         return grp
+
+
+class TimeseriesGeneratorWrapper:
+
+    def __init__(self, **kwargs):
+        self.tsg_nn = TimeseriesGeneratorNN(**kwargs)
+        self.tsg_cnn = TimeseriesGeneratorCNN(**kwargs)
+
+    def pipeline(self):
+        self.tsg_nn.pipeline()
+        self.tsg_cnn.pipeline()
