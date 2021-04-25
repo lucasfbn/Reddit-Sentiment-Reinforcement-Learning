@@ -109,7 +109,7 @@ class TimeseriesGeneratorNN(TimeseriesGenerator):
         df = df.dropna()
 
         if self.check_availability:
-            # available without suffix is the the column of the actual day and therefore relevant for the available
+            # 'available' without suffix is the the column of the actual day and therefore relevant for the available
             # filter
             df = df[df["available"] == True]
 
