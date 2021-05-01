@@ -9,6 +9,7 @@ from utils import log
 
 
 class Env(Environment):
+
     data = None
 
     def __init__(self):
@@ -30,14 +31,8 @@ class Env(Environment):
         self._even_reward_counter = 0
         self._pos_reward_counter = 0
 
-    def states(self):
-        raise NotImplemented
-
-    def actions(self):
-        raise NotImplemented
-
-    def max_episode_timesteps(self):
-        raise NotImplemented
+    def set_data(self, data):
+        self.data = data
 
     def _shape_state(self, state):
         raise NotImplemented
@@ -130,16 +125,6 @@ class Env(Environment):
 
         return self._state
 
-
-class EnvNN(Env):
-
-    def states(self):
-        shape = self.data[0]["data"][0].shape
-        return dict(type="float", shape=(shape[1],))
-
-    def actions(self):
-        return dict(type="int", num_values=3)
-
     def max_episode_timesteps(self):
 
         max_ = 0
@@ -150,6 +135,16 @@ class EnvNN(Env):
 
         return max_
 
+    def actions(self):
+        return dict(type="int", num_values=3)
+
+
+class EnvNN(Env):
+
+    def states(self):
+        shape = self.data[0]["data"][0].shape
+        return dict(type="float", shape=(shape[1],))
+
     def _shape_state(self, state):
         state = np.asarray(state).astype("float32")
         state = state.reshape((state.shape[1],))
@@ -158,6 +153,24 @@ class EnvNN(Env):
     def _current_price(self):
         shape = self._state.shape
         last_element = self._state[shape[0] - 1]
+        return last_element
+
+
+class EnvCNN(Env):
+
+    def states(self):
+        shape = self.data[0]["data"][0].shape
+        return dict(type="float", shape=(1, shape[0], shape[1]))
+
+    def _shape_state(self, state):
+        state = state.values.reshape((1, state.shape[0], state.shape[1]))
+        state = np.asarray(state).astype('float32')
+        return state
+
+    def _current_price(self):
+        shape = self._state.shape
+        last_row = self._state[0][shape[1] - 1]
+        last_element = last_row[shape[2] - 1]
         return last_element
 
 
@@ -172,13 +185,10 @@ if __name__ == "__main__":
     mlflow.set_experiment("Testing")  #
     mlflow.start_run()
 
-    dl = DatasetLoader(["7caf13efeaf14d879bbcd693143e2b8a"])
-    dl.load()
-    data = dl.merge()
+    data = DatasetLoader(["3bf57f5ad0d94c0f8ab0848438b78808"]).merge()
     EnvNN.data = data
 
     env = EnvNN()
-    a = env.states()
 
     for _ in range(10000):
         states = env.reset()
