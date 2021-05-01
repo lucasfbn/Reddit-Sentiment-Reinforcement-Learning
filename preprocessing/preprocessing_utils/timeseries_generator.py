@@ -1,4 +1,5 @@
 import re
+import warnings
 
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -54,6 +55,11 @@ class TimeseriesGenerator(Preprocessor):
         grp["data"] = df
         return grp
 
+    def enforce_min_len(self, grp):
+        if grp is None or len(grp["data"]) < 2:
+            return False
+        return True
+
     def pipeline(self):
         log.info("Running timeseries generator...")
         processed_data = []
@@ -64,7 +70,7 @@ class TimeseriesGenerator(Preprocessor):
             grp = self.reorder_cols(grp)
             grp = self.make_sequence(grp)
 
-            if grp is None:
+            if not self.enforce_min_len(grp):
                 continue
 
             grp = self.extract_metadata(grp)
