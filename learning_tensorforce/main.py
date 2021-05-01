@@ -4,7 +4,7 @@ physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 from tensorforce import Runner, Agent, Environment
-from learning_tensorforce.env import EnvNN
+from learning_tensorforce.env import EnvNN, EnvCNN
 from evaluate.eval_portfolio import EvaluatePortfolio
 
 from tqdm import tqdm
@@ -80,12 +80,12 @@ class RLAgent:
                 self._eval(data, f"test_{i}")
 
     def train(self):
-        EnvNN.data = self.train_data
+        self.environment.data = self.train_data
         environment = Environment.create(environment=self.environment)
 
         self.agent = Agent.create(
             agent='ppo', environment=environment,
-            memory=2000, batch_size=32, exploration=0.01
+            memory=2013, batch_size=32, exploration=0.01
         )
 
         runner = Runner(agent=self.agent, environment=environment)
@@ -100,19 +100,16 @@ class RLAgent:
 
 
 if __name__ == '__main__':
-    training_ids = ["58d6faa3746b46b7839f62fcb03239ea", "82e8310bd4134c45a071ce6d5175b297",
-                    "7caf13efeaf14d879bbcd693143e2b8a"]
-    test_ids = ["b1af9027e200433f880122645cab22eb", "fd8fde5f6325439d91080feca3731aa9",
-                "0149e640c1c94b90bf7816754343a521"]
+    training_ids = ["3bf57f5ad0d94c0f8ab0848438b78808"]
 
-    training_data = DatasetLoader(training_ids).merge()
-    test_data = DatasetLoader(training_ids + test_ids).load()
+    training_data = DatasetLoader(training_ids, "cnn").merge()
+    test_data = DatasetLoader(training_ids, "cnn").load()
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Learning")
     mlflow.start_run()
 
-    rla = RLAgent(environment=EnvNN, train_data=training_data, test_data=test_data)
+    rla = RLAgent(environment=EnvCNN, train_data=training_data, test_data=test_data)
     rla.train()
     # rla.load_agent("C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/ed688c07f09c4daebb854e7badccc0a7/artifacts/")
     # rla.eval_agent()
