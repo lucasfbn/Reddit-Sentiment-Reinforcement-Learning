@@ -2,7 +2,7 @@ import paths
 from utils import Config
 
 general = Config(**dict(
-    min_len=2,
+    min_len=6,
     from_run_id="aa5ab2f67d684b64995dfe29872804f0"
 ))
 
