@@ -50,6 +50,17 @@ class Cleaner(Preprocessor):
                 new_data.append(grp)
         self.data = new_data
 
+    def _drop_IPO(self):
+        """
+        Checks for rare cases where a stocks IPO affects the timeline (e.g. there is price before a certain date)
+        :return:
+        """
+        new_data = []
+        for grp in self.data:
+            if not grp["data"]["price"].isnull().any():
+                new_data.append(grp)
+        self.data = new_data
+
     def _drop_unnecessary(self):
         for grp in self.data:
             grp["data"] = grp["data"].drop(columns=self.cols_to_be_dropped)
@@ -74,6 +85,7 @@ class Cleaner(Preprocessor):
         self._drop_unnecessary()
         self._drop_short()
         self._drop_price_all_nan()
+        self._drop_IPO()
         self._fill_nan()
         self._drop_nan()
         self.save(self.data, self.fn_cleaned)
