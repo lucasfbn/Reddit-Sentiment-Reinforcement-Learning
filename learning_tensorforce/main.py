@@ -85,22 +85,24 @@ class RLAgent:
 
         self.agent = Agent.create(
             agent='ppo', environment=environment,
-            memory=2013, batch_size=32, exploration=0.01
+            memory=3000, batch_size=32,
+            exploration=0.01
         )
 
         runner = Runner(agent=self.agent, environment=environment)
-        runner.run(num_episodes=15000)
+        runner.run(num_episodes=30000)
         runner.close()
 
         self.save_agent()
-        self.eval_agent()
 
-        self.agent.close()
         environment.close()
+
+    def close(self):
+        self.agent.close()
 
 
 if __name__ == '__main__':
-    training_ids = ["3bf57f5ad0d94c0f8ab0848438b78808"]
+    training_ids = ["989a7b1534144304b0575bf964a88ad3"]
 
     training_data = DatasetLoader(training_ids, "cnn").merge()
     test_data = DatasetLoader(training_ids, "cnn").load()
@@ -111,6 +113,8 @@ if __name__ == '__main__':
 
     rla = RLAgent(environment=EnvCNN, train_data=training_data, test_data=test_data)
     rla.train()
+    rla.eval_agent()
+    rla.close()
     # rla.load_agent("C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/ed688c07f09c4daebb854e7badccc0a7/artifacts/")
     # rla.eval_agent()
 
