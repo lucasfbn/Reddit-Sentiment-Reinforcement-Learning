@@ -3,7 +3,7 @@ import warnings
 import mlflow
 
 import paths
-import sentiment_analysis.config as config
+import sentiment_analysis.config as sentiment_analysis_config
 from sentiment_analysis.analyze.analysis import SubmissionsHandler
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sentiment_analysis.reddit_data.preprocess.preprocess import Preprocessor
@@ -15,7 +15,8 @@ class Dataset:
     grps_fn = "grps.pkl"
     report_fn = "report.csv"
 
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
         self.start = config.general.start
         self.end = config.general.end
         self.check_integrity = config.check.integrity
@@ -26,17 +27,17 @@ class Dataset:
 
     def get_from_gc(self):
         db = BigQueryDB()
-        self.df = db.download(self.start, self.end, config.gc.fields,
-                              check_duplicates=config.gc.check_duplicates)
+        self.df = db.download(self.start, self.end, self.config.gc.fields,
+                              check_duplicates=self.config.gc.check_duplicates)
         mlflow_log_file(self.df, self.gc_dump_fn)
 
     def preprocess(self):
         prep = Preprocessor(df=self.df,
-                            author_blacklist=config.preprocess.author_blacklist,
-                            cols_to_check_if_removed=config.preprocess.cols_to_check_if_removed,
-                            cols_to_be_cleaned=config.preprocess.cols_to_be_cleaned,
-                            max_subm_p_author_p_day=config.preprocess.max_subm_p_author_p_day,
-                            filter_authors=config.preprocess.filter_authors)
+                            author_blacklist=self.config.preprocess.author_blacklist,
+                            cols_to_check_if_removed=self.config.preprocess.cols_to_check_if_removed,
+                            cols_to_be_cleaned=self.config.preprocess.cols_to_be_cleaned,
+                            max_subm_p_author_p_day=self.config.preprocess.max_subm_p_author_p_day,
+                            filter_authors=self.config.preprocess.filter_authors)
         self.grps = prep.exec()
 
         mlflow_log_file(self.grps, self.grps_fn)
@@ -60,10 +61,10 @@ class Dataset:
 
     def analyze(self):
         sh = SubmissionsHandler(data=self.grps,
-                                search_ticker_in_body=config.submissions.search_ticker_in_body,
-                                ticker_blacklist=config.submissions.ticker_blacklist,
-                                body_col=config.submissions.body_col,
-                                cols_in_vader_merge=config.submissions.cols_in_vader_merge)
+                                search_ticker_in_body=self.config.submissions.search_ticker_in_body,
+                                ticker_blacklist=self.config.submissions.ticker_blacklist,
+                                body_col=self.config.submissions.body_col,
+                                cols_in_vader_merge=self.config.submissions.cols_in_vader_merge)
         p_data = sh.process()
         mlflow_log_file(p_data, self.report_fn)
 
@@ -73,7 +74,8 @@ class Dataset:
         self._check_integrity()
         self.analyze()
 
-        save_config([config.general, config.gc, config.preprocess, config.check, config.submissions])
+        save_config([self.config.general, self.config.gc,
+                     self.config.preprocess, self.config.check, self.config.submissions])
 
 
 if __name__ == "__main__":
@@ -81,7 +83,7 @@ if __name__ == "__main__":
     mlflow.set_experiment("Sentiment_Datasets")  #
     mlflow.start_run()
 
-    ds = Dataset()
+    ds = Dataset(sentiment_analysis_config)
     ds.create()
 
     mlflow.end_run()
