@@ -79,7 +79,7 @@ class RLAgent:
             for i, data in enumerate(self.test_data):
                 self._eval(data, f"test_{i}")
 
-    def train(self):
+    def train(self, n_full_episodes):
         self.environment.data = self.train_data
         environment = Environment.create(environment=self.environment)
 
@@ -90,7 +90,7 @@ class RLAgent:
         )
 
         runner = Runner(agent=self.agent, environment=environment)
-        runner.run(num_episodes=30000)
+        runner.run(num_episodes=n_full_episodes * len(self.train_data))
         runner.close()
 
         self.save_agent()
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     mlflow.start_run()
 
     rla = RLAgent(environment=EnvCNN, train_data=training_data, test_data=test_data)
-    rla.train()
+    rla.train(n_full_episodes=20)
     rla.eval_agent()
     rla.close()
     # rla.load_agent("C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/ed688c07f09c4daebb854e7badccc0a7/artifacts/")
