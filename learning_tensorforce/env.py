@@ -1,5 +1,6 @@
 import copy
 from collections import deque
+from random import shuffle
 
 import mlflow
 import numpy as np
@@ -9,7 +10,6 @@ from utils import log
 
 
 class Env(Environment):
-
     data = None
 
     def __init__(self):
@@ -107,6 +107,7 @@ class Env(Environment):
         self._episode_ended = False
 
         self._x = copy.deepcopy(self._episode_data[self._counter]["data"])
+        shuffle(self._x)
         self._counter += 1
         self._episode_counter += 1
 
@@ -176,7 +177,6 @@ class EnvCNN(Env):
 
 if __name__ == "__main__":
     import paths
-    import pickle as pkl
     import random
 
     from preprocessing.dataset_loader import DatasetLoader
