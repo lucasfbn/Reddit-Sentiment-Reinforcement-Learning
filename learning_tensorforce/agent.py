@@ -6,7 +6,8 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 from tensorforce import Runner, Agent, Environment
 from learning_tensorforce.env import EnvNN, EnvCNN
 from evaluate.eval_portfolio import EvaluatePortfolio
-
+import pandas as pd
+import numpy as np
 from tqdm import tqdm
 
 from utils import mlflow_log_file
@@ -31,7 +32,7 @@ class RLAgent:
         self._agent_saved = False
 
     def load_agent(self, artifact_path):
-        self.agent = Agent.load(directory=artifact_path + "/model", format='numpy')
+        self.agent = Agent.load(directory=artifact_path + "/model", format='numpy', tracking="all")
         self.artifact_path = self.artifact_path
 
     def save_agent(self):
@@ -51,12 +52,18 @@ class RLAgent:
 
             for state in grp["data"]:
                 state = env._shape_state(state)
+                a = self.agent.tracked_tensors()
                 action = self.agent.act(state, independent=True)
                 actions.append(action)
-                actions_outputs.append(1)
+
+                probas = pd.DataFrame([self.agent.tracked_tensors()["agent/policy/action_distribution/probabilities"]],
+                                      columns=["proba_0", "proba_1", "proba_2"])
+                actions_outputs.append(probas)
 
             grp["metadata"]["actions"] = actions
-            grp["metadata"]["actions_outputs"] = actions_outputs
+            grp["metadata"] = grp["metadata"].reset_index(drop=True)
+            actions_outputs = pd.concat(actions_outputs, axis="rows").reset_index(drop=True)
+            grp["metadata"] = pd.concat([grp["metadata"], actions_outputs], axis="columns")
 
         if self.artifact_path is not None:
             mlflow_log_file(data, f"eval_{suffix}.pkl")
@@ -86,7 +93,8 @@ class RLAgent:
         self.agent = Agent.create(
             agent='ppo', environment=environment,
             memory=3000, batch_size=32,
-            exploration=0.01
+            exploration=0.01,
+            tracking="all"
         )
 
         runner = Runner(agent=self.agent, environment=environment)
@@ -112,10 +120,11 @@ if __name__ == '__main__':
     mlflow.start_run()
 
     rla = RLAgent(environment=EnvCNN, train_data=training_data, test_data=test_data)
-    rla.train(n_full_episodes=20)
+    rla.load_agent(
+        "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
+    # rla.train(n_full_episodes=1)
     rla.eval_agent()
     rla.close()
-    # rla.load_agent("C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/ed688c07f09c4daebb854e7badccc0a7/artifacts/")
     # rla.eval_agent()
 
     mlflow.end_run()
