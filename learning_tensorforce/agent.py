@@ -4,15 +4,13 @@ physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 from tensorforce import Runner, Agent, Environment
-from learning_tensorforce.env import EnvNN, EnvCNN
+from learning_tensorforce.env import EnvCNN
 from evaluate.eval_portfolio import EvaluatePortfolio
 import pandas as pd
-import numpy as np
 from tqdm import tqdm
 
 from utils import mlflow_log_file
 import paths
-import pickle as pkl
 import mlflow
 
 from preprocessing.dataset_loader import DatasetLoader
