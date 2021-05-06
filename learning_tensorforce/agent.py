@@ -9,7 +9,7 @@ from evaluate.eval_portfolio import EvaluatePortfolio
 import pandas as pd
 from tqdm import tqdm
 
-from utils import mlflow_log_file
+from utils import mlflow_log_file, log
 import paths
 import mlflow
 
@@ -40,7 +40,7 @@ class RLAgent:
             self._agent_saved = True
 
     def _eval(self, data, suffix):
-
+        log.info("Evaluating...")
         env = self.environment()
 
         for grp in tqdm(data):
@@ -55,7 +55,7 @@ class RLAgent:
                 actions.append(action)
 
                 probas = pd.DataFrame([self.agent.tracked_tensors()["agent/policy/action_distribution/probabilities"]],
-                                      columns=["proba_0", "proba_1", "proba_2"])
+                                      columns=["hold_probability", "buy_probability", "sell_probability"])
                 actions_outputs.append(probas)
 
             grp["metadata"]["actions"] = actions
@@ -66,7 +66,7 @@ class RLAgent:
         if self.artifact_path is not None:
             mlflow_log_file(data, f"eval_{suffix}.pkl")
 
-        ep = EvaluatePortfolio(data, max_buy_output=2)
+        ep = EvaluatePortfolio(data)
         ep.act()
         ep.force_sell()
 
