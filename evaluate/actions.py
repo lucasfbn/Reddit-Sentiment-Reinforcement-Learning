@@ -1,3 +1,4 @@
+import mlflow
 import pandas as pd
 
 from utils import log
@@ -38,7 +39,10 @@ class Buy(Action):
 
         self.actions_df = self.actions_df[self.actions_df["tradeable"] == True]
 
-        # TODO Quantile constraint
+        old_len = len(self.actions_df)
+        self.actions_df = self.actions_df[self.actions_df["buy_probability"] >= self.p.thresholds["buy"]]
+        if self.p.thresholds["buy"] == 0:
+            assert old_len == len(self.actions_df)
 
         if self.p.max_price_per_stock is not None:
             self.actions_df = self.actions_df[self.actions_df["price"] <= self.p.max_price_per_stock]
@@ -48,7 +52,7 @@ class Buy(Action):
         return True
 
     def handle(self):
-        self.actions_df = self.actions_df.sort_values(by=["actions_outputs"], ascending=True)
+        self.actions_df = self.actions_df.sort_values(by=["buy_probability"], ascending=True)
         self.actions_df = self.actions_df.to_dict("records")
 
         capital_per_trade = self.p.initial_balance * self.p.max_investment_per_trade
@@ -81,8 +85,11 @@ class Buy(Action):
 
             old_depot = self.p.balance
             self.p.balance -= buy["total_buy_price"]
+            mlflow.log_metric("balance", self.p.balance)
 
             self.p._inventory.append(buy)
+            mlflow.log_metric("Inventory Length", len(self.p._inventory))
+
             log.debug(f"BOUGHT. Ticker: {buy['ticker']}. "
                       f"Quantity: {buy['quantity']}. "
                       f"Total buy price: {buy['total_buy_price']}. "
@@ -93,6 +100,20 @@ class Buy(Action):
 class Sell(Action):
 
     def constraints(self):
+        if "forced" in self.kwargs and self.kwargs["forced"]:
+            return True
+
+        if len(self.actions_df) == 0:
+            return False
+
+        self.actions_df = self.actions_df[self.actions_df["tradeable"] == True]
+
+        old_len = len(self.actions_df)
+        self.actions_df = self.actions_df[self.actions_df["sell_probability"] >= self.p.thresholds["sell"]]
+        if self.p.thresholds["sell"] == 0:
+            assert old_len == len(self.actions_df)
+
+        self.actions = self.actions_df.to_dict("records")
         return True
 
     def handle(self):
@@ -118,14 +139,16 @@ class Sell(Action):
                     profit_raw = current_price - bought_price
                     profit_perc = current_price / bought_price
 
-                    if not self.p.sell_callback(sell, profit_perc):
+                    if not self.callback(sell=sell, profit_perc=profit_perc):
                         continue
 
                     old_depot = self.p.balance
                     self.p.balance += current_price * position["quantity"]
+                    mlflow.log_metric("balance", self.p.balance)
 
                     self.p.profit = self.p.profit + \
                                     (self.p.profit * (self.p.max_investment_per_trade * (profit_perc - 1)))
+                    mlflow.log_metric("profit", self.p.profit)
 
                     log.debug(f"SOLD. Ticker: {position['ticker']}. "
                               f"Quantity: {position['quantity']}. "

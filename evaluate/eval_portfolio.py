@@ -1,14 +1,13 @@
-import datetime
 import pickle as pkl
-import warnings
 
+import mlflow
 import pandas as pd
 from tqdm import tqdm
 
-from utils import log
 from evaluate.actions import Buy, Sell
+from utils import log
 
-log.setLevel("DEBUG")
+log.setLevel("ERROR")
 
 
 class EvaluatePortfolio:
@@ -21,29 +20,19 @@ class EvaluatePortfolio:
                  slippage=0.007,
                  order_fee=0.02,
                  partial_shares_possible=True,
-                 quantiles={"buy": None, "hold": None, "sell": None}
+
+                 # Quantile of .85 means that we'll take the top 15%.
+                 quantiles_thresholds={"hold": None, "buy": 0.5, "sell": None}
                  ):
 
         self.data = eval_data
-        self.prepare()
 
         self.initial_balance = initial_balance
         self.max_investment_per_trade = max_investment_per_trade
         self.max_price_per_stock = max_price_per_stock
         self.max_trades_per_day = max_trades_per_day
-
-        self.quantiles = quantiles
-
-        # self.action_outputs = self._action_outputs_df()
-        # self.max_buy_output_quantile = max_buy_output_quantile
-        #
-        # if max_buy_output is not None:
-        #     warnings.warn("max_buy_output is != None. max_buy_output_quantile will be ignored.")
-        #     self.max_buy_output = max_buy_output
-        # elif len(self.action_outputs) != 0:
-        #     self.max_buy_output = float(self.action_outputs.quantile(max_buy_output_quantile))
-        # else:
-        self.max_buy_output = 0
+        self.quantiles_thresholds = quantiles_thresholds
+        self.thresholds = None
 
         self.slippage = slippage
         self.order_fee = order_fee
@@ -59,11 +48,20 @@ class EvaluatePortfolio:
 
         self._inventory = []
 
-    def prepare(self):
+        self._dates_trades_combination = None
+
+    def initialize(self):
         for grp in self.data:
             df = grp["metadata"]
             df["actions"] = df["actions"].replace({0: "hold", 1: "buy", 2: "sell"})
             grp["data"] = df
+
+        self._find_min_max_date()
+
+        if self._dates_trades_combination is None:
+            self._get_dates_trades_combination()
+
+        self.thresholds = self._calculate_thresholds(self.quantiles_thresholds)
 
     def _find_min_max_date(self):
         min_date = None
@@ -86,6 +84,8 @@ class EvaluatePortfolio:
         self._max_date = max_date
 
     def _get_dates_trades_combination(self):
+        # TODO Improve performance (flatten)
+        log.info("Retrieving date/trades combinations...")
         dates = pd.date_range(self._min_date, self._max_date)
 
         dates_trades_combinations = {}
@@ -103,18 +103,31 @@ class EvaluatePortfolio:
                     df_dict["ticker"] = grp["ticker"]
                     dates_trades_combinations[date.strftime("%d-%m-%Y")].append(df_dict)
 
-        return dates_trades_combinations
+        self._dates_trades_combination = dates_trades_combinations
 
-    # def _calc_quantiles(self, quantiles):
+    def _calculate_thresholds(self, quantiles):
+        thresholds = {}
+
+        for action, quantile in quantiles.items():
+            if quantile is None:
+                # Since the actions are a probability distribution between 3 classes,
+                # setting the quantile (which we will later filter for) to 0 will guarantee that we don't filter
+                # anything (as every probability is at least >= 0)
+                thresholds[action] = 0
+            else:
+                same_action_value = []
+                for grp in self.data:
+                    df = grp["data"]
+                    df = df[df["actions"] == action]
+                    same_action_value.extend(df[action + "_probability"].tolist())
+                same_action_value = pd.Series(same_action_value)
+                thresholds[action] = same_action_value.quantile(q=quantiles[action])
+        return thresholds
 
     def act(self):
-        self._find_min_max_date()
-
-        dates_trades_combinations = self._get_dates_trades_combination()
-
         inventory = []
 
-        for day, trade_option in dates_trades_combinations.items():
+        for day, trade_option in self._dates_trades_combination.items():
 
             potential_buys = []
             sells = []
@@ -127,11 +140,8 @@ class EvaluatePortfolio:
                 elif trade["actions"] == "sell" and trade["tradeable"]:
                     sells.append(trade)
 
-            # self._handle_sells(pd.DataFrame(sells))
-            # self._handle_buys(pd.DataFrame(potential_buys))
-
-            log.info(len(potential_buys))
-            log.info(len(sells))
+            df = pd.DataFrame(sells)
+            a = df.to_dict("records")
 
             self._handle_sells(sells)
             self._handle_buys(potential_buys)
@@ -139,11 +149,11 @@ class EvaluatePortfolio:
     def _handle_buys(self, potential_buys):
         Buy(portfolio=self, actions=potential_buys).execute()
 
-    def _handle_sells(self, sells, forced=False):
+    def _handle_sells(self, sells):
         Sell(portfolio=self, actions=sells).execute()
 
     def force_sell(self):
-        warnings.warn("FORCING SELL OF REMAINING INVENTORY.")
+        log.warn("FORCING SELL OF REMAINING INVENTORY.")
 
         new_inventory = []
         for position in self._inventory:
@@ -152,58 +162,40 @@ class EvaluatePortfolio:
 
         Sell(portfolio=self, actions=new_inventory, forced=True).execute()
 
-    def _action_outputs_df(self):
+    def log_state(self):
 
-        action_outputs = []
-
-        for grp in self.data:
-            df = grp["data"]
-            df = df[df["actions"] == "buy"]
-            df = self._buy_constraints(df)
-            action_outputs += df["actions_outputs"].values.tolist()
-
-        return pd.DataFrame(action_outputs)
-
-    def buy_callback(self, buy):
-        # Used to implement custom callbacks when buying. While evaluating we do not need such callbacks.
-        return True
-
-    def sell_callback(self, sell, profit_perc):
-        # Used to implement custom callbacks when selling. While evaluating we do not need such callbacks.
-        return True
-
-    def report(self):
-
-        mlflow.log_params({"initial_balance": [self.initial_balance],
-                           "max_investment_per_trade": [self.max_investment_per_trade],
-                           "max_price_per_stock": [self.max_price_per_stock],
-                           "max_buy_output_quantile": [self.max_buy_output_quantile],
-                           "max_buy_output": [self.max_buy_output],
-                           "max_trades_per_day": [self.max_trades_per_day], "slippage": [self.slippage],
-                           "partial_share_possible": [self.partial_shares_possible],
-                           "order_fee": [self.order_fee], "profit": [self.profit], "balance": [self.balance],
-                           "time": datetime.datetime.now().strftime("%Hh%Mm %d_%m-%y")})
+        mlflow.log_params({"initial_balance": self.initial_balance,
+                           "max_investment_per_trade": self.max_investment_per_trade,
+                           "max_price_per_stock": self.max_price_per_stock,
+                           "max_trades_per_day": self.max_trades_per_day, "slippage": self.slippage,
+                           "partial_share_possible": self.partial_shares_possible,
+                           "quantiles_thresholds": self.quantiles_thresholds,
+                           "thresholds": self.thresholds,
+                           "order_fee": self.order_fee, "profit": self.profit, "balance": self.balance})
 
 
 if __name__ == "__main__":
     import paths
-    import mlflow
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Evaluating")
 
-    with mlflow.start_run():
-        with open(
-                "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/79b744d7a4b94b15b21eddf703927b9f/artifacts/eval_test_0.pkl",
-                "rb") as f:
-            data = pkl.load(f)
-        for d in data:
-            d["metadata"]["actions_outputs"] = 1
-        ep = EvaluatePortfolio(eval_data=data)
-        # print(ep.action_outputs.describe())
+    path = "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/" \
+           "472e633695ce4beab58634b5e73d10c2/artifacts/eval_test_0.pkl"
 
+    with mlflow.start_run():
+        with open(path, "rb") as f:
+            data = pkl.load(f)
+        data = data[:10]
+
+        ep = EvaluatePortfolio(eval_data=data)
+        ep.initialize()
         ep.act()
         ep.force_sell()
+        ep.log_state()
+        print(ep.thresholds)
 
         print(ep.profit)
         print(ep.balance)
+
+        # cross_validate(data)
