@@ -1,5 +1,5 @@
+import multiprocessing
 from itertools import product
-from multiprocessing import Pool
 
 import mlflow
 from tqdm import tqdm
@@ -15,7 +15,8 @@ mlflow.set_experiment("Evaluating")
 
 class CrossValidateEvaluation:
 
-    def __init__(self, data, settings, step_size, n_worker=10):
+    def __init__(self, data, settings={"hold": False, "buy": True, "sell": False},
+                 step_size=0.01, n_worker=10):
 
         self.n_worker = n_worker
         self.data = data
@@ -25,7 +26,7 @@ class CrossValidateEvaluation:
         self._combinations = self._get_combinations()
         self._dates_trades_combinations = None
 
-        self.mlflow_parent_run_id = None
+        self._results = None
 
     def _get_combinations(self):
 
@@ -55,22 +56,24 @@ class CrossValidateEvaluation:
 
         return combinations_list
 
-    def _multi_cv(self, combinations_list):
+    def _multi_cv(self, args):
+
+        combinations_list = args[0]
+        manager = args[1]
 
         dates_trades_combinations = None
 
-        with mlflow.start_run(run_id=self.mlflow_parent_run_id):
-            for combination in tqdm(combinations_list):
-                with mlflow.start_run(nested=True):
-                    ep = EvaluatePortfolio(eval_data=self.data, quantiles_thresholds=combination)
-                    ep._dates_trades_combination = self._dates_trades_combinations
+        for combination in tqdm(combinations_list):
+            ep = EvaluatePortfolio(eval_data=self.data, quantiles_thresholds=combination)
+            ep._dates_trades_combination = self._dates_trades_combinations
 
-                    ep.initialize()
-                    ep.act()
-                    ep.force_sell()
-                    ep.log_state()
+            ep.initialize()
+            ep.act()
+            ep.force_sell()
 
-                    mlflow.log_param("combination", combination)
+            result = ep.get_result()
+            result.update({"combination": combination})
+            manager.append(result)
 
     @staticmethod
     def _chunks(lst, n):
@@ -83,15 +86,42 @@ class CrossValidateEvaluation:
         ep.initialize()
         self._dates_trades_combinations = ep._dates_trades_combination
 
+    def get_top_results(self, n_best):
+        sorted_ = sorted(self._results, key=lambda k: k['profit'], reverse=True)
+        return sorted_[:n_best]
+
+    def log_top_results(self, n_best):
+        results = self.get_top_results(n_best)
+        assert len(results) == n_best
+
+        metrics = {}
+        for n, r in enumerate(results):
+            metrics[f"profit_{n}"] = r["profit"]
+            metrics[f"balance_{n}"] = r["balance"]
+        mlflow.log_metrics(metrics)
+
+        for r in results:
+            with mlflow.start_run(nested=True):
+                mlflow.log_params(r)
+
+        # Pop profit and balance from first dict in list. All dicts should have the same params.
+        results[0].pop("profit")
+        results[0].pop("balance")
+
+        mlflow.log_params(results[0])
+
     def cross_validate(self):
         combinations = self._get_combinations()
-        chunks = self._chunks(combinations, self.n_worker)
+        chunks = list(self._chunks(combinations, self.n_worker))
         self._calculate_initial_dates_trades_combination()
-        with mlflow.start_run():
-            self.mlflow_parent_run_id = mlflow.active_run().info.run_id
 
-            with Pool(self.n_worker) as p:
-                p.map(self._multi_cv, chunks)
+        manager = multiprocessing.Manager()
+        manager = manager.list()
+
+        with multiprocessing.Pool(self.n_worker) as p:
+            p.map(self._multi_cv, product(chunks, [manager]))
+
+        self._results = list(manager)
 
 
 if __name__ == "__main__":
@@ -102,9 +132,14 @@ if __name__ == "__main__":
     with open(path, "rb") as f:
         data = pkl.load(f)
 
+    # data = data[:10]
+
     # TODO Has the capacity to cross validate several true actions. This takes time (~45 mins  @ 100% CPU) and won't
     # work with mlflow properly. You will, therefore, have to add a global variable to filter and
     # not log everything to mlflow.
     cv_settings = {"hold": False, "buy": True, "sell": False}
-    cv = CrossValidateEvaluation(data=data, settings=cv_settings, step_size=0.01, n_worker=15)
-    cv.cross_validate()
+
+    with mlflow.start_run():
+        cv = CrossValidateEvaluation(data=data, settings=cv_settings, step_size=0.01, n_worker=10)
+        cv.cross_validate()
+        cv.log_top_results(3)
