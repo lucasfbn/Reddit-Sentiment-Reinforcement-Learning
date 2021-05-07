@@ -77,10 +77,10 @@ class RLAgent:
             self.save_agent()
 
     def eval_agent(self):
-        # self._eval(self.train_data, "train")
+        for i, data in enumerate(self.train_data):
+            self._eval(data, f"train_{i}")
 
         if self.test_data is not None:
-
             for i, data in enumerate(self.test_data):
                 self._eval(data, f"test_{i}")
 
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     mlflow.set_experiment("Learning")
     mlflow.start_run()
 
-    rla = RLAgent(environment=EnvCNN, train_data=training_data, test_data=test_data)
+    rla = RLAgent(environment=EnvCNN, train_data=training_data)
     rla.load_agent(
         "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
     # rla.train(n_full_episodes=1)
