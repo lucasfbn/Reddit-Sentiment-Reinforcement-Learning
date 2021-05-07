@@ -25,10 +25,15 @@ class Action:
     def callback(self, **kwargs):
         return True
 
+    def log(self):
+        mlflow.log_metric("balance", self.p.balance)
+        mlflow.log_metric("Inventory Length", len(self.p._inventory))
+
     def execute(self):
         if not self.constraints():
             return
         self.handle()
+        # self.log()
 
 
 class Buy(Action):
@@ -85,10 +90,7 @@ class Buy(Action):
 
             old_depot = self.p.balance
             self.p.balance -= buy["total_buy_price"]
-            mlflow.log_metric("balance", self.p.balance)
-
             self.p._inventory.append(buy)
-            mlflow.log_metric("Inventory Length", len(self.p._inventory))
 
             log.debug(f"BOUGHT. Ticker: {buy['ticker']}. "
                       f"Quantity: {buy['quantity']}. "
@@ -144,11 +146,8 @@ class Sell(Action):
 
                     old_depot = self.p.balance
                     self.p.balance += current_price * position["quantity"]
-                    mlflow.log_metric("balance", self.p.balance)
-
                     self.p.profit = self.p.profit + \
                                     (self.p.profit * (self.p.max_investment_per_trade * (profit_perc - 1)))
-                    mlflow.log_metric("profit", self.p.profit)
 
                     log.debug(f"SOLD. Ticker: {position['ticker']}. "
                               f"Quantity: {position['quantity']}. "
