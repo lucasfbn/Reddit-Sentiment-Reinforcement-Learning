@@ -174,7 +174,8 @@ class EvaluatePortfolio:
                 "order_fee": self.order_fee,
                 "balance": self.balance,
                 "profit": self.profit,
-                "len_inventory": len(self._inventory)}
+                "len_inventory": len(self._inventory),
+                "index_performance": self.data[0]["index_comparison"]["perf"]}
 
     def log_result(self):
         mlflow.log_params(self.get_result())
