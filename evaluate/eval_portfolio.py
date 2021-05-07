@@ -162,16 +162,22 @@ class EvaluatePortfolio:
 
         Sell(portfolio=self, actions=new_inventory, forced=True).execute()
 
-    def log_state(self):
+    def get_result(self):
+        return {"initial_balance": self.initial_balance,
+                "max_investment_per_trade": self.max_investment_per_trade,
+                "max_price_per_stock": self.max_price_per_stock,
+                "max_trades_per_day": self.max_trades_per_day,
+                "slippage": self.slippage,
+                "partial_share_possible": self.partial_shares_possible,
+                "quantiles_thresholds": self.quantiles_thresholds,
+                "thresholds": self.thresholds,
+                "order_fee": self.order_fee,
+                "balance": self.balance,
+                "profit": self.profit,
+                "len_inventory": len(self._inventory)}
 
-        mlflow.log_params({"initial_balance": self.initial_balance,
-                           "max_investment_per_trade": self.max_investment_per_trade,
-                           "max_price_per_stock": self.max_price_per_stock,
-                           "max_trades_per_day": self.max_trades_per_day, "slippage": self.slippage,
-                           "partial_share_possible": self.partial_shares_possible,
-                           "quantiles_thresholds": self.quantiles_thresholds,
-                           "thresholds": self.thresholds,
-                           "order_fee": self.order_fee, "profit": self.profit, "balance": self.balance})
+    def log_result(self):
+        mlflow.log_params(self.get_result())
 
 
 if __name__ == "__main__":
@@ -192,10 +198,5 @@ if __name__ == "__main__":
         ep.initialize()
         ep.act()
         ep.force_sell()
-        ep.log_state()
-        print(ep.thresholds)
-
-        print(ep.profit)
-        print(ep.balance)
-
+        print(ep.get_result())
         # cross_validate(data)
