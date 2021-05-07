@@ -22,7 +22,7 @@ class EvaluatePortfolio:
                  partial_shares_possible=True,
 
                  # Quantile of .85 means that we'll take the top 15%.
-                 quantiles_thresholds={"hold": None, "buy": 0.5, "sell": None}
+                 quantiles_thresholds={"hold": None, "buy": None, "sell": None}
                  ):
 
         self.data = eval_data
