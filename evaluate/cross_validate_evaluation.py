@@ -13,7 +13,7 @@ mlflow.set_tracking_uri(paths.mlflow_path)
 mlflow.set_experiment("Evaluating")
 
 
-class CrossValidateThresholds:
+class CrossValidateEvaluation:
 
     def __init__(self, data, settings, step_size, n_worker=10):
 
@@ -106,5 +106,5 @@ if __name__ == "__main__":
     # work with mlflow properly. You will, therefore, have to add a global variable to filter and
     # not log everything to mlflow.
     cv_settings = {"hold": False, "buy": True, "sell": False}
-    cv = CrossValidateThresholds(data=data, settings=cv_settings, step_size=0.01, n_worker=15)
+    cv = CrossValidateEvaluation(data=data, settings=cv_settings, step_size=0.01, n_worker=15)
     cv.cross_validate()
