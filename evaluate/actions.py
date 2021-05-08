@@ -38,8 +38,15 @@ class Action:
     def handle(self):
         raise NotImplementedError
 
-    def callback(self, **kwargs):
-        return True
+    def callback(self, action):
+        if not self.live:
+            return True
+        else:
+            decision = input(f"Attempting to {self.action_name} {action['ticker']} "
+                             f"@ {action['price']}. Execute {self.action_name}? (y/n)")
+            if decision == "y":
+                return True
+            return False
 
     def log(self):
         mlflow.log_metric("balance", self.p.balance)
@@ -78,7 +85,7 @@ class Buy(Action):
             if i == self.p.max_trades_per_day:
                 break
 
-            if not self.callback(buy=buy):
+            if not self.callback(action=buy):
                 continue
             else:
                 i += 1
@@ -142,7 +149,7 @@ class Sell(Action):
                     profit_raw = current_price - bought_price
                     profit_perc = current_price / bought_price
 
-                    if not self.callback(sell=sell, profit_perc=profit_perc):
+                    if not self.callback(action=sell):
                         continue
 
                     old_depot = self.p.balance

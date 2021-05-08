@@ -22,8 +22,10 @@ class EvaluatePortfolio:
                  partial_shares_possible=True,
 
                  # Quantile of .85 means that we'll take the top 15%.
-                 quantiles_thresholds={"hold": None, "buy": None, "sell": None}
-                 ):
+                 quantiles_thresholds={"hold": None, "buy": None, "sell": None},
+                 live=False):
+
+        self.live = live
 
         self.data = eval_data
 
@@ -125,8 +127,6 @@ class EvaluatePortfolio:
         return thresholds
 
     def act(self):
-        inventory = []
-
         for day, trade_option in self._dates_trades_combination.items():
 
             potential_buys = []
@@ -140,17 +140,14 @@ class EvaluatePortfolio:
                 elif trade["actions"] == "sell" and trade["tradeable"]:
                     sells.append(trade)
 
-            df = pd.DataFrame(sells)
-            a = df.to_dict("records")
-
             self._handle_sells(sells)
             self._handle_buys(potential_buys)
 
     def _handle_buys(self, potential_buys):
-        Buy(portfolio=self, actions=potential_buys).execute()
+        Buy(portfolio=self, actions=potential_buys, live=self.live).execute()
 
     def _handle_sells(self, sells):
-        Sell(portfolio=self, actions=sells).execute()
+        Sell(portfolio=self, actions=sells, live=self.live).execute()
 
     def force_sell(self):
         log.warn("FORCING SELL OF REMAINING INVENTORY.")
@@ -160,7 +157,7 @@ class EvaluatePortfolio:
             if not any(new_position["ticker"] == position["ticker"] for new_position in new_inventory):
                 new_inventory.append({"ticker": position["ticker"], "tradeable": True})
 
-        Sell(portfolio=self, actions=new_inventory, forced=True).execute()
+        Sell(portfolio=self, actions=new_inventory, live=self.live, forced=True).execute()
 
     def get_result(self):
         return {"initial_balance": self.initial_balance,
