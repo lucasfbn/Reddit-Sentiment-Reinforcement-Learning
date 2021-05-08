@@ -31,6 +31,7 @@ class Action:
                                           >= self.p.thresholds[self.action_name]]
         if self.p.thresholds[self.action_name] == 0:
             assert old_len == len(self.actions_df)
+        return True
 
     def constraints(self):
         raise NotImplementedError
@@ -63,7 +64,8 @@ class Buy(Action):
     action_name = "buy"
 
     def constraints(self):
-        self.base_constraints()
+        if not self.base_constraints():
+            return False
 
         if self.p.max_price_per_stock is not None:
             self.actions_df = self.actions_df[self.actions_df["price"] <= self.p.max_price_per_stock]
@@ -122,7 +124,9 @@ class Sell(Action):
         if "forced" in self.kwargs and self.kwargs["forced"]:
             return True
 
-        self.base_constraints()
+        if not self.base_constraints():
+            return False
+
         self.actions = self.actions_df.to_dict("records")
         return True
 
