@@ -7,14 +7,30 @@ log.setLevel("INFO")
 
 
 class Action:
+    action_name = None
 
-    def __init__(self, portfolio, actions, **kwargs):
+    def __init__(self, portfolio, actions, live, **kwargs):
         self.portfolio = portfolio
         self.p = portfolio  # Abbreviation for portfolio
 
         self.actions = actions
         self.actions_df = pd.DataFrame(actions)
+
+        self.live = live
+
         self.kwargs = kwargs
+
+    def base_constraints(self):
+        if len(self.actions_df) == 0:
+            return False
+
+        self.actions_df = self.actions_df[self.actions_df["tradeable"] == True]
+
+        old_len = len(self.actions_df)
+        self.actions_df = self.actions_df[self.actions_df[f"{self.action_name}_probability"]
+                                          >= self.p.thresholds[self.action_name]]
+        if self.p.thresholds[self.action_name] == 0:
+            assert old_len == len(self.actions_df)
 
     def constraints(self):
         raise NotImplementedError
@@ -37,17 +53,10 @@ class Action:
 
 
 class Buy(Action):
+    action_name = "buy"
 
     def constraints(self):
-        if len(self.actions_df) == 0:
-            return False
-
-        self.actions_df = self.actions_df[self.actions_df["tradeable"] == True]
-
-        old_len = len(self.actions_df)
-        self.actions_df = self.actions_df[self.actions_df["buy_probability"] >= self.p.thresholds["buy"]]
-        if self.p.thresholds["buy"] == 0:
-            assert old_len == len(self.actions_df)
+        self.base_constraints()
 
         if self.p.max_price_per_stock is not None:
             self.actions_df = self.actions_df[self.actions_df["price"] <= self.p.max_price_per_stock]
@@ -100,21 +109,13 @@ class Buy(Action):
 
 
 class Sell(Action):
+    action_name = "sell"
 
     def constraints(self):
         if "forced" in self.kwargs and self.kwargs["forced"]:
             return True
 
-        if len(self.actions_df) == 0:
-            return False
-
-        self.actions_df = self.actions_df[self.actions_df["tradeable"] == True]
-
-        old_len = len(self.actions_df)
-        self.actions_df = self.actions_df[self.actions_df["sell_probability"] >= self.p.thresholds["sell"]]
-        if self.p.thresholds["sell"] == 0:
-            assert old_len == len(self.actions_df)
-
+        self.base_constraints()
         self.actions = self.actions_df.to_dict("records")
         return True
 
