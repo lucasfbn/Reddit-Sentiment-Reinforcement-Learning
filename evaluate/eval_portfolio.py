@@ -178,6 +178,29 @@ class EvaluatePortfolio:
         mlflow.log_params(self.get_result())
 
 
+class EvalLive(EvaluatePortfolio):
+
+    def act(self):
+
+        potential_buys = []
+        sells = []
+
+        for grp in self.data:
+            trade = grp["data"].to_dict("records")
+            assert len(trade) == 1
+            trade = trade[0]
+            trade["ticker"] = grp["ticker"]
+            if trade["actions"] == "hold":
+                continue
+            elif trade["actions"] == "buy" and trade["tradeable"]:
+                potential_buys.append(trade)
+            elif trade["actions"] == "sell" and trade["tradeable"]:
+                sells.append(trade)
+
+        self._handle_sells(sells)
+        self._handle_buys(potential_buys)
+
+
 if __name__ == "__main__":
     import paths
 
@@ -190,7 +213,7 @@ if __name__ == "__main__":
     with mlflow.start_run():
         with open(path, "rb") as f:
             data = pkl.load(f)
-        data = data[:10]
+        # data = data[:10]
 
         ep = EvaluatePortfolio(eval_data=data)
         ep.initialize()
