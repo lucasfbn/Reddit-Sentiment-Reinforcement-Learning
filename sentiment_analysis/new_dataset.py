@@ -7,7 +7,8 @@ import sentiment_analysis.config as sentiment_analysis_config
 from sentiment_analysis.analyze.analysis import SubmissionsHandler
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sentiment_analysis.reddit_data.preprocess.preprocess import Preprocessor
-from utils import save_config, mlflow_log_file
+from utils import save_config
+from mlflow_api import log_file
 
 
 class Dataset:
@@ -29,7 +30,7 @@ class Dataset:
         db = BigQueryDB()
         self.df = db.download(self.start, self.end, self.config.gc.fields,
                               check_duplicates=self.config.gc.check_duplicates)
-        mlflow_log_file(self.df, self.gc_dump_fn)
+        log_file(self.df, self.gc_dump_fn)
 
     def preprocess(self):
         prep = Preprocessor(df=self.df,
@@ -40,7 +41,7 @@ class Dataset:
                             filter_authors=self.config.preprocess.filter_authors)
         self.grps = prep.exec()
 
-        mlflow_log_file(self.grps, self.grps_fn)
+        log_file(self.grps, self.grps_fn)
 
     def _check_integrity(self):
 
@@ -52,7 +53,7 @@ class Dataset:
         gaps = db.detect_gaps(self.start, self.end, save_json=False)
 
         if len(gaps) > 1:  # One entry is always meta data
-            mlflow_log_file(gaps, "gaps.json")
+            log_file(gaps, "gaps.json")
             raise ValueError(f"The dataset is missing entries. Logged data to mlflow run.")
 
         for grp in self.grps:
@@ -66,7 +67,7 @@ class Dataset:
                                 body_col=self.config.submissions.body_col,
                                 cols_in_vader_merge=self.config.submissions.cols_in_vader_merge)
         p_data = sh.process()
-        mlflow_log_file(p_data, self.report_fn)
+        log_file(p_data, self.report_fn)
 
     def create(self):
         self.get_from_gc()
