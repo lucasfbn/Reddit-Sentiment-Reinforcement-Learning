@@ -3,7 +3,7 @@ import pickle as pkl
 import pandas as pd
 
 import paths
-from utils import mlflow_log_file
+from mlflow_api import log_file
 
 
 class Preprocessor:
@@ -43,4 +43,4 @@ class Preprocessor:
 
     def save(self, data, fn):
         assert fn is not None
-        mlflow_log_file(data, fn)
+        log_file(data, fn)

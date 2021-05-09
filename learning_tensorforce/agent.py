@@ -9,11 +9,13 @@ from evaluate.eval_portfolio import EvaluatePortfolio
 import pandas as pd
 from tqdm import tqdm
 
-from utils import mlflow_log_file, log
+from utils import log
+from mlflow_api import log_file
 import paths
 import mlflow
 
 from preprocessing.dataset_loader import DatasetLoader
+from evaluate.cross_validate_evaluation import CrossValidateEvaluation
 
 
 class RLAgent:
@@ -64,17 +66,16 @@ class RLAgent:
             grp["metadata"] = pd.concat([grp["metadata"], actions_outputs], axis="columns")
 
         if self.artifact_path is not None:
-            mlflow_log_file(data, f"eval_{suffix}.pkl")
+            log_file(data, f"eval_{suffix}.pkl")
 
-        ep = EvaluatePortfolio(data)
-        ep.act()
-        ep.force_sell()
-
-        mlflow.log_metrics({f"Profit_{suffix}": ep.profit, f"Balance_{suffix}": ep.balance,
-                            f"Index_perf_{suffix}": data[0]["index_comparison"]["perf"]})
+        cve = CrossValidateEvaluation(data)
+        cve.cross_validate()
+        cve.log_top_results(3)
 
         if not self._agent_saved:
             self.save_agent()
+
+        return cve.get_top_results(3)
 
     def eval_agent(self):
         for i, data in enumerate(self.train_data):
@@ -83,6 +84,8 @@ class RLAgent:
         if self.test_data is not None:
             for i, data in enumerate(self.test_data):
                 self._eval(data, f"test_{i}")
+
+        return self.train_data
 
     def train(self, n_full_episodes):
         self.environment.data = self.train_data

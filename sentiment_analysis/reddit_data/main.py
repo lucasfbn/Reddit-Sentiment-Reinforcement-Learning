@@ -9,7 +9,8 @@ import sentiment_analysis.reddit_data.api.pushshift as pushshift
 import sentiment_analysis.reddit_data.api.reddit as reddit
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sentiment_analysis.reddit_data.worker import workers
-from utils import log, mlflow_log_file
+from utils import log
+from mlflow_api import log_file
 import paths
 
 subreddits = [
@@ -144,7 +145,7 @@ def detect_gaps():
 
     db = BigQueryDB()
     gaps = db.detect_gaps(save_json=False)
-    mlflow_log_file(gaps, "gaps.json")
+    log_file(gaps, "gaps.json")
 
     mlflow.end_run()
 
