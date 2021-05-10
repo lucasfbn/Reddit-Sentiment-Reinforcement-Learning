@@ -1,3 +1,4 @@
+import copy
 import multiprocessing
 from itertools import product
 
@@ -91,7 +92,7 @@ class CrossValidateEvaluation:
         return sorted_[:n_best]
 
     def log_top_results(self, n_best):
-        results = self.get_top_results(n_best)
+        results = copy.deepcopy(self.get_top_results(n_best))
         assert len(results) == n_best
 
         metrics = {}
@@ -128,7 +129,7 @@ if __name__ == "__main__":
     import pickle as pkl
 
     path = "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/" \
-           "472e633695ce4beab58634b5e73d10c2/artifacts/eval_test_0.pkl"
+           "7de21c53ea464e7b95d8e2653717bbcf/artifacts/eval_train.pkl"
     with open(path, "rb") as f:
         data = pkl.load(f)
 
