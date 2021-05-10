@@ -4,7 +4,7 @@ physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 from tensorforce import Runner, Agent, Environment
-from learning_tensorforce.env import EnvCNN
+from learning_tensorforce.env import EnvCNN, EnvNN
 from evaluate.eval_portfolio import EvaluatePortfolio
 import pandas as pd
 from tqdm import tqdm
@@ -78,8 +78,7 @@ class RLAgent:
         return cve.get_top_results(3)
 
     def eval_agent(self):
-        for i, data in enumerate(self.train_data):
-            self._eval(data, f"train_{i}")
+        self._eval(self.train_data, f"train")
 
         if self.test_data is not None:
             for i, data in enumerate(self.test_data):
@@ -99,7 +98,7 @@ class RLAgent:
         )
 
         runner = Runner(agent=self.agent, environment=environment)
-        runner.run(num_episodes=n_full_episodes * len(self.train_data))
+        runner.run(num_episodes=int(n_full_episodes * len(self.train_data)))
         runner.close()
 
         self.save_agent()
@@ -111,21 +110,19 @@ class RLAgent:
 
 
 if __name__ == '__main__':
-    training_ids = ["989a7b1534144304b0575bf964a88ad3"]
+    training_ids = ["0596d9538e144350b1db529e583fd134"]
 
-    training_data = DatasetLoader(training_ids, "cnn").merge()
-    test_data = DatasetLoader(training_ids, "cnn").load()
+    training_data = DatasetLoader(training_ids, "nn").merge()
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Learning")
     mlflow.start_run()
 
     rla = RLAgent(environment=EnvCNN, train_data=training_data)
-    rla.load_agent(
-        "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
-    # rla.train(n_full_episodes=1)
+    # rla.load_agent(
+    #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
+    rla.train(n_full_episodes=15)
     rla.eval_agent()
     rla.close()
-    # rla.eval_agent()
 
     mlflow.end_run()
