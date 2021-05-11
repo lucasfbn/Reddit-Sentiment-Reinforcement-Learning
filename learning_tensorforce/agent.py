@@ -78,13 +78,7 @@ class RLAgent:
         return cve.get_top_results(3)
 
     def eval_agent(self):
-        self._eval(self.train_data, f"train")
-
-        if self.test_data is not None:
-            for i, data in enumerate(self.test_data):
-                self._eval(data, f"test_{i}")
-
-        return self.train_data
+        return self._eval(self.train_data, f"train")
 
     def train(self, n_full_episodes):
         self.environment.data = self.train_data
@@ -112,17 +106,19 @@ class RLAgent:
 if __name__ == '__main__':
     training_ids = ["0596d9538e144350b1db529e583fd134"]
 
-    training_data = DatasetLoader(training_ids, "nn").merge()
+    training_data = DatasetLoader(training_ids, "cnn").merge()
+    training_data = training_data[:10]
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Learning")
     mlflow.start_run()
 
     rla = RLAgent(environment=EnvCNN, train_data=training_data)
-    # rla.load_agent(
-    #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
-    rla.train(n_full_episodes=15)
-    rla.eval_agent()
+    rla.load_agent(
+        "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
+    # rla.train(n_full_episodes=15)
+    a = rla.eval_agent()[1]["thresholds"]
+    print(a)
     rla.close()
 
     mlflow.end_run()
