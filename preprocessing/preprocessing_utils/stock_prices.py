@@ -15,7 +15,7 @@ class StockPrices:
 
     def _get_prices(self, start, end, interval="1d"):
         start, end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
-        df = yf.download(self.ticker, start=start, end=end, interval=interval)
+        df = yf.download(self.ticker, start=start, end=end, interval=interval, progress=False)
         return df
 
     def _get_min_max_date(self):
