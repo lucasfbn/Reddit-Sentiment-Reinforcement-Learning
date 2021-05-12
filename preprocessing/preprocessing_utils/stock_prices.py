@@ -2,6 +2,7 @@ import datetime
 
 import requests_cache
 import yfinance as yf
+import pandas as pd
 
 import paths
 
