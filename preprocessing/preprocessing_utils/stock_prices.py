@@ -30,12 +30,13 @@ class StockPrices:
         current_price = self._get_prices(end, end + datetime.timedelta(days=1), interval="1m").tail(1).tz_localize(None)
         historic = self._get_prices(start, end)
 
-        last_historic_date = historic.tail(1).index.to_pydatetime()[0].date()
-        assert last_historic_date != end.date()
-
         merged = historic.append(current_price)
         merged["date_day"] = pd.to_datetime(merged.index).to_period('D')
         merged = merged.reset_index(drop=True)
+
+        if not historic.empty:
+            last_historic_date = historic.tail(1).index.to_pydatetime()[0].date()
+            assert last_historic_date != end.date()
 
         return merged
 
