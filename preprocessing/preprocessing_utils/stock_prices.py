@@ -1,7 +1,11 @@
 import datetime
 
-import pandas as pd
+import requests_cache
 import yfinance as yf
+
+import paths
+
+requests_cache.install_cache(cache_name=paths.stock_cache, backend="sqlite")
 
 
 class StockPrices:
@@ -88,7 +92,6 @@ class IndexPerformance:
 
 
 if __name__ == "__main__":
-    import pickle as pkl
     import pandas as pd
 
     sp = StockPrices(data[0], 10, True)
