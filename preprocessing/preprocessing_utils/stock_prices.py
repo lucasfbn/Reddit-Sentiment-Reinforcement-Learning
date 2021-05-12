@@ -23,21 +23,36 @@ class StockPrices:
         max_ = self.data["date_day"].max()
         return min_, max_
 
+    def _get_live(self):
+        start, _ = self._get_min_max_date()
+        end = datetime.datetime.now()
+
+        current_price = self._get_prices(end, end + datetime.timedelta(days=1), interval="1m").tail(1).tz_localize(None)
+        historic = self._get_prices(start, end)
+
+        last_historic_date = historic.tail(1).index.to_pydatetime()[0].date()
+        assert last_historic_date != end.date()
+
+        merged = historic.append(current_price)
+        merged["date_day"] = pd.to_datetime(merged.index).to_period('D')
+        merged = merged.reset_index(drop=True)
+
+        return merged
+
+    def _get_historic(self):
+        start, end = self._get_min_max_date()
+        historic = self._get_prices(start - datetime.timedelta(days=self.start_offset), end)
+        historic["date_day"] = pd.to_datetime(historic.index).to_period('D')
+        return historic
+
     def download(self):
 
         if self.live:
-            start, end = datetime.datetime.now() - datetime.timedelta(days=self.start_offset), datetime.datetime.now()
-            live = self._get_prices(end, end + datetime.timedelta(days=1), interval="1m").tail(1).tz_localize(None)
-            historic = self._get_prices(start, end - datetime.timedelta(days=1))
-            historic = historic.append(live)
-            historic["date_day"] = pd.to_datetime(historic.index).to_period('D')
-            historic = historic.reset_index(drop=True)
+            df = self._get_live()
         else:
-            start, end = self._get_min_max_date()
-            historic = self._get_prices(start - datetime.timedelta(days=self.start_offset), end)
-            historic["date_day"] = pd.to_datetime(historic.index).to_period('D')
+            df = self._get_historic()
 
-        merged = self._merge(historic)
+        merged = self._merge(df)
         return merged
 
     def _merge(self, historic):
@@ -72,7 +87,10 @@ class IndexPerformance:
 
 
 if __name__ == "__main__":
-    # sp = StockPrices({"ticker": "TSLA", "data": None}, 10, True)
-    # df = sp.download()
+    import pickle as pkl
+    import pandas as pd
+
+    sp = StockPrices(data[0], 10, True)
+    df = sp.download()
     # print()
     pass
