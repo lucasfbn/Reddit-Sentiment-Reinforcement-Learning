@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
+from tqdm import tqdm
 
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
 from preprocessing.preprocessing_utils.stock_prices import StockPrices, IndexPerformance
@@ -134,8 +135,7 @@ class MergePreprocessing(Preprocessor):
     def _add_stock_prices(self):
         new_grps = []
 
-        for i, grp in enumerate(self.grps):
-            print(f"Processing {i}/{len(self.grps)}")
+        for (i, grp) in enumerate(tqdm(self.grps, desc="Downloading stock data")):
             sp = StockPrices(grp, start_offset=self.start_offset, live=self.live)
             new_grps.append({"ticker": grp["ticker"], "data": sp.download()})
 
