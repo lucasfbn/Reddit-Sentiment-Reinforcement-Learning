@@ -3,6 +3,7 @@ import pandas as pd
 pd.set_option('mode.chained_assignment', None)
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
+from tqdm import tqdm
 from utils import *
 
 
@@ -15,8 +16,7 @@ class SubmissionsHandler:
 
     def process(self):
         len_d = len(self.data)
-        for i, d in enumerate(self.data):
-            log.info(f"Processing hour {i} of {len_d}")
+        for i, d in enumerate(tqdm(self.data, desc="Processing submissions of hour")):
             submission = Submissions(**self.kwargs,
                                      run_id=d["id"],
                                      df=d["df"],
@@ -86,7 +86,6 @@ class Submissions:
 
         return occurred_ticker
 
-    @drop_stats
     def _filter_no_ticker(self):
         submission_ticker_id = self.submission_ticker["id"].values.tolist()
         self.df = self.df[self.df["id"].isin(submission_ticker_id)]
@@ -96,7 +95,6 @@ class Submissions:
 
         submission_ticker = []
         for i, d in enumerate(df_dict):
-            log.debug(f"Processing submission {i + 1}/{len(df_dict)}")
             id = d["id"]
 
             occurred_ticker = self._extract_ticker(d["title"])
