@@ -2,6 +2,8 @@ import json
 from datetime import datetime
 
 import pandas as pd
+from google.cloud import bigquery
+
 from pandas_gbq.gbq import GenericGBQException
 
 from utils import dt_to_timestamp, log
@@ -16,6 +18,7 @@ class BigQueryDB:
         self.upload(pd.DataFrame({"test": [1, 2, 3]}), dataset="auth", table="auth_table")
 
     def upload(self, df, dataset, table):
+        log.info("Starting upload...")
         try:
             df.to_gbq(destination_table=f"{dataset}.{table}",
                       project_id=self.project_id,
@@ -24,6 +27,7 @@ class BigQueryDB:
             log.warn(f"Error while uploading. Error:\n {e}. \n Len df: {len(df)}")
 
     def download(self, start, end, fields, sql=None, check_duplicates=True):
+        log.info("Starting download...")
         start, end = dt_to_timestamp(start), dt_to_timestamp(end)
 
         if sql is None:
@@ -32,13 +36,15 @@ class BigQueryDB:
             WHERE created_utc BETWEEN {start} AND {end}
             """
 
-        df = pd.read_gbq(sql, project_id=self.project_id)
+        client = bigquery.Client()
+        df = client.query(sql, project=self.project_id).to_dataframe()
 
         if check_duplicates:
             df = df.drop_duplicates(subset=['id'])
         return df
 
     def detect_gaps(self, start=None, end=None, save_json=True):
+        log.info("Detecting gaps...")
         start, end = dt_to_timestamp(start), dt_to_timestamp(end)
 
         sql = f"""SELECT created_utc FROM `redditdata-305217.data.submissions`"""
