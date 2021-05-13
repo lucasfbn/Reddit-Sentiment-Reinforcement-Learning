@@ -59,9 +59,19 @@ class Config(SimpleNamespace):
     pass
 
 
-if __name__ == '__main__':
+def multiple_input_options(path, df):
+    if path is None and df is None:
+        raise ValueError("Specify either a path or a df.")
 
-    df = pd.DataFrame({"Hallo": [1,2,3], "Tsch": [4,5,6]})
+    if path is not None:
+        df = pd.read_csv(path, sep=";")
+    else:
+        df = df
+    return df
+
+
+if __name__ == '__main__':
+    df = pd.DataFrame({"Hallo": [1, 2, 3], "Tsch": [4, 5, 6]})
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Testing")  #
