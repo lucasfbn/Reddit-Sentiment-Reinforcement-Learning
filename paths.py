@@ -14,6 +14,7 @@ artifact_path = lambda artifact_uri: Path("C:" + artifact_uri.split(":")[2])
 
 stock_cache = storage_path / "stock_cache" / "yfinance_cache"
 
+
 def create_dir(path, fn="", suffix=0):
     while os.path.exists(path / (fn + f"_{suffix}")):
         suffix += 1
@@ -22,6 +23,6 @@ def create_dir(path, fn="", suffix=0):
 
 
 # sentiment analysis
-sentiment_analysis_path = base_path / "sentiment_analysis"
-ticker_folder = sentiment_analysis_path / "analyze" / "ticker" / "files"
-all_ticker = sentiment_analysis_path / "analyze" / "ticker" / "ticker.csv"
+ticker_dir = storage_path / "ticker"
+ticker_files = ticker_dir / "files"
+all_ticker = ticker_dir / "ticker.csv"
