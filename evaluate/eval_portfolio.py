@@ -1,4 +1,5 @@
 import pickle as pkl
+from dataclasses import dataclass
 
 import mlflow
 import pandas as pd
@@ -10,47 +11,35 @@ from utils import log
 log.setLevel("ERROR")
 
 
-class EvaluatePortfolio:
+@dataclass
+class EvaluatePortfolioInit:
+    data: list
+    initial_balance = 1000
+    max_investment_per_trade = 0.05
+    max_price_per_stock = 25
+    max_trades_per_day = 5
+    slippage = 0.007
+    order_fee = 0.02
+    partial_shares_possible = True
 
-    def __init__(self, eval_data,
-                 initial_balance=1000,
-                 max_investment_per_trade=0.05,
-                 max_price_per_stock=25,
-                 max_trades_per_day=5,
-                 slippage=0.007,
-                 order_fee=0.02,
-                 partial_shares_possible=True,
+    # Quantile of .85 means that we'll take the top 15%.
+    quantiles_thresholds = {"hold": None, "buy": None, "sell": None}
+    fixed_thresholds = False
+    live = False
 
-                 # Quantile of .85 means that we'll take the top 15%.
-                 quantiles_thresholds={"hold": None, "buy": None, "sell": None},
-                 live=False):
+    balance = initial_balance
+    profit = 1
+    thresholds = None
 
-        self.live = live
+    _inventory = []
+    _extra_costs = 1 + slippage + order_fee
 
-        self.data = eval_data
+    _min_date = None
+    _max_date = None
+    _dates_trades_combination = None
 
-        self.initial_balance = initial_balance
-        self.max_investment_per_trade = max_investment_per_trade
-        self.max_price_per_stock = max_price_per_stock
-        self.max_trades_per_day = max_trades_per_day
-        self.quantiles_thresholds = quantiles_thresholds
-        self.thresholds = None
 
-        self.slippage = slippage
-        self.order_fee = order_fee
-        self._extra_costs = 1 + slippage + order_fee
-
-        self.partial_shares_possible = partial_shares_possible
-
-        self._min_date = None
-        self._max_date = None
-
-        self.balance = initial_balance
-        self.profit = 1
-
-        self._inventory = []
-
-        self._dates_trades_combination = None
+class EvaluatePortfolio(EvaluatePortfolioInit):
 
     def initialize(self):
         for grp in self.data:
@@ -64,6 +53,12 @@ class EvaluatePortfolio:
             self._get_dates_trades_combination()
 
         self.thresholds = self._calculate_thresholds(self.quantiles_thresholds)
+
+    def _set_thresholds(self):
+        if self.fixed_thresholds:
+            self.thresholds = self.quantiles_thresholds
+        else:
+            self.thresholds = self._calculate_thresholds(self.quantiles_thresholds)
 
     def _find_min_max_date(self):
         min_date = None
@@ -98,6 +93,10 @@ class EvaluatePortfolio:
                 df = grp["data"]
                 df = df[(df["date"] - date).dt.days == 0]
                 df_dict = df.to_dict("records")
+
+                if not (len(df_dict) == 1 or len(df_dict) == 0):
+                    print()
+
                 assert len(df_dict) == 1 or len(df_dict) == 0
 
                 if df_dict:
@@ -207,15 +206,13 @@ if __name__ == "__main__":
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Evaluating")
 
-    path = "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/" \
-           "472e633695ce4beab58634b5e73d10c2/artifacts/eval_test_0.pkl"
+    path = "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/30ed88b45c974e768caf2949651edfb6/artifacts/eval_train.pkl"
 
     with mlflow.start_run():
         with open(path, "rb") as f:
             data = pkl.load(f)
-        # data = data[:10]
 
-        ep = EvaluatePortfolio(eval_data=data)
+        ep = EvaluatePortfolio(data=data)
         ep.initialize()
         ep.act()
         ep.force_sell()
