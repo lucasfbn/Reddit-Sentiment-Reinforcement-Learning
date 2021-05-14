@@ -3,7 +3,9 @@ from sklearn.preprocessing import MinMaxScaler
 from tqdm import tqdm
 
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
-from preprocessing.preprocessing_utils.stock_prices import StockPrices, IndexPerformance
+from preprocessing.preprocessing_utils.stock_prices import StockPrices, IndexPerformance, \
+    MissingDataException, WrongDataException
+from utils import log
 
 pd.options.mode.chained_assignment = None
 
@@ -137,7 +139,11 @@ class MergePreprocessing(Preprocessor):
 
         for (i, grp) in enumerate(tqdm(self.grps, desc="Downloading stock data")):
             sp = StockPrices(grp, start_offset=self.start_offset, live=self.live)
-            new_grps.append({"ticker": grp["ticker"], "data": sp.download()})
+            try:
+                data = sp.download()
+                new_grps.append({"ticker": grp["ticker"], "data": data})
+            except (MissingDataException, WrongDataException) as e:
+                log.error(f"{type(e).__name__}: {str(e)} Excluding ticker.")
 
         self.grps = new_grps
 

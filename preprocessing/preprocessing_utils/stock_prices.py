@@ -9,6 +9,17 @@ import paths
 requests_cache.install_cache(cache_name=paths.stock_cache, backend="sqlite")
 
 
+class MissingDataException(Exception):
+    def __init__(self, ticker, empty_df="not specified"):
+        super().__init__(f"Couldn't retrieve prices for ticker '{ticker}'. Empty DataFrame: {empty_df}."
+                         f" Check if markets are open.")
+
+
+class WrongDataException(Exception):
+    def __init__(self, ticker):
+        super().__init__(f"Current and historic data doesn't line up for ticker '{ticker}'")
+
+
 class StockPrices:
 
     def __init__(self, grp, start_offset, live=False):
@@ -32,22 +43,32 @@ class StockPrices:
         start, _ = self._get_min_max_date()
         end = datetime.datetime.now()
 
-        current_price = self._get_prices(end, end + datetime.timedelta(days=1), interval="1m").tail(1).tz_localize(None)
+        current = self._get_prices(end, end + datetime.timedelta(days=1), interval="1m").tail(1).tz_localize(None)
         historic = self._get_prices(start, end)
 
-        merged = historic.append(current_price)
+        if historic.empty or current.empty:
+            raise MissingDataException(ticker=self.ticker)
+
+        last_current_date = current.tail(1).index.to_pydatetime()[0].date()
+        last_historic_date = historic.tail(1).index.to_pydatetime()[0].date()
+
+        if not (last_historic_date != end.date() and
+                last_current_date != last_historic_date and
+                last_current_date == end.date()):
+            raise WrongDataException(ticker=self.ticker)
+
+        merged = historic.append(current)
         merged["date_day"] = pd.to_datetime(merged.index).to_period('D')
         merged = merged.reset_index(drop=True)
-
-        if not historic.empty:
-            last_historic_date = historic.tail(1).index.to_pydatetime()[0].date()
-            assert last_historic_date != end.date()
-
         return merged
 
     def _get_historic(self):
         start, end = self._get_min_max_date()
         historic = self._get_prices(start - datetime.timedelta(days=self.start_offset), end)
+
+        if historic.empty:
+            raise MissingDataException(ticker=self.ticker)
+
         historic["date_day"] = pd.to_datetime(historic.index).to_period('D')
         return historic
 
@@ -90,12 +111,3 @@ class IndexPerformance:
 
     def get_index_comparison(self):
         return self.performance
-
-
-if __name__ == "__main__":
-    import pandas as pd
-
-    sp = StockPrices(data[0], 10, True)
-    df = sp.download()
-    # print()
-    pass
