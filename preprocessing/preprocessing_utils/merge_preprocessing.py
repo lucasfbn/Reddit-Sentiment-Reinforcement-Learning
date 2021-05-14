@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
 from preprocessing.preprocessing_utils.stock_prices import StockPrices, IndexPerformance, \
-    MissingDataException, WrongDataException
+    MissingDataException, OldDataException
 from utils import log
 
 pd.options.mode.chained_assignment = None
@@ -142,7 +142,7 @@ class MergePreprocessing(Preprocessor):
             try:
                 data = sp.download()
                 new_grps.append({"ticker": grp["ticker"], "data": data})
-            except (MissingDataException, WrongDataException) as e:
+            except (MissingDataException, OldDataException) as e:
                 log.error(f"{type(e).__name__}: {str(e)} Excluding ticker.")
 
         self.grps = new_grps
