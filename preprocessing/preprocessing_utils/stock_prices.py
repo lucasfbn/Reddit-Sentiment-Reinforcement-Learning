@@ -1,4 +1,4 @@
-import datetime
+import datetime, sys, os
 
 import requests_cache
 import yfinance as yf
@@ -31,7 +31,9 @@ class StockPrices:
 
     def _get_prices(self, start, end, interval="1d"):
         start, end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
+        sys.stdout = open(os.devnull, 'w')  # disable print statements
         df = yf.download(self.ticker, start=start, end=end, interval=interval, progress=False)
+        sys.stdout = sys.__stdout__  # enable print statements
         return df
 
     def _get_min_max_date(self):
