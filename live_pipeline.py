@@ -63,7 +63,8 @@ class LivePipeline:
 
     def trade(self):
         if self.evaluation is None:
-            self.evaluation = EvalLive(eval_data=self.data, live=True, quantiles_thresholds=self.optimal_thresholds)
+            self.evaluation = EvalLive(data=self.data, live=True, quantiles_thresholds=self.optimal_thresholds,
+                                       fixed_thresholds=True)
         self.evaluation.act()
 
     def load_state(self):

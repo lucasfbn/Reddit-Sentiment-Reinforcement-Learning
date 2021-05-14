@@ -1,5 +1,5 @@
 import pickle as pkl
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import mlflow
 import pandas as pd
@@ -14,18 +14,18 @@ log.setLevel("ERROR")
 @dataclass
 class EvaluatePortfolioInit:
     data: list
-    initial_balance = 1000
-    max_investment_per_trade = 0.05
-    max_price_per_stock = 25
-    max_trades_per_day = 5
-    slippage = 0.007
-    order_fee = 0.02
-    partial_shares_possible = True
+    initial_balance: int = 1000
+    max_investment_per_trade: float = 0.05
+    max_price_per_stock: int = 25
+    max_trades_per_day: int = 5
+    slippage: float = 0.007
+    order_fee: float = 0.02
+    partial_shares_possible: bool = True
 
     # Quantile of .85 means that we'll take the top 15%.
-    quantiles_thresholds = {"hold": None, "buy": None, "sell": None}
-    fixed_thresholds = False
-    live = False
+    quantiles_thresholds: dict = field(default_factory=dict)
+    fixed_thresholds: bool = False
+    live: bool = False
 
     balance = initial_balance
     profit = 1
@@ -38,21 +38,45 @@ class EvaluatePortfolioInit:
     _max_date = None
     _dates_trades_combination = None
 
+    def get_result(self):
+        return {"initial_balance": self.initial_balance,
+                "max_investment_per_trade": self.max_investment_per_trade,
+                "max_price_per_stock": self.max_price_per_stock,
+                "max_trades_per_day": self.max_trades_per_day,
+                "slippage": self.slippage,
+                "partial_share_possible": self.partial_shares_possible,
+                "quantiles_thresholds": self.quantiles_thresholds,
+                "thresholds": self.thresholds,
+                "order_fee": self.order_fee,
+                "balance": self.balance,
+                "profit": self.profit,
+                "len_inventory": len(self._inventory),
+                "index_performance": self.data[0]["index_comparison"]["perf"]}
+
 
 class EvaluatePortfolio(EvaluatePortfolioInit):
 
-    def initialize(self):
+    def _prepare_data(self):
         for grp in self.data:
             df = grp["metadata"]
             df["actions"] = df["actions"].replace({0: "hold", 1: "buy", 2: "sell"})
             grp["data"] = df
 
-        self._find_min_max_date()
+    def _check_live_settings(self):
+        if self.live and not self.fixed_thresholds:
+            raise ValueError("Ensure you are passing fixed thresholds, and set 'fixed_thresholds=True'")
+
+    def initialize(self):
+        self._check_live_settings()
+        self._prepare_data()
+
+        if self._min_date is None and self._max_date is None:
+            self._find_min_max_date()
 
         if self._dates_trades_combination is None:
             self._get_dates_trades_combination()
 
-        self.thresholds = self._calculate_thresholds(self.quantiles_thresholds)
+        self._set_thresholds()
 
     def _set_thresholds(self):
         if self.fixed_thresholds:
@@ -157,21 +181,6 @@ class EvaluatePortfolio(EvaluatePortfolioInit):
                 new_inventory.append({"ticker": position["ticker"], "tradeable": True})
 
         Sell(portfolio=self, actions=new_inventory, live=self.live, forced=True).execute()
-
-    def get_result(self):
-        return {"initial_balance": self.initial_balance,
-                "max_investment_per_trade": self.max_investment_per_trade,
-                "max_price_per_stock": self.max_price_per_stock,
-                "max_trades_per_day": self.max_trades_per_day,
-                "slippage": self.slippage,
-                "partial_share_possible": self.partial_shares_possible,
-                "quantiles_thresholds": self.quantiles_thresholds,
-                "thresholds": self.thresholds,
-                "order_fee": self.order_fee,
-                "balance": self.balance,
-                "profit": self.profit,
-                "len_inventory": len(self._inventory),
-                "index_performance": self.data[0]["index_comparison"]["perf"]}
 
     def log_result(self):
         mlflow.log_params(self.get_result())
