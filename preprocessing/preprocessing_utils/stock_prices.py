@@ -15,9 +15,9 @@ class MissingDataException(Exception):
                          f" Check if markets are open.")
 
 
-class WrongDataException(Exception):
-    def __init__(self, ticker):
-        super().__init__(f"Current and historic data doesn't line up for ticker '{ticker}'")
+class OldDataException(Exception):
+    def __init__(self, last_date, ticker):
+        super().__init__(f"Couldn't retrieve most recent data. Last date retrieved for ticker '{ticker}': {last_date}")
 
 
 class StockPrices:
@@ -30,14 +30,14 @@ class StockPrices:
         self.live = live
 
     def _get_prices(self, start, end, interval="1d"):
-        start, end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
+        start, end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d") if end is not None else None
 
         # Disable print statements because yfinance prints an annoying error when downloading fails.
         # I handle those errors myself (with a proper exception)
         sys.stdout = open(os.devnull, 'w')
         df = yf.download(self.ticker, start=start, end=end, interval=interval, progress=False)
         sys.stdout = sys.__stdout__  # enable print statements
-        
+
         return df
 
     def _get_min_max_date(self):
@@ -49,8 +49,9 @@ class StockPrices:
         start, _ = self._get_min_max_date()
         end = datetime.datetime.now()
 
-        current = self._get_prices(end, end + datetime.timedelta(days=1), interval="1m").tail(1).tz_localize(None)
-        historic = self._get_prices(start, end)
+        historic = self._get_prices(start, end=None)
+        current = historic.tail(1)
+        historic = historic.drop(historic.tail(1).index)
 
         if historic.empty or current.empty:
             raise MissingDataException(ticker=self.ticker)
@@ -61,7 +62,7 @@ class StockPrices:
         if not (last_historic_date != end.date() and
                 last_current_date != last_historic_date and
                 last_current_date == end.date()):
-            raise WrongDataException(ticker=self.ticker)
+            raise OldDataException(ticker=self.ticker, last_date=str(last_current_date))
 
         merged = historic.append(current)
         merged["date_day"] = pd.to_datetime(merged.index).to_period('D')
@@ -117,3 +118,16 @@ class IndexPerformance:
 
     def get_index_comparison(self):
         return self.performance
+
+
+if __name__ == "__main__":
+    grp = {
+        "ticker": "ASYS",
+        "data": pd.DataFrame(
+            {"date_day": [pd.to_datetime(datetime.datetime(year=2021, day=10, month=5)).to_period('D'),
+                          pd.to_datetime(datetime.datetime(year=2021, day=14, month=5)).to_period('D')]})
+    }
+
+    sp = StockPrices(grp=grp,
+                     start_offset=10, live=True)
+    sp.download()
