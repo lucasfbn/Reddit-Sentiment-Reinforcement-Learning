@@ -31,9 +31,13 @@ class StockPrices:
 
     def _get_prices(self, start, end, interval="1d"):
         start, end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d")
-        sys.stdout = open(os.devnull, 'w')  # disable print statements
+
+        # Disable print statements because yfinance prints an annoying error when downloading fails.
+        # I handle those errors myself (with a proper exception)
+        sys.stdout = open(os.devnull, 'w')
         df = yf.download(self.ticker, start=start, end=end, interval=interval, progress=False)
         sys.stdout = sys.__stdout__  # enable print statements
+        
         return df
 
     def _get_min_max_date(self):
