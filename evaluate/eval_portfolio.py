@@ -8,7 +8,8 @@ from tqdm import tqdm
 from evaluate.actions import Buy, Sell
 from utils import log
 
-log.setLevel("ERROR")
+
+# log.setLevel("ERROR")
 
 
 @dataclass
@@ -53,6 +54,9 @@ class EvaluatePortfolioInit:
                 "len_inventory": len(self._inventory),
                 "index_performance": self.data[0]["index_comparison"]["perf"]}
 
+    def log_result(self):
+        mlflow.log_params(self.get_result())
+
 
 class EvaluatePortfolio(EvaluatePortfolioInit):
 
@@ -64,11 +68,13 @@ class EvaluatePortfolio(EvaluatePortfolioInit):
 
     def _check_live_settings(self):
         if self.live and not self.fixed_thresholds:
-            raise ValueError("Ensure you are passing fixed thresholds, and set 'fixed_thresholds=True'")
+            raise ValueError("Ensure you are passing fixed (absolute, no quantiles) thresholds,"
+                             " and set 'fixed_thresholds=True'")
 
     def initialize(self):
         self._check_live_settings()
         self._prepare_data()
+        self._set_thresholds()
 
         if self._min_date is None and self._max_date is None:
             self._find_min_max_date()
@@ -76,11 +82,11 @@ class EvaluatePortfolio(EvaluatePortfolioInit):
         if self._dates_trades_combination is None:
             self._get_dates_trades_combination()
 
-        self._set_thresholds()
-
     def _set_thresholds(self):
         if self.fixed_thresholds:
-            self.thresholds = self.quantiles_thresholds
+            self.thresholds = {}
+            for action, threshold in self.quantiles_thresholds.items():
+                self.thresholds[action] = 0 if threshold is None else threshold
         else:
             self.thresholds = self._calculate_thresholds(self.quantiles_thresholds)
 
@@ -182,9 +188,6 @@ class EvaluatePortfolio(EvaluatePortfolioInit):
 
         Sell(portfolio=self, actions=new_inventory, live=self.live, forced=True).execute()
 
-    def log_result(self):
-        mlflow.log_params(self.get_result())
-
 
 class EvalLive(EvaluatePortfolio):
 
@@ -221,7 +224,8 @@ if __name__ == "__main__":
         with open(path, "rb") as f:
             data = pkl.load(f)
 
-        ep = EvaluatePortfolio(data=data)
+        ep = EvaluatePortfolio(data=data, quantiles_thresholds={"hold": None, "buy": 0.3664500391483307, "sell": None},
+                               fixed_thresholds=True)
         ep.initialize()
         ep.act()
         ep.force_sell()
