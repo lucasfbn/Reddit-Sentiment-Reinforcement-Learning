@@ -1,63 +1,94 @@
-import copy
-import multiprocessing
+from dataclasses import dataclass
 from itertools import product
-
-import mlflow
-from tqdm import tqdm
-
-import paths
 from evaluate.eval_portfolio import EvaluatePortfolio
 from utils import log
+from tqdm import tqdm
+import multiprocessing
+import copy
+import mlflow
+import paths
 
-log.setLevel("ERROR")
-mlflow.set_tracking_uri(paths.mlflow_path)
-mlflow.set_experiment("Evaluating")
 
+@dataclass
+class Interval:
+    start: int
+    end: int
+    step: float
 
-class CrossValidateEvaluation:
-
-    def __init__(self, data, settings={"hold": False, "buy": True, "sell": False},
-                 step_size=0.01, n_worker=10):
-
-        self.n_worker = n_worker
-        self.data = data
-        self.step_size = step_size
-        self.settings = settings
-
-        self._combinations = self._get_combinations()
-        self._dates_trades_combinations = None
-
-        self._results = None
-
-    def _get_combinations(self):
-
-        n_true = 0
-        for action, value in self.settings.items():
-            if value is True:
-                n_true += 1
-
-        rng = range(0, 1 * 100, int(self.step_size * 100))
+    def values(self):
+        rng = range(self.start, self.end * 101, int(self.step * 100))
         rng = [step / 100 for step in rng]
+        return rng
 
-        if n_true == 0:
-            raise ValueError
-        else:
-            args = [rng for n in range(1, n_true + 1)]
-            product_tuple = list(product(*args))
 
-        combinations_list = []
-        for tpl in product_tuple:
-            combinations = {"hold": None, "buy": None, "sell": None}
-            i = 0
-            for action, value in self.settings.items():
-                if value is True:
-                    combinations[action] = tpl[i]
-                    i += 1
-            combinations_list.append(combinations)
+@dataclass
+class Choice:
+    choices: list
 
-        return combinations_list
+    def values(self):
+        return self.choices
 
-    def _multi_cv(self, args):
+
+class ParameterTuning:
+
+    def __init__(self, data, parameter, n_worker):
+        self.n_worker = n_worker
+        self.parameter = parameter
+        self.data = data
+
+        self._combinations = None
+        self._combinations_mapped = []
+
+    def _generate_combinations(self):
+        values = []
+        for param, input in self.parameter.items():
+            values.append(input.values())
+
+        self._combinations = list(product(*values))
+
+    def _reassign_combinations(self):
+
+        keys = self.parameter.keys()
+
+        for combination in self._combinations:
+
+            combination_key_dict = {}
+
+            for k, c in zip(keys, combination):
+                combination_key_dict[k] = c
+
+            self._combinations_mapped.append(combination_key_dict)
+
+    def _correct_mapping(self):
+
+        for mapping in self._combinations_mapped:
+            keys = mapping.keys()
+            base = {"hold": None, "buy": None, "sell": None}
+            base_keys = base.keys()
+
+            for key in keys:
+                if key in base_keys:
+                    base[key] = mapping[key]
+
+            for key in base_keys:
+                mapping.pop(key, None)
+
+            mapping["quantiles_thresholds"] = base
+
+    @staticmethod
+    def _chunks(lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
+
+    def _save_init_values(self):
+        log.info("Retrieving initial values...")
+        ep = EvaluatePortfolio(data=self.data, quantiles_thresholds={"hold": None, "buy": None, "sell": None})
+        ep.initialize()
+        self._dates_trades_combinations = ep._dates_trades_combination
+        self._min_date, self._max_date = ep._min_date, ep._max_date
+
+    def _multi_cross_validation(self, args):
 
         combinations_list = args[0]
         manager = args[1]
@@ -65,8 +96,9 @@ class CrossValidateEvaluation:
         dates_trades_combinations = None
 
         for combination in tqdm(combinations_list):
-            ep = EvaluatePortfolio(eval_data=self.data, quantiles_thresholds=combination)
+            ep = EvaluatePortfolio(data=self.data, **combination)
             ep._dates_trades_combination = self._dates_trades_combinations
+            ep._min_date, ep._max_date = self._min_date, self._max_date
 
             ep.initialize()
             ep.act()
@@ -76,16 +108,16 @@ class CrossValidateEvaluation:
             result.update({"combination": combination})
             manager.append(result)
 
-    @staticmethod
-    def _chunks(lst, n):
-        """Yield successive n-sized chunks from lst."""
-        for i in range(0, len(lst), n):
-            yield lst[i:i + n]
+    def _run_multiprocess(self):
+        chunks = list(self._chunks(self._combinations_mapped, self.n_worker))
 
-    def _calculate_initial_dates_trades_combination(self):
-        ep = EvaluatePortfolio(eval_data=self.data, quantiles_thresholds={"hold": None, "buy": None, "sell": None})
-        ep.initialize()
-        self._dates_trades_combinations = ep._dates_trades_combination
+        manager = multiprocessing.Manager()
+        manager = manager.list()
+
+        with multiprocessing.Pool(self.n_worker) as p:
+            p.map(self._multi_cross_validation, product(chunks, [manager]))
+
+        self._results = list(manager)
 
     def get_top_results(self, n_best):
         sorted_ = sorted(self._results, key=lambda k: k['profit'], reverse=True)
@@ -111,36 +143,33 @@ class CrossValidateEvaluation:
 
         mlflow.log_params(results[0])
 
-    def cross_validate(self):
-        combinations = self._get_combinations()
-        chunks = list(self._chunks(combinations, self.n_worker))
-        self._calculate_initial_dates_trades_combination()
+    def tune(self):
+        self._generate_combinations()
+        self._reassign_combinations()
+        self._correct_mapping()
 
-        manager = multiprocessing.Manager()
-        manager = manager.list()
+        log.info(f"Number of total combinations:  {len(self._combinations_mapped)}, "
+                 f"Estimated runtime: {len(self._combinations_mapped) * 13 / 60 / 60 / self.n_worker} h")
 
-        with multiprocessing.Pool(self.n_worker) as p:
-            p.map(self._multi_cv, product(chunks, [manager]))
+        self._save_init_values()
 
-        self._results = list(manager)
+        self._run_multiprocess()
 
 
 if __name__ == "__main__":
+    path = "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/30ed88b45c974e768caf2949651edfb6/artifacts/eval_train.pkl"
+
     import pickle as pkl
 
-    path = "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/" \
-           "7de21c53ea464e7b95d8e2653717bbcf/artifacts/eval_train.pkl"
     with open(path, "rb") as f:
         data = pkl.load(f)
-
-    # data = data[:10]
-
-    # TODO Has the capacity to cross validate several true actions. This takes time (~45 mins  @ 100% CPU) and won't
-    # work with mlflow properly. You will, therefore, have to add a global variable to filter and
-    # not log everything to mlflow.
-    cv_settings = {"hold": False, "buy": True, "sell": False}
-
+    # print(Interval(0, 1, 0.01).values())
+    mlflow.set_tracking_uri(paths.mlflow_path)
+    mlflow.set_experiment("Evaluating")
     with mlflow.start_run():
-        cv = CrossValidateEvaluation(data=data, settings=cv_settings, step_size=0.01, n_worker=10)
-        cv.cross_validate()
-        cv.log_top_results(3)
+        pt = ParameterTuning(data, parameter={"buy": Interval(0, 1, 0.01), "max_trades_per_day": Choice([1, 3, 5]),
+                                              "max_price_per_stock": Choice([10, 20, 30]),
+                                              "max_investment_per_trade": Choice([0.01, 0.03, 0.05])},
+                             n_worker=10)
+        pt.tune()
+        pt.log_top_results(3)
