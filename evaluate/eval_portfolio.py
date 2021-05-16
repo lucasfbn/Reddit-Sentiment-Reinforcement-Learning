@@ -18,7 +18,7 @@ class EvaluatePortfolioInit:
     initial_balance: int = 1000
     max_investment_per_trade: float = 0.05
     max_price_per_stock: int = 25
-    max_trades_per_day: int = 5
+    max_trades_per_day: int = 3
     slippage: float = 0.007
     order_fee: float = 0.02
     partial_shares_possible: bool = True
