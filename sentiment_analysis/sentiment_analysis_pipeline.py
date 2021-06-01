@@ -7,11 +7,6 @@ gc_dump_fn = "gc_dump.csv"
 report_fn = "report.csv"
 
 with Flow("sentiment_analysis") as flow:
-    """
-    This pipeline downloads the data between a given start and end date from google big query and stores it in the
-    current mlflow run. It then proceeds to apply some basic preprocessing.
-    """
-
     start = Parameter("start")
     end = Parameter("end")
     check_duplicates = Parameter("check_duplicates", default=True)
