@@ -7,6 +7,7 @@ from tqdm import tqdm
 
 from evaluate.actions import Buy, Sell
 from utils import log
+import mlflow_api
 
 
 # log.setLevel("ERROR")
@@ -16,12 +17,12 @@ from utils import log
 class EvaluatePortfolioInit:
     data: list
     initial_balance: int = 1000
-    max_investment_per_trade: float = 0.05
-    max_price_per_stock: int = 25
+    max_investment_per_trade: float = 0.07
+    max_price_per_stock: int = 10
     max_trades_per_day: int = 3
     slippage: float = 0.007
     order_fee: float = 0.02
-    partial_shares_possible: bool = True
+    partial_shares_possible: bool = False
 
     # Quantile of .85 means that we'll take the top 15%.
     quantiles_thresholds: dict = field(default_factory=dict)
@@ -188,6 +189,19 @@ class EvaluatePortfolio(EvaluatePortfolioInit):
 
         Sell(portfolio=self, actions=new_inventory, live=self.live, forced=True).execute()
 
+    def save(self):
+        mlflow_api.log_file(self, "state.pkl")
+        log.info("Successfully saved state.")
+
+    def load(self, path):
+        with open(path, "rb") as f:
+            state = pkl.load(f)
+        self._inventory = state._inventory
+        self.balance = state.balance
+        self.profit = state.profit
+
+        log.info("Successfully loaded state.")
+
 
 class EvalLive(EvaluatePortfolio):
 
@@ -218,14 +232,17 @@ if __name__ == "__main__":
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Evaluating")
 
-    path = "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/30ed88b45c974e768caf2949651edfb6/artifacts/eval_train.pkl"
+    path = "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/7/fb4e6edfba324080b424a40d85cdb48a/artifacts/eval_train.pkl"
 
     with mlflow.start_run():
         with open(path, "rb") as f:
             data = pkl.load(f)
 
-        ep = EvaluatePortfolio(data=data, quantiles_thresholds={"hold": None, "buy": 0.3664500391483307, "sell": None},
-                               fixed_thresholds=True)
+        combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20,
+                       'max_investment_per_trade': 0.07,
+                       'quantiles_thresholds': {'hold': None, 'buy': 0.9978524124622346, 'sell': None}}
+
+        ep = EvaluatePortfolio(data=data, fixed_thresholds=True, **combination)
         ep.initialize()
         ep.act()
         ep.force_sell()
