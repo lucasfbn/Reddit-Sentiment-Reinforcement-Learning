@@ -221,7 +221,7 @@ class TimeseriesGeneratorCNN(TimeseriesGenerator):
                 if not available or (i - self.look_back < 0):
                     continue
                 else:
-                    sequences.append(df[i - self.look_back:i])
+                    sequences.append(df[i - self.look_back:i+1])
             else:
                 if i > (len(df) - self.look_back):
                     break
