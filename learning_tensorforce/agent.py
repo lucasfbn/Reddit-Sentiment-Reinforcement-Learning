@@ -15,7 +15,7 @@ import paths
 import mlflow
 
 from preprocessing.dataset_loader import DatasetLoader
-from evaluate.cross_validate_evaluation import CrossValidateEvaluation
+from evaluate.cross_validate_evaluation import ParameterTuning, Interval
 
 
 class RLAgent:
@@ -68,14 +68,10 @@ class RLAgent:
         if self.artifact_path is not None:
             log_file(data, f"eval_{suffix}.pkl")
 
-        cve = CrossValidateEvaluation(data)
-        cve.cross_validate()
-        cve.log_top_results(3)
-
         if not self._agent_saved:
             self.save_agent()
 
-        return cve.get_top_results(3)
+        return data
 
     def eval_agent(self):
         return self._eval(self.train_data, f"train")
