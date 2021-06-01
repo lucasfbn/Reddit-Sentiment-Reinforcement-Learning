@@ -11,12 +11,12 @@ import paths
 
 @dataclass
 class Interval:
-    start: int
-    end: int
+    start: float
+    end: float
     step: float
 
     def values(self):
-        rng = range(self.start, self.end * 101, int(self.step * 100))
+        rng = range(int(self.start * 100), int(self.end * 101), int(self.step * 100))
         rng = [step / 100 for step in rng]
         return rng
 
@@ -31,7 +31,7 @@ class Choice:
 
 class ParameterTuning:
 
-    def __init__(self, data, parameter, n_worker):
+    def __init__(self, data, parameter, n_worker=10):
         self.n_worker = n_worker
         self.parameter = parameter
         self.data = data
@@ -167,9 +167,12 @@ if __name__ == "__main__":
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Evaluating")
     with mlflow.start_run():
-        pt = ParameterTuning(data, parameter={"buy": Interval(0, 1, 0.01), "max_trades_per_day": Choice([1, 3, 5]),
-                                              "max_price_per_stock": Choice([10, 20, 30]),
-                                              "max_investment_per_trade": Choice([0.01, 0.03, 0.05])},
+        pt = ParameterTuning(data,
+                             parameter={"buy": Interval(0.7, 1, 0.01)},
+                                        # "max_trades_per_day": Choice([1, 3, 5, 7, 10, 15]),
+                                        # "max_price_per_stock": Choice([10, 20, 25, 30, 40, 50]),
+                                        # "max_investment_per_trade": Choice([0.03, 0.05, 0.07, 0.1])},
                              n_worker=10)
         pt.tune()
-        pt.log_top_results(3)
+        print(pt.get_top_results(3))
+        # pt.log_top_results(3)
