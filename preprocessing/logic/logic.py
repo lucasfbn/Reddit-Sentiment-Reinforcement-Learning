@@ -10,6 +10,11 @@ from sentiment_analysis.logic.timespan import Timespan
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sklearn.preprocessing import MinMaxScaler
 
+date_col = "date"
+date_day_col = "date_day"
+date_shifted_col = "date_shifted"
+date_day_shifted_col = "date_day_shifted"
+
 
 class Ticker:
 
@@ -29,9 +34,9 @@ def add_time(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
 
     """
-    df["date"] = pd.to_datetime(df["end"], format="%Y-%m-%d %H:%M")
-    df["date_day"] = df["date"].dt.to_period('D')
-    df = df.sort_values(by=["date"])
+    df[date_col] = pd.to_datetime(df["end"], format="%Y-%m-%d %H:%M")
+    df[date_day_col] = df[date_col].dt.to_period('D')
+    df = df.sort_values(by=[date_col])
     return df
 
 
@@ -66,16 +71,16 @@ def shift_time(df: pd.DataFrame, start_hour: int, start_min: int) -> pd.DataFram
     Returns:
 
     """
-    df["date_shifted"] = df["date"] - pd.Timedelta(hours=start_hour,
-                                                   minutes=start_min) + pd.Timedelta(days=1)
+    df[date_shifted_col] = df[date_col] - pd.Timedelta(hours=start_hour,
+                                                       minutes=start_min) + pd.Timedelta(days=1)
 
-    df["date_shifted_day"] = pd.to_datetime(df['date_shifted']).dt.to_period('D')
+    df[date_day_shifted_col] = pd.to_datetime(df['date_shifted']).dt.to_period('D')
     return df
 
 
 @task
 def get_min_max_time(df: pd.DataFrame) -> Tuple[pd.Period, pd.Period]:
-    return df["date_shifted_day"].min(), df["date_shifted_day"].max()
+    return df[date_day_shifted_col].min(), df[date_day_shifted_col].max()
 
 
 @task
@@ -94,7 +99,7 @@ def scale_daywise(df: pd.DataFrame, excluded_cols_from_scaling: list, drop_scale
     """
     cols_to_be_scaled = [x for x in df.columns if x not in excluded_cols_from_scaling]
 
-    dates = df.groupby(["date_shifted_day"])
+    dates = df.groupby([date_day_shifted_col])
 
     scaler = MinMaxScaler()
     scaled = []
@@ -127,7 +132,7 @@ def grp_by_ticker(df: pd.DataFrame) -> list:
     ticker = []
 
     for name, ticker_df in df.groupby(["ticker"]):
-        ticker_df = ticker_df.sort_values(by=["date_shifted"], ascending=True)
+        ticker_df = ticker_df.sort_values(by=[date_shifted_col], ascending=True)
         ticker.append(Ticker(name=name, df=ticker_df))
 
     return ticker
@@ -188,7 +193,7 @@ def mark_trainable_days(ticker: Ticker, ticker_min_len: int) -> Ticker:
     """
 
     # Assert that the df is ordered correctly. This is important since we mark the first n days as not available
-    assert ticker.df.loc[0, "date_shifted"] <= ticker.df.loc[len(ticker.df) - 1, "date_shifted"]
+    assert ticker.df.loc[0, date_shifted_col] <= ticker.df.loc[len(ticker.df) - 1, date_shifted_col]
     # Create available series
     available = [False] * ticker_min_len + [True] * (len(ticker.df) - ticker_min_len)
     # Add series to df
