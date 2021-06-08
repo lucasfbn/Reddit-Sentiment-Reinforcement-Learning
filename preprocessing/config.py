@@ -1,5 +1,4 @@
-import paths
-from utils import Config
+from utils.utils import Config
 
 general = Config(**dict(
     min_len=6,

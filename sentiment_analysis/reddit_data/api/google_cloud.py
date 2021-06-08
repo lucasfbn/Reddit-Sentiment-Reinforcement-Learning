@@ -6,7 +6,7 @@ from google.cloud import bigquery
 
 from pandas_gbq.gbq import GenericGBQException
 
-from utils import dt_to_timestamp, log
+from utils.utils import dt_to_timestamp, log
 
 
 class BigQueryDB:

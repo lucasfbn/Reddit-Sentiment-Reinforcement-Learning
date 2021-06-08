@@ -1,5 +1,4 @@
 import re
-import warnings
 
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -7,7 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 from tqdm import tqdm
 
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
-from utils import log
+from utils.utils import log
 
 
 class TimeseriesGenerator(Preprocessor):

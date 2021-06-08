@@ -4,18 +4,16 @@ physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 from tensorforce import Runner, Agent, Environment
-from learning_tensorforce.env import EnvCNN, EnvNN
-from evaluate.eval_portfolio import EvaluatePortfolio
+from learning_tensorforce.env import EnvCNN
 import pandas as pd
 from tqdm import tqdm
 
-from utils import log
+from utils.utils import log
 from mlflow_api import log_file
 import paths
 import mlflow
 
 from preprocessing.dataset_loader import DatasetLoader
-from evaluate.cross_validate_evaluation import ParameterTuning, Interval
 
 
 class RLAgent:

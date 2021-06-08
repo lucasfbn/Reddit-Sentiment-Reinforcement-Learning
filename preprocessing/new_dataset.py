@@ -1,14 +1,12 @@
 import mlflow
 
-import mlflow
-
 import paths
 import preprocessing.config as preprocessing_config
 from preprocessing.preprocessing_utils.cleaner import Cleaner
 from preprocessing.preprocessing_utils.merge_preprocessing import MergePreprocessing
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
 from preprocessing.preprocessing_utils.timeseries_generator import TimeseriesGeneratorWrapper
-from utils import save_config, Config
+from utils.utils import save_config, Config
 
 
 def main(config):

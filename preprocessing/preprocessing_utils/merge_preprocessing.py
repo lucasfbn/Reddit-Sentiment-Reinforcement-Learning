@@ -5,7 +5,7 @@ from tqdm import tqdm
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
 from preprocessing.preprocessing_utils.stock_prices import StockPrices, IndexPerformance, \
     MissingDataException, OldDataException
-from utils import log
+from utils.utils import log
 
 pd.options.mode.chained_assignment = None
 
