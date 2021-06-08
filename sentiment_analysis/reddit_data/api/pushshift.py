@@ -6,7 +6,7 @@ from psaw import PushshiftAPI
 
 from sentiment_analysis.reddit_data.api.api import API
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
-from utils.utils import dt_to_timestamp, log
+from utils.util_funcs import dt_to_timestamp, log
 
 
 class MainApi(API):

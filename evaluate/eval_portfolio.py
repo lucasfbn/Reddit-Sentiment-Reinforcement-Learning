@@ -6,7 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from evaluate.actions import Buy, Sell
-from utils.utils import log
+from utils.util_funcs import log
 from utils import mlflow_api
 
 

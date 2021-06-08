@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from itertools import product
 from evaluate.eval_portfolio import EvaluatePortfolio
-from utils.utils import log
+from utils.util_funcs import log
 from tqdm import tqdm
 import multiprocessing
 import copy

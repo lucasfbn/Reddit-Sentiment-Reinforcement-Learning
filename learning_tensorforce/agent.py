@@ -8,7 +8,7 @@ from learning_tensorforce.env import EnvCNN
 import pandas as pd
 from tqdm import tqdm
 
-from utils.utils import log
+from utils.util_funcs import log
 from utils.mlflow_api import log_file
 import paths
 import mlflow
