@@ -9,7 +9,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from utils.utils import log
-from mlflow_api import log_file
+from utils.mlflow_api import log_file
 import paths
 import mlflow
 

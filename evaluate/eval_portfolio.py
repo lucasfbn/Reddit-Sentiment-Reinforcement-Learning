@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from evaluate.actions import Buy, Sell
 from utils.utils import log
-import mlflow_api
+from utils import mlflow_api
 
 
 # log.setLevel("ERROR")
