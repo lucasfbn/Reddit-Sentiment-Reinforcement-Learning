@@ -1,12 +1,9 @@
 import datetime, sys, os
 
-import requests_cache
 import yfinance as yf
 import pandas as pd
 
 import paths
-
-requests_cache.install_cache(cache_name=paths.stock_cache, backend="sqlite")
 
 
 class MissingDataException(Exception):
@@ -44,52 +41,71 @@ class StockPrices:
 
     def _get_min_max_date(self):
         min_ = self.df["date_day"].min() - datetime.timedelta(days=self.start_offset)
-        max_ = self.df["date_day"].max()
+        max_ = self.df["date_day"].max() + datetime.timedelta(days=1)
         return min_, max_
 
-    def _get_live(self):
-        start, _ = self._get_min_max_date()
+    def _live_assertions(self, prices):
+        current_price = current_price = prices.tail(1)
+
+        prices = prices.copy()
+        prices = prices.drop(prices.tail(1).index)
+
         end = datetime.datetime.now()
 
-        historic = self._get_prices(start, end=None)
-        current = historic.tail(1)
-        historic = historic.drop(historic.tail(1).index)
-
-        if historic.empty or current.empty:
+        # Check if any data is missing
+        if prices.empty or current_price.empty:
             raise MissingDataException(ticker=self.ticker)
 
-        last_current_date = current.tail(1).index.to_pydatetime()[0].date()
-        last_historic_date = historic.tail(1).index.to_pydatetime()[0].date()
+        # Checks the following:
+        # - whether the last historic date is not the current date
+        # - whether the last historic date and the current date is not the same
+        # - whether the current date is the current date
+        last_current_date = current_price.tail(1).index.to_pydatetime()[0].date()
+        last_historic_date = prices.tail(1).index.to_pydatetime()[0].date()
 
         if not (last_historic_date != end.date() and
                 last_current_date != last_historic_date and
                 last_current_date == end.date()):
             raise OldDataException(ticker=self.ticker, last_date=str(last_current_date))
 
-        merged = historic.append(current)
-        merged["date_day"] = pd.to_datetime(merged.index).to_period('D')
-        merged = merged.reset_index(drop=True)
-        return merged
+    def _get_live_data(self):
+        start, _ = self._get_min_max_date()
 
-    def _get_historic(self):
+        # Retrieve full price data
+        prices = self._get_prices(start, end=None)
+
+        # Run assertions
+        self._live_assertions(prices)
+        return prices
+
+    def _get_historic_data(self):
         start, end = self._get_min_max_date()
-        historic = self._get_prices(start - datetime.timedelta(days=self.start_offset), end)
+        prices = self._get_prices(start - datetime.timedelta(days=self.start_offset), end)
 
-        if historic.empty:
+        if prices.empty:
             raise MissingDataException(ticker=self.ticker)
 
-        historic["date_day"] = pd.to_datetime(historic.index).to_period('D')
-        return historic
+        return prices
 
     def download(self):
 
         if self.live:
-            self.prices = self._get_live()
+            self.prices = self._get_live_data()
         else:
-            self.prices = self._get_historic()
+            self.prices = self._get_historic_data()
+
+        # Add date_day column from index
+        self.prices["date_day"] = pd.to_datetime(self.prices.index).to_period('D')
+        # Index is the dates, we want a numerical index
+        self.prices = self.prices.reset_index(drop=True)
+
         return self.prices
 
     def merge(self):
+        """
+        Merges the price data with the original df. Be aware that is merges the "outer" values, meaning that gaps
+        between two dates will be filled with price data (as long as there is any at the specific day).
+        """
         return self.prices.merge(self.df, on="date_day", how="outer")
 
 
@@ -118,16 +134,3 @@ class IndexPerformance:
 
     def get_index_comparison(self):
         return self.performance
-
-
-if __name__ == "__main__":
-    grp = {
-        "ticker": "ASYS",
-        "data": pd.DataFrame(
-            {"date_day": [pd.to_datetime(datetime.datetime(year=2021, day=10, month=5)).to_period('D'),
-                          pd.to_datetime(datetime.datetime(year=2021, day=14, month=5)).to_period('D')]})
-    }
-
-    sp = StockPrices(grp=grp,
-                     start_offset=10, live=True)
-    sp.download()
