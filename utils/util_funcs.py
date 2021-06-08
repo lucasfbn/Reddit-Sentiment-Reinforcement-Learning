@@ -8,7 +8,7 @@ import mlflow
 import pandas as pd
 
 import paths
-from mlflow_api import log_file
+from utils.mlflow_api import log_file
 
 logging.basicConfig(level=logging.INFO,
                     format="%(levelname)s %(asctime)s - %(message)s")
