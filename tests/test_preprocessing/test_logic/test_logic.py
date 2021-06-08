@@ -46,7 +46,7 @@ def test_scale_daywise():
     ])
 
     # Scale without dropping cols afterwards
-    result = scale_daywise.run(df, excluded_cols_from_scaling=[date_day_shifted_col, "exclude"], drop_scaled_cols=False)
+    result = scale_daywise.run(df, cols_to_be_scaled=["to_be_scaled"], drop_scaled_cols=False)
     expected = pd.DataFrame([
         {date_day_shifted_col: Period('2021-05-21', 'D'), 'to_be_scaled': 0, "exclude": 999,
          "to_be_scaled_scaled": 0.00000},
@@ -58,7 +58,7 @@ def test_scale_daywise():
     assert_frame_equal(result, expected)
 
     # Scale with dropping cols afterwards
-    result = scale_daywise.run(df, excluded_cols_from_scaling=[date_day_shifted_col, "exclude"], drop_scaled_cols=True)
+    result = scale_daywise.run(df, cols_to_be_scaled=["to_be_scaled"], drop_scaled_cols=True)
     expected = pd.DataFrame([
         {date_day_shifted_col: Period('2021-05-21', 'D'), "exclude": 999,
          "to_be_scaled_scaled": 0.00000},
