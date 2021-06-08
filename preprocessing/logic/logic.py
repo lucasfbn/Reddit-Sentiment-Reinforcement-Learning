@@ -1,13 +1,6 @@
-from datetime import datetime
-
 import pandas as pd
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from prefect import task
 from typing import Tuple
-import paths
-from mlflow_api import log_file
-from sentiment_analysis.logic.timespan import Timespan
-from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sklearn.preprocessing import MinMaxScaler
 from preprocessing.logic.stock_prices import StockPrices, MissingDataException, OldDataException
 
@@ -86,21 +79,19 @@ def get_min_max_time(df: pd.DataFrame) -> Tuple[pd.Period, pd.Period]:
 
 
 @task
-def scale_daywise(df: pd.DataFrame, excluded_cols_from_scaling: list, drop_scaled_cols: bool) -> pd.DataFrame:
+def scale_daywise(df: pd.DataFrame, cols_to_be_scaled: list, drop_scaled_cols: bool) -> pd.DataFrame:
     """
-    Scales all columns, which are not excluded in excluded_cols_from_scaling daywise. Therefore, group for the (shifted)
+    Scales all columns, which are in cols_to_be_scaled daywise. Therefore, group for the (shifted)
     date prior to scaling.
 
     Args:
         df:
-        excluded_cols_from_scaling: List of columns that shall not be scaled
+        cols_to_be_scaled: List of columns that shall not be scaled
         drop_scaled_cols: Whether to drop the raw columns after scaling or not
 
     Returns:
 
     """
-    cols_to_be_scaled = [x for x in df.columns if x not in excluded_cols_from_scaling]
-
     dates = df.groupby([date_day_shifted_col])
 
     scaler = MinMaxScaler()
@@ -312,3 +303,7 @@ def backfill_availability(ticker: Ticker) -> Ticker:
     # For details on how forward fill works: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.ffill.html
     ticker.df["available"] = ticker.df["available"].fillna(method="ffill")
     return ticker
+
+
+def rename_cols(ticker: Ticker) -> Ticker:
+    pass
