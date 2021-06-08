@@ -1,4 +1,4 @@
-from utils.utils import Config
+from utils.util_funcs import Config
 
 general = Config(**dict(
     min_len=6,

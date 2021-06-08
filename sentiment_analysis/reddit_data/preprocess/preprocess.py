@@ -2,7 +2,7 @@ import pickle as pkl
 
 import pandas as pd
 
-from utils.utils import drop_stats, log
+from utils.util_funcs import drop_stats, log
 
 
 class Preprocessor:

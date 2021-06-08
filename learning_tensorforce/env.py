@@ -6,7 +6,7 @@ import mlflow
 import numpy as np
 from tensorforce import Environment
 
-from utils.utils import log
+from utils.util_funcs import log
 
 
 class Env(Environment):

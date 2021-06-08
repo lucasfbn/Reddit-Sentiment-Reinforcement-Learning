@@ -6,7 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 from tqdm import tqdm
 
 from preprocessing.preprocessing_utils.preprocessor import Preprocessor
-from utils.utils import log
+from utils.util_funcs import log
 
 
 class TimeseriesGenerator(Preprocessor):

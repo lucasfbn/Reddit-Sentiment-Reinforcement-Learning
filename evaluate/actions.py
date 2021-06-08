@@ -1,7 +1,7 @@
 import mlflow
 import pandas as pd
 
-from utils.utils import log
+from utils.util_funcs import log
 
 log.setLevel("INFO")
 
