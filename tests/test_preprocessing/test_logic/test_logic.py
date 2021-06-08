@@ -79,14 +79,14 @@ def test_grp_by_ticker():
     result = grp_by_ticker.run(df)
 
     expected_df_1 = pd.DataFrame(
-        [{'ticker': "GME", date_shifted_col: Timestamp('2021-05-20 00:00:00'), "dummy_value": 1},
-         {'ticker': "GME", date_shifted_col: Timestamp('2021-05-21 00:00:00'),
+        [{'ticker': "GME", date_shifted_col: Timestamp('2021-05-21 00:00:00'), "dummy_value": 1},
+         {'ticker': "GME", date_shifted_col: Timestamp('2021-05-20 00:00:00'),
           "dummy_value": 1}])
 
     expected_df_2 = pd.DataFrame(
         [{'ticker': "TSLA", date_shifted_col: Timestamp('2021-05-19 00:00:00'), "dummy_value": 1},
-         {'ticker': "TSLA", date_shifted_col: Timestamp('2021-05-20 00:00:00'), "dummy_value": 1},
-         {'ticker': "TSLA", date_shifted_col: Timestamp('2021-05-21 00:00:00'), "dummy_value": 1}])
+         {'ticker': "TSLA", date_shifted_col: Timestamp('2021-05-21 00:00:00'), "dummy_value": 1},
+         {'ticker': "TSLA", date_shifted_col: Timestamp('2021-05-20 00:00:00'), "dummy_value": 1}])
 
     assert result[0].name == "GME" and result[1].name == "TSLA"
     assert_frame_equal(result[0].df.reset_index(drop=True), expected_df_1)
@@ -116,9 +116,60 @@ def test_mark_trainable_days():
     expected = pd.Series([False, False, True, True], name="available")
     assert_series_equal(result.df["available"], expected)
 
-    # Test not sorted by date
-    df = pd.DataFrame([{'ticker': "TSLA", date_shifted_col: Timestamp('2021-05-21 00:00:00')},
-                       {'ticker': "TSLA", date_shifted_col: Timestamp('2021-05-19 00:00:00')}])
 
-    with pytest.raises(AssertionError):
-        mark_trainable_days.run(Ticker(name="TSLA", df=df), ticker_min_len=1)
+def test_sort_ticker_df_chronologically():
+    df = pd.DataFrame([{date_shifted_col: Timestamp('2021-05-19 00:00:00')},
+                       {date_shifted_col: Timestamp('2021-05-21 00:00:00')},
+                       {date_shifted_col: Timestamp('2021-05-20 00:00:00')}])
+    result = sort_ticker_df_chronologically.run(Ticker(None, df))
+    expected = pd.DataFrame([{date_shifted_col: Timestamp('2021-05-19 00:00:00')},
+                             {date_shifted_col: Timestamp('2021-05-20 00:00:00')},
+                             {date_shifted_col: Timestamp('2021-05-21 00:00:00')}])
+    assert_frame_equal(result.df.reset_index(drop=True), expected.reset_index(drop=True))
+
+
+def test_add_price_data():
+    # For in depth test check the tests of stock_prices.py
+    # We will only test whether the exclusion is done correctly when an error was raised
+
+    # Use non existing ticker to check for MissingDataException
+    df = pd.DataFrame([{'ticker': "AHJZT", date_day_col: Timestamp('2021-05-21 00:00:00')},
+                       {'ticker': "AHJZT", date_day_col: Timestamp('2021-05-19 00:00:00')}])
+    result = add_price_data.run(Ticker("AHJZT", df), price_data_start_offset=0, enable_live_behaviour=False)
+    assert result.exclude is True
+
+    df = pd.DataFrame([{'ticker': "AHJZT", date_day_col: Timestamp('2021-05-21 00:00:00')},
+                       {'ticker': "AHJZT", date_day_col: Timestamp('2021-05-19 00:00:00')}])
+    result = add_price_data.run(Ticker("AHJZT", df), price_data_start_offset=0, enable_live_behaviour=True)
+    assert result.exclude is True
+
+
+def test_remove_excluded_ticker():
+    ticker_1 = Ticker("exclude", None)
+    ticker_1.exclude = True
+
+    ticker_2 = Ticker("do not exclude", None)
+    ticker_2.exclude = False
+
+    ticker = [ticker_1, ticker_2]
+
+    result = remove_excluded_ticker.run(ticker)
+    assert len(result) == 1
+    assert result[0].name == "do not exclude"
+
+
+def test_backfill_availability():
+    df = pd.DataFrame({"available": [None, None, False, None, None, True, True]})
+    result = backfill_availability.run(Ticker(None, df))
+    expected = pd.Series([False, False, False, False, False, True, True])
+    assert_series_equal(result.df["available"], expected, check_names=False)
+
+    df = pd.DataFrame({"available": [False, None, False, None, None, True, True]})
+    result = backfill_availability.run(Ticker(None, df))
+    expected = pd.Series([False, False, False, False, False, True, True])
+    assert_series_equal(result.df["available"], expected, check_names=False)
+
+    df = pd.DataFrame({"available": [False, None, False, None, None, True, None, True]})
+    result = backfill_availability.run(Ticker(None, df))
+    expected = pd.Series([False, False, False, False, False, True, True, True])
+    assert_series_equal(result.df["available"], expected, check_names=False)

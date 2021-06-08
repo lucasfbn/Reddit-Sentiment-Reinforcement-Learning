@@ -11,6 +11,8 @@ with Flow("preprocessing") as flow:
                                                                                   "date_shifted_day"])
     drop_scaled_cols = Parameter("drop_scaled_cols", default=True)
     ticker_min_len = Parameter("ticker_min_len", default=2)
+    price_data_start_offset = Parameter("price_data_start_offset", default=10)
+    enable_live_behaviour = Parameter("enable_live_behaviour", default=False)
 
     df = add_time(input_df)
     df = shift_time(df, start_hour, start_min)
@@ -18,7 +20,12 @@ with Flow("preprocessing") as flow:
     df = scale_daywise(df, excluded_cols_from_scaling, drop_scaled_cols)
     ticker = grp_by_ticker(df)
     ticker = drop_ticker_with_too_few_data(ticker, ticker_min_len)
+    ticker = sort_ticker_df_chronologically.map(ticker)
     ticker = mark_trainable_days.map(ticker, unmapped(ticker_min_len))
+    ticker = add_price_data.map(ticker, unmapped(price_data_start_offset), unmapped(enable_live_behaviour))
+    ticker = remove_excluded_ticker(ticker)
+    ticker = sort_ticker_df_chronologically.map(ticker)
+    ticker = backfill_availability.map(ticker)
 
 # flow.executor = LocalDaskExecutor(scheduler="processes", num_workers=8)
 

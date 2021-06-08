@@ -9,6 +9,7 @@ from mlflow_api import log_file
 from sentiment_analysis.logic.timespan import Timespan
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sklearn.preprocessing import MinMaxScaler
+from preprocessing.logic.stock_prices import StockPrices, MissingDataException, OldDataException
 
 date_col = "date"
 date_day_col = "date_day"
@@ -21,6 +22,7 @@ class Ticker:
     def __init__(self, name, df):
         self.df = df
         self.name = name
+        self.exclude = False
 
 
 @task
@@ -119,8 +121,7 @@ def scale_daywise(df: pd.DataFrame, excluded_cols_from_scaling: list, drop_scale
 @task
 def grp_by_ticker(df: pd.DataFrame) -> list:
     """
-    Groups ticker, created a new Ticker instance for each. The ticker df will be sorted - the newest entry will be at
-    the bottom (This is required by later tasks).
+    Groups ticker, created a new Ticker instance for each.
 
     Args:
         df:
@@ -132,7 +133,6 @@ def grp_by_ticker(df: pd.DataFrame) -> list:
     ticker = []
 
     for name, ticker_df in df.groupby(["ticker"]):
-        ticker_df = ticker_df.sort_values(by=[date_shifted_col], ascending=True)
         ticker.append(Ticker(name=name, df=ticker_df))
 
     return ticker
@@ -166,11 +166,18 @@ def drop_ticker_with_too_few_data(ticker: list, ticker_min_len: int) -> list:
 
 
 @task
+def sort_ticker_df_chronologically(ticker: Ticker) -> Ticker:
+    ticker.df = ticker.df.sort_values(by=[date_shifted_col], ascending=True)
+    return ticker
+
+
+@task
 def mark_trainable_days(ticker: Ticker, ticker_min_len: int) -> Ticker:
     """
     Marks the days within a ticker df that were not tradeable.
     For instance, if we set min_len to 2, we, in reality, are not able to trade the instances prior to the entry
     which fulfills the min len.
+    The ticker df must be sorted - newest entry at the bottom!
 
     Example:
 
@@ -193,10 +200,115 @@ def mark_trainable_days(ticker: Ticker, ticker_min_len: int) -> Ticker:
     """
 
     # Assert that the df is ordered correctly. This is important since we mark the first n days as not available
-    assert ticker.df.loc[0, date_shifted_col] <= ticker.df.loc[len(ticker.df) - 1, date_shifted_col]
+    # (and these should be the the first, not the last or random days)
+    assert ticker.df.loc[0, "date_shifted"] <= ticker.df.loc[len(ticker.df) - 1, "date_shifted"]
+
     # Create available series
     available = [False] * ticker_min_len + [True] * (len(ticker.df) - ticker_min_len)
     # Add series to df
     ticker.df["available"] = available
 
+    return ticker
+
+
+@task
+def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_behaviour: bool) -> Ticker:
+    """
+    Adds price data to a ticker df. Be aware that is merges the "outer" values, meaning that gaps
+    between two dates will be filled with price data (as long as there is any at the specific day).
+    If any price related exception occurs the ticker will be marked to be excluded (in one of the next tasks).
+
+    Args:
+        ticker: Ticker instance
+        price_data_start_offset: Offset in days from the min_date in the ticker.df. This is useful when you want to add
+         certain price information prior to the first occurrence of a ticker in our data
+        enable_live_behaviour: Whether to enable the live behaviour. When this is true the max date in the ticker df is
+         ignored and the current date will be taken instead. Also, some additional assertions are checked.
+         See stock_prices.py for additional informations.
+
+    Returns:
+
+    """
+
+    sp = StockPrices(ticker_name=ticker.name, ticker_df=ticker.df, start_offset=price_data_start_offset,
+                     live=enable_live_behaviour)
+
+    try:
+        prices = sp.download()
+        merged = sp.merge()
+        ticker.df = merged
+
+    # TODO Add logging
+    except (MissingDataException, OldDataException) as e:
+        ticker.exclude = True
+
+    return ticker
+
+
+@task
+def remove_excluded_ticker(ticker: list) -> list:
+    """
+    Removes all ticker that are marked for exclusion.
+
+    Args:
+        ticker: List of Ticker instances
+
+    Returns:
+        Filtered list of Ticker instances
+    """
+
+    valid_ticker = []
+
+    for t in ticker:
+        if not t.exclude:
+            valid_ticker.append(t)
+
+    return valid_ticker
+
+
+@task
+def backfill_availability(ticker: Ticker) -> Ticker:
+    """
+    Refills the "available" column since we might have added some nans to our sentiment data by merging with the
+     price data (see add_price_data).
+
+    Example:
+        Prior to add_price_data
+
+        date        compound    available
+        05/01/2021  10          False
+        07/01/2021  20          True
+
+        After add_price_data
+
+        date        compound    available
+        05/01/2021  10          False
+        06/01/2021  nan         nan
+        10/01/2021  20          True
+
+        Expected afterwards:
+
+        date        compound    available
+        05/01/2021  10          False
+        06/01/2021  nan         False
+        10/01/2021  20          True
+
+        available
+
+
+    Args:
+        ticker:
+
+    Returns:
+
+    """
+    first_availability = ticker.df["available"].iloc[0]
+
+    # If either False or nan
+    if first_availability != True:
+        # Set False so we can proceed to forward fill from there
+        ticker.df["available"].iloc[0] = False
+
+    # For details on how forward fill works: https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.ffill.html
+    ticker.df["available"] = ticker.df["available"].fillna(method="ffill")
     return ticker
