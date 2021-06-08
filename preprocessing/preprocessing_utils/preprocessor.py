@@ -2,8 +2,7 @@ import pickle as pkl
 
 import pandas as pd
 
-import paths
-from mlflow_api import log_file
+from utils.mlflow_api import log_file
 
 
 class Preprocessor:
