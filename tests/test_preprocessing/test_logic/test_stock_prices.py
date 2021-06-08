@@ -45,6 +45,10 @@ def test_live_too_early():
     """
     ONLY WORKS PRIOR TO (AMERICAN) MARKET OPENINGS.
     """
+
+    if datetime.datetime.now().hour >= 15:
+        return
+
     df = pd.DataFrame({"date_day": [Period('2021-06-05', 'D'),
                                     Period('2021-06-06', 'D')]})
 
