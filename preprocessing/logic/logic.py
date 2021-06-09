@@ -192,7 +192,7 @@ def mark_trainable_days(ticker: Ticker, ticker_min_len: int) -> Ticker:
 
     # Assert that the df is ordered correctly. This is important since we mark the first n days as not available
     # (and these should be the the first, not the last or random days)
-    assert ticker.df.loc[0, "date_shifted"] <= ticker.df.loc[len(ticker.df) - 1, "date_shifted"]
+    assert ticker.df[date_shifted_col].iloc[0] <= ticker.df[date_shifted_col].iloc[len(ticker.df) - 1]
 
     # Create available series
     available = [False] * ticker_min_len + [True] * (len(ticker.df) - ticker_min_len)
@@ -305,5 +305,171 @@ def backfill_availability(ticker: Ticker) -> Ticker:
     return ticker
 
 
-def rename_cols(ticker: Ticker) -> Ticker:
-    pass
+@task
+def assign_price_col(ticker: Ticker, price_col: str) -> Ticker:
+    """
+    Assign a certain price (either "Open" or "Close") to a unified "price" column.
+    This is just a convenience to avoid having to use the actual used price later on and can instead rely on
+    the "price" column being the correct price.
+
+    Args:
+        ticker:
+        price_col:
+
+    Returns:
+
+    """
+    ticker.df["price"] = ticker.df[price_col]
+    ticker.df = ticker.df.drop(columns=[price_col])
+    return ticker
+
+
+@task
+def mark_tradeable_days(ticker: Ticker) -> Ticker:
+    """
+    Marks all days that are no weekend days and, therefore, in theory tradeable. This might by used later on in order to
+    avoid trading on days that are not tradeable in reality.
+
+    NOTE: In case you might be wondering why this wasn't done prior to the ticker split: We might have added some
+     additional days while running add_price_data
+
+    Args:
+        ticker:
+
+    Returns:
+
+    """
+
+    ticker.df["temp_weekday"] = ticker.df[date_col].dt.dayofweek
+    ticker.df["tradeable"] = ticker.df["temp_weekday"] < 5
+    ticker.df = ticker.df.drop(columns=["temp_weekday"])
+    return ticker
+
+
+@task
+def forward_fill_price(ticker: Ticker) -> Ticker:
+    """
+    Forward fills the price. This is useful when we have data from a date where no price data exists (on the weekend
+    for example). In such a case the price from friday will be carried forward to saturday and sunday.
+
+    Args:
+        ticker:
+
+    Returns:
+
+    """
+    ticker.df["price"] = ticker.df["price"].fillna(method="ffill")
+    return ticker
+
+
+@task
+def mark_ticker_where_all_prices_are_nan(ticker: Ticker) -> Ticker:
+    """
+    Marks ticker to exclude when the whole price column is None. The forward fill from the preceding task will not cover
+     this case since it would just forward fill with nan.
+
+    Args:
+        ticker:
+
+    Returns:
+
+    """
+
+    if ticker.df["price"].isnull().all():
+        ticker.exclude = True
+    return ticker
+
+
+@task
+def mark_ipo_ticker(ticker: Ticker) -> Ticker:
+    """
+    Marks ticker to exclude when, after forward filling and excluding all-nan ticker, there are still nan values in the
+     price column. This may occur when - due to IPOs - there are no prices available prior to a certain date (the IPO
+     date).
+
+    Args:
+        ticker:
+
+    Returns:
+
+    """
+
+    if ticker.df["price"].isnull().any():
+        ticker.exclude = True
+    return ticker
+
+
+@task
+def drop_irrelevant_columns(ticker: Ticker, irrelevant_columns: list) -> Ticker:
+    """
+    Drops irrelevant columns from the ticker df.
+
+    Args:
+        ticker:
+        irrelevant_columns:
+
+    Returns:
+
+    """
+
+    ticker.df = ticker.df.drop(columns=irrelevant_columns)
+    return ticker
+
+
+@task
+def fill_missing_sentiment_data(ticker: Ticker, sentiment_data_columns: list) -> Ticker:
+    """
+    Since we most likely added some nans to our sentiment data (due to add_price_data) we will this missing data with 0.
+
+    Args:
+        ticker:
+        sentiment_data_columns: Columns with the sentiment data information
+
+    Returns:
+
+    """
+    ticker.df[sentiment_data_columns] = ticker.df[sentiment_data_columns].fillna(0)
+    return ticker
+
+
+@task
+def assert_no_nan(ticker: Ticker):
+    """
+    Checks for any nans in the whole ticker df.
+
+    Args:
+        ticker:
+
+    Returns:
+
+    """
+    assert ticker.df.isnull().values.any() == False
+
+
+@task
+def add_metric_rel_price_change(ticker: Ticker) -> Ticker:
+    """
+    Adds metric: relative price change in relation to prior day
+    Formula:
+        rel_change = (price[1] - price[0]) / price[0]
+
+    See test for an example.
+
+    Args:
+        ticker:
+
+    Returns:
+
+    """
+
+    prices = ticker.df["price"].tolist()
+
+    rel_change = []
+    for i, _ in enumerate(prices):
+        if i == 0:
+            rel_change.append(0.0)
+        else:
+            rel_change.append((prices[i] - prices[i - 1]) / (prices[i - 1]))
+
+    ticker.df["price_rel_change"] = rel_change
+    return ticker

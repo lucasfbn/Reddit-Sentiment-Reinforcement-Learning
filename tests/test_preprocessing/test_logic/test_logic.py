@@ -173,3 +173,96 @@ def test_backfill_availability():
     result = backfill_availability.run(Ticker(None, df))
     expected = pd.Series([False, False, False, False, False, True, True, True])
     assert_series_equal(result.df["available"], expected, check_names=False)
+
+
+def test_assign_price_col():
+    df = pd.DataFrame({"test_1": [1, 2], "test_2": [3, 4]})
+    result = assign_price_col.run(Ticker(None, df), price_col="test_1")
+    expected = pd.DataFrame({"test_2": [3, 4], "price": [1, 2]})
+
+    assert_frame_equal(result.df, expected)
+
+
+def test_mark_tradeable_days():
+    df = pd.DataFrame([{date_col: Timestamp('2021-06-04 00:00:00')},
+                       {date_col: Timestamp('2021-06-05 00:00:00')},
+                       {date_col: Timestamp('2021-06-06 00:00:00')},
+                       {date_col: Timestamp('2021-06-07 00:00:00')}])
+    result = mark_tradeable_days.run(Ticker(None, df))
+    expected = pd.Series([True, False, False, True])
+    assert_series_equal(result.df["tradeable"], expected, check_names=False)
+
+    assert set(result.df.columns) == {date_col, "tradeable"}
+
+
+def test_forward_fill_price():
+    df = pd.DataFrame([{date_col: Timestamp('2021-06-04 00:00:00'), "price": 5},
+                       {date_col: Timestamp('2021-06-05 00:00:00'), "price": None},
+                       {date_col: Timestamp('2021-06-06 00:00:00'), "price": None},
+                       {date_col: Timestamp('2021-06-07 00:00:00'), "price": 10}])
+    result = forward_fill_price.run(Ticker(None, df))
+    expected = df = pd.DataFrame([{date_col: Timestamp('2021-06-04 00:00:00'), "price": 5.0},
+                                  {date_col: Timestamp('2021-06-05 00:00:00'), "price": 5.0},
+                                  {date_col: Timestamp('2021-06-06 00:00:00'), "price": 5.0},
+                                  {date_col: Timestamp('2021-06-07 00:00:00'), "price": 10.0}])
+    assert_frame_equal(result.df, expected)
+
+
+def test_mark_ticker_where_all_prices_are_nan():
+    df = pd.DataFrame({"price": [None, None, None]})
+    ticker = Ticker(None, df)
+    result = mark_ticker_where_all_prices_are_nan.run(ticker)
+    assert result.exclude is True
+
+    df = pd.DataFrame({"price": [None, None, 1]})
+    ticker = Ticker(None, df)
+    result = mark_ticker_where_all_prices_are_nan.run(ticker)
+    assert result.exclude is False
+
+
+def test_mark_ipo_ticker():
+    df = pd.DataFrame({"price": [None, None, None]})
+    ticker = Ticker(None, df)
+    result = mark_ipo_ticker.run(ticker)
+    assert result.exclude is True
+
+    df = pd.DataFrame({"price": [None, None, 1]})
+    ticker = Ticker(None, df)
+    result = mark_ipo_ticker.run(ticker)
+    assert result.exclude is True
+
+    df = pd.DataFrame({"price": [1, 1]})
+    ticker = Ticker(None, df)
+    result = mark_ipo_ticker.run(ticker)
+    assert result.exclude is False
+
+
+def test_drop_irrelevant_columns():
+    # No test needed since it's basically a plain pandas function call
+    pass
+
+
+def test_fill_missing_sentiment_data():
+    df = pd.DataFrame({"data": [None, 10, None]})
+    result = fill_missing_sentiment_data.run(Ticker(None, df))
+    expected = pd.Series([0, 10, 0])
+
+    assert_series_equal(result.df["data"], expected, check_names=False)
+
+
+def test_assert_no_nan():
+    df = pd.DataFrame({"data": [None, 10, None]})
+    ticker = Ticker(None, df)
+    with pytest.raises(AssertionError):
+        assert_no_nan.run(ticker)
+
+    df = pd.DataFrame({"data": [0, 0]})
+    ticker = Ticker(None, df)
+
+
+def test_add_metric_rel_price_change():
+    df = pd.DataFrame({"price": [1, 2, 3, 4, 5, 10]})
+    ticker = Ticker(None, df)
+    result = add_metric_rel_price_change.run(ticker)
+    expected = pd.Series([0.0, 1.0, 0.5, 0.333333, 0.25, 1.0])
+    assert_series_equal(result.df["price_rel_change"], expected, check_exact=False, check_names=False)
