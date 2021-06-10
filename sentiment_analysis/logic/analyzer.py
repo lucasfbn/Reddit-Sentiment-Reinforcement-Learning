@@ -5,14 +5,8 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from prefect import task
 
 import paths
-from mlflow_api import log_file
 from sentiment_analysis.logic.timespan import Timespan
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
-
-
-@task
-def mlflow_log_file(obj, fn):
-    log_file(obj, fn)
 
 
 @task

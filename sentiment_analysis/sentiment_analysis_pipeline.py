@@ -1,7 +1,7 @@
 from prefect import Flow, Parameter
-from prefect.executors import LocalDaskExecutor
 
 from sentiment_analysis.logic.analyzer import *
+from utils.util_tasks import mlflow_log_file
 
 gc_dump_fn = "gc_dump.csv"
 report_fn = "report.csv"
