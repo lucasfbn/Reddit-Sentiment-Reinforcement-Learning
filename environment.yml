@@ -32,6 +32,5 @@ dependencies:
     - psaw==0.1.0
     - pytest==6.2.4
     - regex==2021.4.4
-    - tqdm==4.60.0
     - yfinance==0.1.59
 prefix: C:\Users\lucas\Miniconda3\envs\tensorfrc
