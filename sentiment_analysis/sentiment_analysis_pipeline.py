@@ -1,5 +1,9 @@
+import pandas as pd
 from prefect import Flow, Parameter
+from prefect.engine.state import Success
+# from prefect.executors import LocalDaskExecutor
 
+import paths
 from sentiment_analysis.logic.analyzer import *
 from utils.util_tasks import mlflow_log_file
 
@@ -54,11 +58,15 @@ if __name__ == "__main__":
 
     # flow.register("test")
     # flow.visualize()
-    # flow.run(dict(start=datetime(year=2021, month=2, day=18),
-    #               end=datetime(year=2021, month=2, day=20)))
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Tests")
 
+    gc_download_task = flow.get_tasks("get_from_gc")[0]
+    task_states = {gc_download_task: Success(
+        "Skip GC download",
+        result=pd.read_csv(paths.tests_path / "files" / "test_gc_dump_small.csv", sep=";"))}
+
     with mlflow.start_run():
-        flow.run(dict(start=datetime(year=2021, month=2, day=18), end=datetime(year=2021, month=2, day=20)))
+        flow.run(dict(start=datetime(year=2021, month=5, day=1), end=datetime(year=2021, month=5, day=14)),
+                 task_states=task_states)
