@@ -1,4 +1,4 @@
-name: sa
+name: env
 channels:
   - anaconda
   - conda-forge
