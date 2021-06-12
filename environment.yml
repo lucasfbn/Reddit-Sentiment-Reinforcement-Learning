@@ -1,0 +1,37 @@
+name: null
+channels:
+  - anaconda
+  - conda-forge
+  - defaults
+dependencies:
+  - conda=4.10.1=py37h03978a9_0
+  - conda-build=3.21.4=py37haa95532_0
+  - conda-package-handling=1.7.3=py37h8cc25b3_1
+  - graphviz=2.38=hfd603c8_2
+  - pip=21.0.1=py37haa95532_0
+  - python-graphviz=0.16=pyhd3deb0d_1
+  - requests=2.25.1=pyhd3eb1b0_0
+  - pip:
+    - google-api-core==1.26.3
+    - google-auth==1.29.0
+    - google-auth-oauthlib==0.4.4
+    - google-cloud-bigquery==2.16.0
+    - google-cloud-bigquery-storage==2.4.0
+    - google-cloud-core==1.6.0
+    - google-crc32c==1.1.2
+    - google-pasta==0.2.0
+    - google-resumable-media==1.2.0
+    - googleapis-common-protos==1.53.0
+    - mlflow==1.15.0
+    - nltk==3.6.1
+    - pandas==1.2.4
+    - pandas-gbq==0.15.0
+    - praw==7.2.0
+    - prawcore==2.0.0
+    - prefect==0.14.19
+    - psaw==0.1.0
+    - pytest==6.2.4
+    - regex==2021.4.4
+    - tqdm==4.60.0
+    - yfinance==0.1.59
+prefix: C:\Users\lucas\Miniconda3\envs\tensorfrc
