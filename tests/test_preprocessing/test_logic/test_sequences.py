@@ -117,3 +117,12 @@ def test_arr_sequence():
 
     for r, e in zip(result, expected):
         assert_frame_equal(r.reset_index(drop=True), e)
+
+
+def test_sequence_len_too_long():
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7]})
+
+    seq = Sequence(df, sequence_len=8, include_available_days_only=False)
+
+    result = seq.slice_sequences()
+    assert len(result) == 0
