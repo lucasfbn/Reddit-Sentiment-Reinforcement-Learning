@@ -1,4 +1,5 @@
 from datetime import datetime
+import re
 
 import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
@@ -166,6 +167,20 @@ def load_valid_ticker(valid_ticker_path):
     return ticker.values.tolist()
 
 
+"""
+Regex compiled outside of method so it is only called (compiled) once
+Explanation:
+(?<=\W)|(^)) - look behind whether the character prior to the current one was not a word and not the 
+ start of the line
+[A-Z]{2,5} - match any uppercase word with length between 2 and 5 characters 
+(?=(\W|$)) - look ahead whether the character after the current one is not a word and not the end of the line
+
+For further informations on look behind/ahead:
+ https://stackoverflow.com/questions/2973436/regex-lookahead-lookbehind-and-atomic-groups
+"""
+ticker_regex = re.compile(r"((?<=\W)|(^))[A-Z]{2,5}(?=(\W|$))", re.MULTILINE)
+
+
 def extract_ticker(txt: str, valid_ticker: list, ticker_blacklist: list):
     """
     Extracts (stock) ticker from a given string. Each ticker has to be in the valid_ticker list and will be ignored
@@ -180,24 +195,24 @@ def extract_ticker(txt: str, valid_ticker: list, ticker_blacklist: list):
         A list of all ticker that have been found in the txt
     """
 
-    # TODO Make detection of ticker more precise (currently, "GME, TSLA" will not recognize "GME" for example)
-    # TODO See test
-
     # TODO We could replace "word not in occured_ticker" by list(set(occured_ticker)) before return occured_ticker
     # However, this changes order from time to time and thus the tests will fail. Also not sure if this improves
     # performance. It's probably rather unimportant.
 
     occurred_ticker = []
-    try:
-        words = txt.split(" ")
-    except (TypeError, AttributeError):
+
+    # Case when nan for instance
+    if not isinstance(txt, str):
         return None
 
-    for word in words:
-        if len(word) <= 5 and \
-                word not in ticker_blacklist and \
-                word in valid_ticker and \
-                word not in occurred_ticker:
+    potential_ticker = []
+
+    occurred_ticker = []
+    for match in ticker_regex.finditer(txt):
+        potential_ticker.append(match.group())
+
+    for word in potential_ticker:
+        if word not in ticker_blacklist and word in valid_ticker and word not in occurred_ticker:
             occurred_ticker.append(word)
 
     if not occurred_ticker:

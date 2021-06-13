@@ -72,12 +72,14 @@ def test_extract_ticker():
     # Convert expected to list(set()) since order might be changed in extract_ticker
     assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == ["GME", "TSLA", "AAPL"]
 
-    # TODO Recognize all ticker in this case
     txt = "GME, TSLA, AAPL"
-    assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == ["AAPL"]
+    assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == ['GME', 'TSLA', 'AAPL']
+
+    txt = "GME,TSLA,AAPL"
+    assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == ['GME', 'TSLA', 'AAPL']
 
     txt = "GME&TSLA&AAPL"
-    assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == None
+    assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == ['GME', 'TSLA', 'AAPL']
 
     txt = "GME & TSLA & AAPL"
     assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == ["GME", "TSLA", "AAPL"]
@@ -86,9 +88,22 @@ def test_extract_ticker():
     txt = "GME GME GME"
     assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == ['GME']
 
+    # Check numeric
+    txt = "GME 1TSLA1 1AAPL1"
+    assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == ["GME"]
+
     # Check blacklist
     txt = "GME TSLA AAPL BLK"
     assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=["BLK"]) == ["GME", "TSLA", "AAPL"]
+
+    txt = "GMETSLAAAPL"
+    assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == None
+
+    txt = "1GME1TSLA1AAPL1"
+    assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == None
+
+    txt = "1GME1 TSLA1 AAPL1"
+    assert extract_ticker(txt, valid_ticker=valid_ticker, ticker_blacklist=[]) == None
 
 
 def test_get_submission_ticker():
