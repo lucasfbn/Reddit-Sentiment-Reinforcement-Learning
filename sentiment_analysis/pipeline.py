@@ -3,7 +3,7 @@ import mlflow
 from prefect import Flow, Parameter
 from prefect.engine.state import Success
 
-from sentiment_analysis.logic.analyzer import *
+from sentiment_analysis.tasks import *
 from utils.util_tasks import mlflow_log_file
 
 mlflow.set_tracking_uri(paths.mlflow_path)

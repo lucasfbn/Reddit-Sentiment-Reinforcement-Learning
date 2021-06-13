@@ -5,7 +5,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from prefect import task
 
 import paths
-from sentiment_analysis.logic.timespan import Timespan
+from sentiment_analysis.timespan import Timespan
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 
 

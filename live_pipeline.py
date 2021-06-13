@@ -10,7 +10,7 @@ from evaluate.eval_portfolio import EvalLive
 from learning_tensorforce.agent import RLAgent
 from learning_tensorforce.env import EnvCNN
 from preprocessing.dataset_loader import DatasetLoader
-from sentiment_analysis.sentiment_analysis_pipeline import flow as sentiment_analysis_flow
+from sentiment_analysis.pipeline import flow as sentiment_analysis_flow
 from utils import log
 from evaluate.cross_validate_evaluation import ParameterTuning, Interval
 

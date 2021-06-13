@@ -1,7 +1,7 @@
 from pandas import Timestamp, Period
 from pandas.testing import assert_frame_equal
 
-from sentiment_analysis.logic.analyzer import *
+from sentiment_analysis.tasks import *
 
 
 def test_get_from_gc():
