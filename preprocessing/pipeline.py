@@ -6,7 +6,7 @@ import mlflow
 import prefect
 from prefect import Flow, Parameter, unmapped
 from prefect.engine.state import Success
-from prefect.executors import LocalExecutor
+from prefect.executors import LocalExecutor, LocalDaskExecutor
 
 import paths
 from preprocessing.tasks import *
@@ -73,10 +73,12 @@ with Flow("preprocessing") as flow:
 
     ticker = make_sequences.map(ticker, unmapped(sequence_length), unmapped(include_available_days_only))
 
+    _ = mlflow_log_file(ticker, "ticker.pkl")
+
 
 def main(test_mode=False):
-    # flow.executor = LocalDaskExecutor(scheduler="processes", num_workers=8)
-    flow.executor = LocalExecutor()
+    flow.executor = LocalDaskExecutor(scheduler="processes", num_workers=8)
+    # flow.executor = LocalExecutor()
 
     if test_mode:
         import pickle as pkl
@@ -88,7 +90,7 @@ def main(test_mode=False):
         task_states = {task: Success("test_mode", result=file)}
         with mlflow.start_run():
             flow.run(task_states=task_states)
-    if not test_mode:
+    else:
         df = pd.read_csv(
             "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/3/39aaaaa5c33741218844a315f229093d/artifacts/report.csv",
             sep=";")
