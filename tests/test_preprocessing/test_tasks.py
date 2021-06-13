@@ -1,8 +1,8 @@
-import pandas as pd
-from preprocessing.logic.logic import *
+import pytest
 from pandas import Timestamp, Period
 from pandas.testing import assert_frame_equal, assert_series_equal
-import pytest
+
+from preprocessing.tasks import *
 
 
 def test_add_time():
@@ -30,15 +30,7 @@ def test_shift_time():
     assert_frame_equal(result, expected)
 
 
-def test_get_min_max_time():
-    df = pd.DataFrame([{date_day_shifted_col: Period('2021-05-21', 'D')},
-                       {date_day_shifted_col: Period('2021-05-19', 'D')},
-                       {date_day_shifted_col: Period('2021-05-22', 'D')}])
-    result_0, result_1 = get_min_max_time.run(df)
-    assert Period('2021-05-19', 'D') == result_0 and Period('2021-05-22', 'D') == result_1
-
-
-def test_scale_daywise():
+def test_scale_sentiment_data_daywise():
     df = pd.DataFrame([
         {date_day_shifted_col: Period('2021-05-21', 'D'), 'to_be_scaled': 0, "exclude": 999},
         {date_day_shifted_col: Period('2021-05-21', 'D'), 'to_be_scaled': 1, "exclude": 777},
@@ -46,7 +38,7 @@ def test_scale_daywise():
     ])
 
     # Scale without dropping cols afterwards
-    result = scale_daywise.run(df, cols_to_be_scaled=["to_be_scaled"], drop_scaled_cols=False)
+    result = scale_sentiment_data_daywise.run(df, sentiment_data_cols=["to_be_scaled"], drop_unscaled_cols=False)
     expected = pd.DataFrame([
         {date_day_shifted_col: Period('2021-05-21', 'D'), 'to_be_scaled': 0, "exclude": 999,
          "to_be_scaled_scaled": 0.00000},
@@ -55,10 +47,11 @@ def test_scale_daywise():
         {date_day_shifted_col: Period('2021-05-21', 'D'), 'to_be_scaled': 2, "exclude": 888,
          "to_be_scaled_scaled": 1.00000}
     ])
-    assert_frame_equal(result, expected)
+    assert_frame_equal(result[0], expected)
+    assert result[1] == ["to_be_scaled", "to_be_scaled_scaled"]
 
     # Scale with dropping cols afterwards
-    result = scale_daywise.run(df, cols_to_be_scaled=["to_be_scaled"], drop_scaled_cols=True)
+    result = scale_sentiment_data_daywise.run(df, sentiment_data_cols=["to_be_scaled"], drop_unscaled_cols=True)
     expected = pd.DataFrame([
         {date_day_shifted_col: Period('2021-05-21', 'D'), "exclude": 999,
          "to_be_scaled_scaled": 0.00000},
@@ -67,7 +60,8 @@ def test_scale_daywise():
         {date_day_shifted_col: Period('2021-05-21', 'D'), "exclude": 888,
          "to_be_scaled_scaled": 1.00000}
     ])
-    assert_frame_equal(result, expected)
+    assert_frame_equal(result[0], expected)
+    assert result[1] == ["to_be_scaled_scaled"]
 
 
 def test_grp_by_ticker():
@@ -178,7 +172,7 @@ def test_backfill_availability():
 def test_assign_price_col():
     df = pd.DataFrame({"test_1": [1, 2], "test_2": [3, 4]})
     result = assign_price_col.run(Ticker(None, df), price_col="test_1")
-    expected = pd.DataFrame({"test_2": [3, 4], "price": [1, 2]})
+    expected = pd.DataFrame({"test_1": [1, 2], "test_2": [3, 4], "price": [1, 2]})
 
     assert_frame_equal(result.df, expected)
 
@@ -244,8 +238,8 @@ def test_drop_irrelevant_columns():
 
 def test_fill_missing_sentiment_data():
     df = pd.DataFrame({"data": [None, 10, None]})
-    result = fill_missing_sentiment_data.run(Ticker(None, df))
-    expected = pd.Series([0, 10, 0])
+    result = fill_missing_sentiment_data.run(Ticker(None, df), ["data"])
+    expected = pd.Series([0.0, 10.0, 0.0])
 
     assert_series_equal(result.df["data"], expected, check_names=False)
 
@@ -266,3 +260,60 @@ def test_add_metric_rel_price_change():
     result = add_metric_rel_price_change.run(ticker)
     expected = pd.Series([0.0, 1.0, 0.5, 0.333333, 0.25, 1.0])
     assert_series_equal(result.df["price_rel_change"], expected, check_exact=False, check_names=False)
+
+
+def test_scale_price_data():
+    df = pd.DataFrame({"price": [1, 2, 3, 4, 5, 10]})
+    ticker = Ticker(None, df)
+
+    # Without dropping
+    result = scale_price_data.run(ticker, price_data_columns=["price"], drop_unscaled_cols=False)
+
+    expected = pd.DataFrame({"price": [1, 2, 3, 4, 5, 10],
+                             "price_scaled": [0.00000, 0.11111, 0.22222, 0.333333, 0.444444, 1.00000]})
+
+    assert_frame_equal(result[0].df, expected)
+    assert result[1] == ["price", "price_scaled"]
+
+    # With dropping
+    result = scale_price_data.run(ticker, price_data_columns=["price"], drop_unscaled_cols=True)
+
+    expected = pd.DataFrame({"price_scaled": [0.00000, 0.11111, 0.22222, 0.333333, 0.444444, 1.00000]})
+
+    assert_frame_equal(result[0].df, expected)
+    assert result[1] == ["price_scaled"]
+
+
+def test_make_sequence():
+    # For more tests see test_sequences
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5]})
+    ticker = Ticker(None, df)
+
+    result = make_sequences.run(ticker, 3, False)
+
+    expected_flat_sequence = [
+        pd.DataFrame({"dummy/0": [1], "dummy/1": [2], "dummy/2": [3]}),
+        pd.DataFrame({"dummy/1": [2], "dummy/2": [3], "dummy/3": [4]}),
+        pd.DataFrame({"dummy/2": [3], "dummy/3": [4], "dummy/4": [5]}),
+    ]
+
+    for r, e in zip(result.flat_sequence, expected_flat_sequence):
+        r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r, e, check_column_type=False)
+
+    expected_arr_sequence = [
+        pd.DataFrame({"dummy": [1, 2, 3]}),
+        pd.DataFrame({"dummy": [2, 3, 4]}),
+        pd.DataFrame({"dummy": [3, 4, 5]})
+    ]
+
+    for r, e in zip(result.flat_sequence, expected_flat_sequence):
+        assert_frame_equal(r, e)
+
+
+def test_remove_old_price_col_from_price_data_columns():
+    price_data_columns = ["Close", "Open"]
+    price_column = "Close"
+
+    result = remove_old_price_col_from_price_data_columns.run(price_data_columns, price_column)
+    assert result == ["Open", "price"]

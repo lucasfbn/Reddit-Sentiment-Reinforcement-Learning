@@ -1,8 +1,11 @@
+from typing import Tuple
+
 import pandas as pd
 from prefect import task
-from typing import Tuple
 from sklearn.preprocessing import MinMaxScaler
-from preprocessing.logic.stock_prices import StockPrices, MissingDataException, OldDataException
+
+from preprocessing.sequences import FlatSequence, ArraySequence
+from preprocessing.stock_prices import StockPrices, MissingDataException, OldDataException
 
 date_col = "date"
 date_day_col = "date_day"
@@ -15,7 +18,11 @@ class Ticker:
     def __init__(self, name, df):
         self.df = df
         self.name = name
+        self.metadata = None
         self.exclude = False
+
+        self.flat_sequence = None
+        self.array_sequence = None
 
 
 @task
@@ -23,14 +30,12 @@ def add_time(df: pd.DataFrame) -> pd.DataFrame:
     """
     Parses and sorts the date.
 
-    Args:
-        df:
-
-    Returns:
-
+    Adds:
+        [date_col, date_day_col]
     """
     df[date_col] = pd.to_datetime(df["end"], format="%Y-%m-%d %H:%M")
     df[date_day_col] = df[date_col].dt.to_period('D')
+
     df = df.sort_values(by=[date_col])
     return df
 
@@ -63,8 +68,8 @@ def shift_time(df: pd.DataFrame, start_hour: int, start_min: int) -> pd.DataFram
         start_hour: A given hour at which to start a 24h observation range
         start_min: A given minute at which to start a 24h observation range
 
-    Returns:
-
+    Adds:
+        [date_shifted_col, date_day_shifted_col]
     """
     df[date_shifted_col] = df[date_col] - pd.Timedelta(hours=start_hour,
                                                        minutes=start_min) + pd.Timedelta(days=1)
@@ -74,39 +79,71 @@ def shift_time(df: pd.DataFrame, start_hour: int, start_min: int) -> pd.DataFram
 
 
 @task
-def get_min_max_time(df: pd.DataFrame) -> Tuple[pd.Period, pd.Period]:
-    return df[date_day_shifted_col].min(), df[date_day_shifted_col].max()
+def drop_columns(df: pd.DataFrame, columns_to_be_dropped: list):
+    """
+    Drops columns from a df.
+    """
+    return df.drop(columns=columns_to_be_dropped)
+
+
+def handle_scaled_columns(df: pd.DataFrame, unscaled_cols: list, drop_unscaled_cols: bool) \
+        -> Tuple[pd.DataFrame, list]:
+    """
+    Handles columns after scaling. If drop_unscaled_cols is True, the unscaled columns will be dropped from the df and
+    only the scaled columns will be returned as the new columns. Otherwise the scaled columns will be added to the
+    unscaled columns and returned
+
+    Args:
+        df:
+        unscaled_cols: List of columns that got scaled
+        drop_unscaled_cols: Whether to drop the raw column (names)
+    """
+
+    scaled_cols = [col + "_scaled" for col in unscaled_cols]
+
+    if drop_unscaled_cols:
+        df = df.drop(columns=unscaled_cols)
+        new_cols = scaled_cols
+    else:
+        new_cols = unscaled_cols + scaled_cols
+
+    return df, new_cols
 
 
 @task
-def scale_daywise(df: pd.DataFrame, cols_to_be_scaled: list, drop_scaled_cols: bool) -> pd.DataFrame:
+def scale_sentiment_data_daywise(df: pd.DataFrame, sentiment_data_cols: list,
+                                 drop_unscaled_cols: bool) -> Tuple[pd.DataFrame, list]:
     """
     Scales all columns, which are in cols_to_be_scaled daywise. Therefore, group for the (shifted)
     date prior to scaling.
 
     Args:
         df:
-        cols_to_be_scaled: List of columns that shall not be scaled
-        drop_scaled_cols: Whether to drop the raw columns after scaling or not
+        sentiment_data_cols: List of columns that shall not be scaled
+        drop_unscaled_cols: Whether to drop the raw columns after scaling or not
 
     Returns:
-
+        The scaled df and the new sentiment data column when drop_unscaled_cols was True. Else the old sentiment data
+        columns + the new scaled columns will be returned.
     """
     dates = df.groupby([date_day_shifted_col])
 
-    scaler = MinMaxScaler()
     scaled = []
 
     for date, date_df in dates:
-        date_df[[col + "_scaled" for col in cols_to_be_scaled]] = scaler.fit_transform(date_df[cols_to_be_scaled])
+        date_df = scale(date_df, sentiment_data_cols)
         scaled.append(date_df)
 
     new_df = pd.concat(scaled)
 
-    if drop_scaled_cols:
-        new_df = new_df.drop(columns=cols_to_be_scaled)
+    new_df, sentiment_data_cols = handle_scaled_columns(new_df, sentiment_data_cols, drop_unscaled_cols)
+    return new_df, sentiment_data_cols
 
-    return new_df
+
+def scale(df: pd.DataFrame, cols_to_be_scaled: list):
+    scaler = MinMaxScaler()
+    df[[col + "_scaled" for col in cols_to_be_scaled]] = scaler.fit_transform(df[cols_to_be_scaled])
+    return df
 
 
 @task
@@ -186,6 +223,9 @@ def mark_trainable_days(ticker: Ticker, ticker_min_len: int) -> Ticker:
         ticker: Ticker instance
         ticker_min_len: The minimum number of entries for each ticker
 
+    Adds:
+        ["available"]
+
     Returns:
         Same Ticker instance but with added "available" column
     """
@@ -209,6 +249,9 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
     between two dates will be filled with price data (as long as there is any at the specific day).
     If any price related exception occurs the ticker will be marked to be excluded (in one of the next tasks).
 
+    Adds:
+        ["Open", "High", "Low", "Close", "Volume", "Adj Close"]
+
     Args:
         ticker: Ticker instance
         price_data_start_offset: Offset in days from the min_date in the ticker.df. This is useful when you want to add
@@ -216,9 +259,6 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
         enable_live_behaviour: Whether to enable the live behaviour. When this is true the max date in the ticker df is
          ignored and the current date will be taken instead. Also, some additional assertions are checked.
          See stock_prices.py for additional informations.
-
-    Returns:
-
     """
 
     sp = StockPrices(ticker_name=ticker.name, ticker_df=ticker.df, start_offset=price_data_start_offset,
@@ -314,13 +354,12 @@ def assign_price_col(ticker: Ticker, price_col: str) -> Ticker:
 
     Args:
         ticker:
-        price_col:
+        price_col: Used price ("Close", "Open" etc.)
 
-    Returns:
-
+    Adds:
+        ["price"]
     """
     ticker.df["price"] = ticker.df[price_col]
-    ticker.df = ticker.df.drop(columns=[price_col])
     return ticker
 
 
@@ -336,13 +375,23 @@ def mark_tradeable_days(ticker: Ticker) -> Ticker:
     Args:
         ticker:
 
-    Returns:
+    Adds:
+        ["tradeable"]
 
     """
 
     ticker.df["temp_weekday"] = ticker.df[date_col].dt.dayofweek
     ticker.df["tradeable"] = ticker.df["temp_weekday"] < 5
     ticker.df = ticker.df.drop(columns=["temp_weekday"])
+    return ticker
+
+
+@task
+def drop_ticker_df_columns(ticker: Ticker, columns_to_be_dropped: list) -> Ticker:
+    """
+    Drops columns from a ticker df.
+    """
+    ticker.df = ticker.df.drop(columns=columns_to_be_dropped)
     return ticker
 
 
@@ -367,12 +416,6 @@ def mark_ticker_where_all_prices_are_nan(ticker: Ticker) -> Ticker:
     """
     Marks ticker to exclude when the whole price column is None. The forward fill from the preceding task will not cover
      this case since it would just forward fill with nan.
-
-    Args:
-        ticker:
-
-    Returns:
-
     """
 
     if ticker.df["price"].isnull().all():
@@ -396,23 +439,6 @@ def mark_ipo_ticker(ticker: Ticker) -> Ticker:
 
     if ticker.df["price"].isnull().any():
         ticker.exclude = True
-    return ticker
-
-
-@task
-def drop_irrelevant_columns(ticker: Ticker, irrelevant_columns: list) -> Ticker:
-    """
-    Drops irrelevant columns from the ticker df.
-
-    Args:
-        ticker:
-        irrelevant_columns:
-
-    Returns:
-
-    """
-
-    ticker.df = ticker.df.drop(columns=irrelevant_columns)
     return ticker
 
 
@@ -472,4 +498,70 @@ def add_metric_rel_price_change(ticker: Ticker) -> Ticker:
             rel_change.append((prices[i] - prices[i - 1]) / (prices[i - 1]))
 
     ticker.df["price_rel_change"] = rel_change
+    return ticker
+
+
+@task
+def remove_old_price_col_from_price_data_columns(price_data_columns: list, price_column: str):
+    """
+    Removes the used price (mostly "Close") from the price_data list and adds the new price column (which is basically
+    the old price column renamed)
+
+    Args:
+        price_data_columns: List of price data columns
+        price_column: Used price column (like "Close", "Open", ...)
+    """
+    price_data_columns.remove(price_column)
+    price_data_columns += ["price"]
+    return price_data_columns
+
+
+@task
+def scale_price_data(ticker: Ticker, price_data_columns: list, drop_unscaled_cols: bool) -> Tuple[Ticker, list]:
+    """
+    Scales the price data (or any other arbitrage list of columns).
+
+    Args:
+        ticker:
+        price_data_columns: Column names of the price data
+        drop_unscaled_cols:
+    """
+
+    ticker.df = scale(ticker.df, cols_to_be_scaled=price_data_columns)
+    ticker.df, price_data_columns = handle_scaled_columns(ticker.df, price_data_columns, drop_unscaled_cols)
+    return ticker, price_data_columns
+
+
+@task
+def add_metadata_to_ticker(ticker: Ticker, metadata_cols: list) -> Ticker:
+    """
+    Basically copies part of the df to a separate df. This might be useful later on when the actual df is transformed
+    into a timeseries.
+
+    Args:
+        ticker:
+        metadata_cols:
+    """
+    ticker.metadata = ticker.df[metadata_cols]
+    return ticker
+
+
+@task
+def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_only: bool) -> Ticker:
+    """
+    Generates flat and array sequences from a given ticker df. For further details on what sequences are please check
+    the documentation in the sequence class (sequences.py) itself.
+
+    Args:
+        ticker:
+        sequence_length: Length of the desired sequence
+        include_available_days_only: Whether to filter sequences which were not available for trading
+    """
+    flat_seq = FlatSequence(df=ticker.df, sequence_len=sequence_length,
+                            include_available_days_only=include_available_days_only)
+    ticker.flat_sequence = flat_seq.make_sequence()
+
+    arr_seq = ArraySequence(df=ticker.df, sequence_len=sequence_length,
+                            include_available_days_only=include_available_days_only)
+    ticker.array_sequence = arr_seq.make_sequence()
     return ticker
