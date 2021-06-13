@@ -1,7 +1,7 @@
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-from preprocessing.logic.sequences import FlatSequence, ArraySequence, Sequence
+from preprocessing.sequences import FlatSequence, ArraySequence, Sequence
 
 
 def test_sequence_without_availability():

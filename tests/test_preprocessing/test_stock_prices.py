@@ -1,10 +1,11 @@
-import pandas as pd
-from preprocessing.logic.logic import Ticker
-from pandas import Timestamp, Period
-from pandas.testing import assert_frame_equal, assert_series_equal
-import pytest
 import datetime
-from preprocessing.logic.stock_prices import StockPrices, OldDataException, MissingDataException
+
+import pandas as pd
+import pytest
+from pandas import Period
+from pandas.testing import assert_series_equal
+
+from preprocessing.stock_prices import StockPrices, OldDataException, MissingDataException
 
 
 def test_historic():
