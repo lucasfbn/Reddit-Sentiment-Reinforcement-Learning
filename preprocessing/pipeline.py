@@ -33,6 +33,8 @@ with Flow("preprocessing") as flow:
     enable_live_behaviour = Parameter("enable_live_behaviour", default=False)
     include_available_days_only = Parameter("include_available_days_only", default=True)
     sequence_length = Parameter("sequence_length", default=3)
+    columns_to_be_excluded_from_sequences = Parameter("columns_to_be_excluded_from_sequences", default=["available",
+                                                                                                        "tradeable"])
 
     df = add_time(input_df)
     df = shift_time(df, start_hour, start_min)
@@ -71,7 +73,8 @@ with Flow("preprocessing") as flow:
     ticker, price_data_columns = unpack_union_mapping(temp_result)
     price_data_columns = reduce_list(price_data_columns)
 
-    ticker = make_sequences.map(ticker, unmapped(sequence_length), unmapped(include_available_days_only))
+    ticker = make_sequences.map(ticker, unmapped(sequence_length), unmapped(include_available_days_only),
+                                unmapped(columns_to_be_excluded_from_sequences), unmapped(price_column))
 
     _ = mlflow_log_file(ticker, "ticker.pkl")
 
@@ -101,5 +104,5 @@ def main(test_mode=False):
 
 if __name__ == "__main__":
     # flow.register("test")
-    # flow.visualize()
-    main(False)
+    flow.visualize()
+    # main(False)

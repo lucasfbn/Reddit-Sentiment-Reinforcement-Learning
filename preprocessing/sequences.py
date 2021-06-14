@@ -3,7 +3,7 @@ import pandas as pd
 
 class Sequence:
 
-    def __init__(self, df: pd.DataFrame, sequence_len: int, include_available_days_only: bool,
+    def __init__(self, df: pd.DataFrame, sequence_len: int, include_available_days_only: bool, last_column: str = None,
                  exclude_cols_from_sequence: list = []):
         """
         Generates sequences from a given dataframe.
@@ -12,12 +12,15 @@ class Sequence:
             df: Input dataframe
             sequence_len: Length of the desired sequence
             include_available_days_only: Whether to filter sequences which were not available for trading
+            last_column: Name of the last column (in most cases: "price"). The NN will use the last column of a sequence
+             as the price, therefore we have to ensure that the last column is the correct one
             exclude_cols_from_sequence: Cols that may be used during the generation of sequences but are not subject of
              the final sequences and can therefore be dropped
         """
         self.df = df
         self.sequence_len = sequence_len
         self.include_available_days_only = include_available_days_only
+        self.last_column = last_column
         self.exclude_cols_from_sequence = exclude_cols_from_sequence
 
         self._sequences = []
@@ -56,7 +59,31 @@ class Sequence:
         self._sequences = valid_sequences
         return self._sequences
 
+    def handle_column_order(self):
+        """
+        Reorders the columns of a sequence. The last_column will be the last column. (captain obvious)
+        """
+        if self.last_column is None:
+            return self._sequences
+
+        cols = self._sequences[0].columns.tolist()
+        cols.remove(self.last_column)
+        cols += [self.last_column]
+
+        new_sequences = []
+        for seq in self._sequences:
+            seq = seq[cols]
+            new_sequences.append(seq)
+        self._sequences = new_sequences
+        return self._sequences
+
     def exclude_columns(self):
+        """
+        Drops columns from a sequence.
+        """
+        if not self.exclude_cols_from_sequence:
+            return self._sequences
+
         new_sequences = []
         for seq in self._sequences:
             new_sequences.append(seq.drop(columns=self.exclude_cols_from_sequence))
@@ -66,6 +93,7 @@ class Sequence:
     def _make_sequence(self):
         self.slice_sequences()
         self.filter_availability()
+        self.handle_column_order()
         self.exclude_columns()
 
     def make_sequence(self):
@@ -89,7 +117,7 @@ class FlatSequence(Sequence):
         # TODO Might be faster to use numpy reshape here - but we would have to deal with the column names then
         new_sequences = []
         for sequence in self._sequences:
-            new_sequences.append(sequence.unstack().to_frame().sort_index(level=1).T)
+            new_sequences.append(sequence.unstack().to_frame().T)
         self._sequences = new_sequences
         return self._sequences
 

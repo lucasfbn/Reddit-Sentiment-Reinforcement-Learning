@@ -165,3 +165,49 @@ def test_flat_sequence_drop_available():
     for r, e in zip(result, expected):
         r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
         assert_frame_equal(r, e, check_column_type=False)
+
+
+def test_flat_sequence_column_order():
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "price": [10, 11, 12, 13, 14, 15, 16]})
+
+    fs = FlatSequence(df=df, sequence_len=3, include_available_days_only=False,
+                      exclude_cols_from_sequence=[], last_column="dummy")
+    result = fs.make_sequence()
+
+    expected = [
+        pd.DataFrame(
+            {"price/0": [10], "price/1": [11], "price/2": [12], "dummy/0": [1], "dummy/1": [2], "dummy/2": [3]}),
+        pd.DataFrame(
+            {"price/1": [11], "price/2": [12], "price/3": [13], "dummy/1": [2], "dummy/2": [3], "dummy/3": [4]}),
+        pd.DataFrame(
+            {"price/2": [12], "price/3": [13], "price/4": [14], "dummy/2": [3], "dummy/3": [4], "dummy/4": [5]}),
+        pd.DataFrame(
+            {"price/3": [13], "price/4": [14], "price/5": [15], "dummy/3": [4], "dummy/4": [5], "dummy/5": [6]}),
+        pd.DataFrame(
+            {"price/4": [14], "price/5": [15], "price/6": [16], "dummy/4": [5], "dummy/5": [6], "dummy/6": [7]}),
+    ]
+
+    for r, e in zip(result, expected):
+        r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r, e, check_column_type=False)
+
+    fs = FlatSequence(df=df, sequence_len=3, include_available_days_only=False,
+                      exclude_cols_from_sequence=[], last_column="price")
+    result = fs.make_sequence()
+
+    expected = [
+        pd.DataFrame(
+            {"dummy/0": [1], "dummy/1": [2], "dummy/2": [3], "price/0": [10], "price/1": [11], "price/2": [12]}),
+        pd.DataFrame(
+            {"dummy/1": [2], "dummy/2": [3], "dummy/3": [4], "price/1": [11], "price/2": [12], "price/3": [13]}),
+        pd.DataFrame(
+            {"dummy/2": [3], "dummy/3": [4], "dummy/4": [5], "price/2": [12], "price/3": [13], "price/4": [14]}),
+        pd.DataFrame(
+            {"dummy/3": [4], "dummy/4": [5], "dummy/5": [6], "price/3": [13], "price/4": [14], "price/5": [15]}),
+        pd.DataFrame(
+            {"dummy/4": [5], "dummy/5": [6], "dummy/6": [7], "price/4": [14], "price/5": [15], "price/6": [16]}),
+    ]
+
+    for r, e in zip(result, expected):
+        r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r, e, check_column_type=False)
