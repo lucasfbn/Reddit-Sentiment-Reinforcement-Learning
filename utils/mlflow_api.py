@@ -6,6 +6,10 @@ from pathlib import Path
 import mlflow
 import pandas as pd
 
+import paths
+
+mlflow.set_tracking_uri(paths.mlflow_path)
+
 
 def _get_kind(fn):
     kind = fn.split(".")[1]
@@ -48,9 +52,11 @@ def log_file(file, fn):
 def load_file(run_id, fn, experiment=None):
     kind = _get_kind(fn)
 
+    active_run = mlflow.active_run()
+
     if experiment is not None:
-        active_run = mlflow.active_run()
-        active_experiment = mlflow.get_experiment(active_run.info.experiment_id).name
+        if active_run is not None:
+            active_experiment = mlflow.get_experiment(active_run.info.experiment_id).name
         mlflow.set_experiment(experiment)
 
     from_run = mlflow.get_run(run_id)
@@ -67,7 +73,7 @@ def load_file(run_id, fn, experiment=None):
     else:
         raise NotImplementedError
 
-    if experiment is not None:
+    if experiment is not None and active_run is not None:
         mlflow.set_experiment(active_experiment)
 
     return file
