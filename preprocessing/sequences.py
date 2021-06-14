@@ -3,7 +3,8 @@ import pandas as pd
 
 class Sequence:
 
-    def __init__(self, df: pd.DataFrame, sequence_len: int, include_available_days_only: bool):
+    def __init__(self, df: pd.DataFrame, sequence_len: int, include_available_days_only: bool,
+                 exclude_cols_from_sequence: list = []):
         """
         Generates sequences from a given dataframe.
 
@@ -11,10 +12,13 @@ class Sequence:
             df: Input dataframe
             sequence_len: Length of the desired sequence
             include_available_days_only: Whether to filter sequences which were not available for trading
+            exclude_cols_from_sequence: Cols that may be used during the generation of sequences but are not subject of
+             the final sequences and can therefore be dropped
         """
         self.df = df
         self.sequence_len = sequence_len
         self.include_available_days_only = include_available_days_only
+        self.exclude_cols_from_sequence = exclude_cols_from_sequence
 
         self._sequences = []
 
@@ -52,6 +56,18 @@ class Sequence:
         self._sequences = valid_sequences
         return self._sequences
 
+    def exclude_columns(self):
+        new_sequences = []
+        for seq in self._sequences:
+            new_sequences.append(seq.drop(columns=self.exclude_cols_from_sequence))
+        self._sequences = new_sequences
+        return self._sequences
+
+    def _make_sequence(self):
+        self.slice_sequences()
+        self.filter_availability()
+        self.exclude_columns()
+
     def make_sequence(self):
         """
         Wrapper to run through all steps to create a sequence
@@ -78,8 +94,7 @@ class FlatSequence(Sequence):
         return self._sequences
 
     def make_sequence(self):
-        self.slice_sequences()
-        self.filter_availability()
+        self._make_sequence()
         self.flatten()
         return self._sequences
 
@@ -87,6 +102,5 @@ class FlatSequence(Sequence):
 class ArraySequence(Sequence):
 
     def make_sequence(self):
-        self.slice_sequences()
-        self.filter_availability()
+        self._make_sequence()
         return self._sequences
