@@ -12,7 +12,6 @@ import paths
 from preprocessing.tasks import *
 from utils.util_tasks import mlflow_log_file, unpack_union_mapping, reduce_list
 
-prefect.config.logging.level = "WARNING"
 mlflow.set_tracking_uri(paths.mlflow_path)
 mlflow.set_experiment("Tests")
 
@@ -73,8 +72,10 @@ with Flow("preprocessing") as flow:
     ticker, price_data_columns = unpack_union_mapping(temp_result)
     price_data_columns = reduce_list(price_data_columns)
 
-    ticker = make_sequences.map(ticker, unmapped(sequence_length), unmapped(include_available_days_only),
-                                unmapped(columns_to_be_excluded_from_sequences), unmapped(price_column))
+    ticker = make_sequences.map(ticker, unmapped(sequence_length),
+                                unmapped(include_available_days_only),
+                                unmapped(columns_to_be_excluded_from_sequences),
+                                unmapped(Parameter("price_col", default="price_scaled")))
 
     _ = mlflow_log_file(ticker, "ticker.pkl")
 
@@ -86,7 +87,7 @@ def main(test_mode=False):
     if test_mode:
         import pickle as pkl
         with open(
-                "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/8/7b048be9d52943ae9a8d26751c94eb27/artifacts/11.pkl",
+                "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/8/a974b4d81a434ea793e93e255ca18b19/artifacts/ticker.pkl",
                 "rb") as f:
             file = pkl.load(f)
         task = flow.get_tasks("temp")[0]
@@ -104,5 +105,5 @@ def main(test_mode=False):
 
 if __name__ == "__main__":
     # flow.register("test")
-    flow.visualize()
-    # main(False)
+    # flow.visualize()
+    main(False)
