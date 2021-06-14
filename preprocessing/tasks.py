@@ -547,7 +547,8 @@ def add_metadata_to_ticker(ticker: Ticker, metadata_cols: list) -> Ticker:
 
 
 @task
-def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_only: bool) -> Ticker:
+def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_only: bool,
+                   columns_to_be_excluded_from_sequences: list) -> Ticker:
     """
     Generates flat and array sequences from a given ticker df. For further details on what sequences are please check
     the documentation in the sequence class (sequences.py) itself.
@@ -556,12 +557,16 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
         ticker:
         sequence_length: Length of the desired sequence
         include_available_days_only: Whether to filter sequences which were not available for trading
+        columns_to_be_excluded_from_sequences: Cols that may be used during the generation of sequences but are not
+         subject of the final sequences and can therefore be dropped
     """
     flat_seq = FlatSequence(df=ticker.df, sequence_len=sequence_length,
-                            include_available_days_only=include_available_days_only)
+                            include_available_days_only=include_available_days_only,
+                            exclude_cols_from_sequence=columns_to_be_excluded_from_sequences)
     ticker.flat_sequence = flat_seq.make_sequence()
 
     arr_seq = ArraySequence(df=ticker.df, sequence_len=sequence_length,
-                            include_available_days_only=include_available_days_only)
+                            include_available_days_only=include_available_days_only,
+                            exclude_cols_from_sequence=columns_to_be_excluded_from_sequences)
     ticker.array_sequence = arr_seq.make_sequence()
     return ticker
