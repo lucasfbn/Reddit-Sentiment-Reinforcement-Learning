@@ -63,7 +63,7 @@ class Sequence:
         """
         Reorders the columns of a sequence. The last_column will be the last column. (captain obvious)
         """
-        if self.last_column is None:
+        if self.last_column is None or not self._sequences:  # If sequence is empty
             return self._sequences
 
         cols = self._sequences[0].columns.tolist()
