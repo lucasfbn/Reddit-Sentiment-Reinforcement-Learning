@@ -211,3 +211,12 @@ def test_flat_sequence_column_order():
     for r, e in zip(result, expected):
         r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
         assert_frame_equal(r, e, check_column_type=False)
+
+
+def test_empty_sequences():
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, False, False, False, False, False]})
+    seq = Sequence(df, sequence_len=3, include_available_days_only=True)
+    seq.slice_sequences()
+    result = seq.filter_availability()
+
+    assert not result
