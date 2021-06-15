@@ -574,3 +574,16 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
                             last_column=last_column)
     ticker.array_sequence = arr_seq.make_sequence()
     return ticker
+
+
+@task
+def mark_empty_sequences(ticker: Ticker):
+    """
+    Marks the sequences which are empty due to entries not being tradeable or available or being too short.
+    """
+    assert len(ticker.array_sequence) == len(ticker.flat_sequence)
+
+    if not ticker.array_sequence:
+        ticker.exclude = True
+
+    return ticker
