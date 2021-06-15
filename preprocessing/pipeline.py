@@ -76,6 +76,8 @@ with Flow("preprocessing") as flow:
                                 unmapped(include_available_days_only),
                                 unmapped(columns_to_be_excluded_from_sequences),
                                 unmapped(Parameter("price_col", default="price_scaled")))
+    ticker = mark_empty_sequences.map(ticker)
+    ticker = remove_excluded_ticker(ticker)
 
     _ = mlflow_log_file(ticker, "ticker.pkl")
 
