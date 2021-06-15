@@ -6,6 +6,7 @@ import mlflow
 import numpy as np
 from tensorforce import Environment
 
+from utils.mlflow_api import load_file
 from utils.util_funcs import log
 
 
@@ -106,7 +107,7 @@ class Env(Environment):
     def reset(self):
         self._episode_ended = False
 
-        self._x = copy.deepcopy(self._episode_data[self._counter]["data"])
+        self._x = copy.deepcopy(self._episode_data[self._counter].array_sequence)
         shuffle(self._x)
         self._counter += 1
         self._episode_counter += 1
@@ -121,7 +122,10 @@ class Env(Environment):
 
         self._inventory = deque()
 
-        self._state = self._x.popleft()
+        try:
+            self._state = self._x.popleft()
+        except:
+            pass
         self._state = self._shape_state(self._state)
 
         return self._state
@@ -131,8 +135,9 @@ class Env(Environment):
         max_ = 0
 
         for d in self.data:
-            if len(d["data"]) > max_:
-                max_ = len(d["data"])
+            assert len(d.array_sequence) == len(d.flat_sequence)
+            if len(d.array_sequence) > max_:
+                max_ = len(d.array_sequence)
 
         return max_
 
@@ -143,7 +148,7 @@ class Env(Environment):
 class EnvNN(Env):
 
     def states(self):
-        shape = self.data[0]["data"][0].shape
+        shape = self.data[0].flat_sequence[0].shape
         return dict(type="float", shape=(shape[1],))
 
     def _shape_state(self, state):
@@ -160,7 +165,7 @@ class EnvNN(Env):
 class EnvCNN(Env):
 
     def states(self):
-        shape = self.data[0]["data"][0].shape
+        shape = self.data[0].array_sequence[0].shape
         return dict(type="float", shape=(1, shape[0], shape[1]))
 
     def _shape_state(self, state):
@@ -182,22 +187,20 @@ if __name__ == "__main__":
     from preprocessing.dataset_loader import DatasetLoader
 
     mlflow.set_tracking_uri(paths.mlflow_path)
-    mlflow.set_experiment("Testing")  #
-    mlflow.start_run()
+    mlflow.set_experiment("Testing-Environment")  #
 
-    data = DatasetLoader(["3bf57f5ad0d94c0f8ab0848438b78808"]).merge()
-    EnvNN.data = data
+    with mlflow.start_run():
+        data = load_file(run_id="031bfd42e667441cb4a54056f11d60b2", fn="ticker.pkl", experiment="Tests")
+        EnvCNN.data = data
 
-    env = EnvNN()
+        env = EnvCNN()
 
-    for _ in range(10000):
-        states = env.reset()
-        terminal = False
+        for _ in range(10000):
+            states = env.reset()
+            terminal = False
+            print(_)
+            states_ = []
 
-        states_ = []
-
-        while not terminal:
-            actions = random.randint(0, 2)
-            states, terminal, reward = env.execute(actions=actions)
-
-    mlflow.end_run()
+            while not terminal:
+                actions = random.randint(0, 2)
+                states, terminal, reward = env.execute(actions=actions)
