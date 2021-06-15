@@ -184,8 +184,6 @@ if __name__ == "__main__":
     import paths
     import random
 
-    from preprocessing.dataset_loader import DatasetLoader
-
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Testing-Environment")  #
 
