@@ -16,9 +16,8 @@ tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 class RLAgent:
 
-    def __init__(self, environment, train_data, test_data=None):
-        self.train_data = train_data
-        self.test_data = test_data
+    def __init__(self, environment, ticker):
+        self.ticker = ticker
 
         self.artifact_path = None if mlflow.active_run() is None else "C:" + mlflow.get_artifact_uri().split(":")[2]
 
@@ -37,43 +36,47 @@ class RLAgent:
             self.agent.save(directory=path, format='numpy')
             self._agent_saved = True
 
-    def _eval(self, data, suffix):
+    @staticmethod
+    def _merge_actions(actions, actions_outputs):
+        df = pd.DataFrame(actions, columns=["action"]).reset_index(drop=True)
+        actions_outputs = pd.concat(actions_outputs, axis="rows").reset_index(drop=True)
+        df = pd.concat([df, actions_outputs], axis="columns")
+        return df
+
+    def _eval(self):
         log.info("Evaluating...")
+
         env = self.environment()
 
-        for grp in tqdm(data):
+        for ticker in tqdm(self.ticker, "Processing ticker "):
 
             actions = []
             actions_outputs = []
 
-            for state in grp["data"]:
-                state = env._shape_state(state)
-                a = self.agent.tracked_tensors()
+            for sequence in env.get_sequences(ticker):
+                state = env._shape_state(sequence).df
+
                 action = self.agent.act(state, independent=True)
+                action_proba = pd.DataFrame(
+                    [self.agent.tracked_tensors()["agent/policy/action_distribution/probabilities"]],
+                    columns=["hold_probability", "buy_probability", "sell_probability"])
+
                 actions.append(action)
+                actions_outputs.append(action_proba)
 
-                probas = pd.DataFrame([self.agent.tracked_tensors()["agent/policy/action_distribution/probabilities"]],
-                                      columns=["hold_probability", "buy_probability", "sell_probability"])
-                actions_outputs.append(probas)
+            ticker.add_eval(self._merge_actions(actions, actions_outputs))
 
-            grp["metadata"]["actions"] = actions
-            grp["metadata"] = grp["metadata"].reset_index(drop=True)
-            actions_outputs = pd.concat(actions_outputs, axis="rows").reset_index(drop=True)
-            grp["metadata"] = pd.concat([grp["metadata"], actions_outputs], axis="columns")
+    def eval_agent(self):
+        self._eval()
 
         if self.artifact_path is not None:
-            log_file(data, f"eval_{suffix}.pkl")
+            log_file(self.ticker, f"eval.pkl")
 
         if not self._agent_saved:
             self.save_agent()
 
-        return data
-
-    def eval_agent(self):
-        return self._eval(self.train_data, f"train")
-
     def train(self, n_full_episodes):
-        self.environment.data = self.train_data
+        self.environment.data = self.ticker
         environment = Environment.create(environment=self.environment)
 
         self.agent = Agent.create(
@@ -84,7 +87,7 @@ class RLAgent:
         )
 
         runner = Runner(agent=self.agent, environment=environment)
-        runner.run(num_episodes=int(n_full_episodes * len(self.train_data)))
+        runner.run(num_episodes=int(n_full_episodes * len(self.ticker)))
         runner.close()
 
         self.save_agent()
@@ -102,9 +105,9 @@ if __name__ == '__main__':
     mlflow.set_experiment("Learning")
 
     with mlflow.start_run():
-        rla = RLAgent(environment=EnvCNN, train_data=training_data)
+        rla = RLAgent(environment=EnvCNN, ticker=training_data)
         # rla.load_agent(
         #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
-        rla.train(n_full_episodes=15)
-        a = rla.eval_agent()[1]["thresholds"]
+        rla.train(n_full_episodes=1)
+        rla.eval_agent()
         rla.close()
