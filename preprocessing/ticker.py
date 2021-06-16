@@ -8,3 +8,8 @@ class Ticker:
 
         self.flat_sequence = None
         self.array_sequence = None
+
+        self.actions = None
+
+    def add_eval(self, actions):
+        self.actions = actions
