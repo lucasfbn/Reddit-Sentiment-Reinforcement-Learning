@@ -1,13 +1,13 @@
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-from preprocessing.sequences import FlatSequence, ArraySequence, Sequence
+from preprocessing.sequences import FlatSequenceGenerator, ArraySequenceGenerator, SequenceGenerator
 
 
 def test_sequence_without_availability():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7]})
 
-    seq = Sequence(df, sequence_len=3, include_available_days_only=False)
+    seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=False)
 
     result = seq.slice_sequences()
     expected = [
@@ -29,7 +29,7 @@ def test_sequence_without_availability():
 def test_sequence_longer_sequence_len():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7]})
 
-    seq = Sequence(df, sequence_len=4, include_available_days_only=False)
+    seq = SequenceGenerator(df, sequence_len=4, include_available_days_only=False)
 
     result = seq.slice_sequences()
     expected = [
@@ -50,7 +50,7 @@ def test_sequence_longer_sequence_len():
 
 def test_sequence_with_availability():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True]})
-    seq = Sequence(df, sequence_len=3, include_available_days_only=True)
+    seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True)
     seq.slice_sequences()
     result = seq.filter_availability()
 
@@ -67,7 +67,7 @@ def test_sequence_with_availability():
 
     # More not available dummies
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, False, True, True, True, True]})
-    seq = Sequence(df, sequence_len=3, include_available_days_only=True)
+    seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True)
     seq.slice_sequences()
     result = seq.filter_availability()
 
@@ -85,7 +85,7 @@ def test_sequence_with_availability():
 def test_flat_sequence():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7]})
 
-    fs = FlatSequence(df=df, sequence_len=3, include_available_days_only=False)
+    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False)
     result = fs.make_sequence()
 
     expected = [
@@ -104,7 +104,7 @@ def test_flat_sequence():
 def test_arr_sequence():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7]})
 
-    seq = ArraySequence(df=df, sequence_len=3, include_available_days_only=False)
+    seq = ArraySequenceGenerator(df=df, sequence_len=3, include_available_days_only=False)
     result = seq.make_sequence()
 
     expected = [
@@ -122,7 +122,7 @@ def test_arr_sequence():
 def test_sequence_len_too_long():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7]})
 
-    seq = Sequence(df, sequence_len=8, include_available_days_only=False)
+    seq = SequenceGenerator(df, sequence_len=8, include_available_days_only=False)
 
     result = seq.slice_sequences()
     assert len(result) == 0
@@ -130,7 +130,7 @@ def test_sequence_len_too_long():
 
 def test_exclude_cols():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True]})
-    seq = Sequence(df, sequence_len=3, include_available_days_only=True, exclude_cols_from_sequence=["available"])
+    seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True, exclude_cols_from_sequence=["available"])
     seq.slice_sequences()
     seq.filter_availability()
     result = seq.exclude_columns()
@@ -150,8 +150,8 @@ def test_exclude_cols():
 def test_flat_sequence_drop_available():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True]})
 
-    fs = FlatSequence(df=df, sequence_len=3, include_available_days_only=False,
-                      exclude_cols_from_sequence=["available"])
+    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
+                               exclude_cols_from_sequence=["available"])
     result = fs.make_sequence()
 
     expected = [
@@ -170,8 +170,8 @@ def test_flat_sequence_drop_available():
 def test_flat_sequence_column_order():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "price": [10, 11, 12, 13, 14, 15, 16]})
 
-    fs = FlatSequence(df=df, sequence_len=3, include_available_days_only=False,
-                      exclude_cols_from_sequence=[], last_column="dummy")
+    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
+                               exclude_cols_from_sequence=[], last_column="dummy")
     result = fs.make_sequence()
 
     expected = [
@@ -191,8 +191,8 @@ def test_flat_sequence_column_order():
         r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
         assert_frame_equal(r, e, check_column_type=False)
 
-    fs = FlatSequence(df=df, sequence_len=3, include_available_days_only=False,
-                      exclude_cols_from_sequence=[], last_column="price")
+    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
+                               exclude_cols_from_sequence=[], last_column="price")
     result = fs.make_sequence()
 
     expected = [
@@ -215,7 +215,7 @@ def test_flat_sequence_column_order():
 
 def test_empty_sequences():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, False, False, False, False, False]})
-    seq = Sequence(df, sequence_len=3, include_available_days_only=True)
+    seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True)
     seq.slice_sequences()
     result = seq.filter_availability()
 

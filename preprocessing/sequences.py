@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-class Sequence:
+class SequenceGenerator:
 
     def __init__(self, df: pd.DataFrame, sequence_len: int, include_available_days_only: bool, last_column: str = None,
                  exclude_cols_from_sequence: list = []):
@@ -106,7 +106,7 @@ class Sequence:
         return self._sequences
 
 
-class FlatSequence(Sequence):
+class FlatSequenceGenerator(SequenceGenerator):
 
     def flatten(self):
         """
@@ -127,7 +127,7 @@ class FlatSequence(Sequence):
         return self._sequences
 
 
-class ArraySequence(Sequence):
+class ArraySequenceGenerator(SequenceGenerator):
 
     def make_sequence(self):
         self._make_sequence()
