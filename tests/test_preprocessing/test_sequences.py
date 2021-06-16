@@ -1,7 +1,7 @@
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-from preprocessing.sequences import FlatSequenceGenerator, ArraySequenceGenerator, SequenceGenerator
+from preprocessing.sequences import *
 
 
 def test_sequence_without_availability():
@@ -49,21 +49,28 @@ def test_sequence_longer_sequence_len():
 
 
 def test_sequence_with_availability():
-    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True]})
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
+                       "price": list(range(10, 17)), "tradeable": [True] * 7})
     seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True)
     seq.slice_sequences()
+    seq.sliced_to_sequence_obj()
     result = seq.filter_availability()
 
     expected = [
-        pd.DataFrame({"dummy": [1, 2, 3], "available": [False, False, True]}),
-        pd.DataFrame({"dummy": [2, 3, 4], "available": [False, True, True]}),
-        pd.DataFrame({"dummy": [3, 4, 5], "available": [True, True, True]}),
-        pd.DataFrame({"dummy": [4, 5, 6], "available": [True, True, True]}),
-        pd.DataFrame({"dummy": [5, 6, 7], "available": [True, True, True]}),
+        pd.DataFrame({"dummy": [1, 2, 3], "available": [False, False, True],
+                      "price": [10, 11, 12], "tradeable": [True] * 3}),
+        pd.DataFrame({"dummy": [2, 3, 4], "available": [False, True, True],
+                      "price": [11, 12, 13], "tradeable": [True] * 3}),
+        pd.DataFrame({"dummy": [3, 4, 5], "available": [True, True, True],
+                      "price": [12, 13, 14], "tradeable": [True] * 3}),
+        pd.DataFrame({"dummy": [4, 5, 6], "available": [True, True, True],
+                      "price": [13, 14, 15], "tradeable": [True] * 3}),
+        pd.DataFrame({"dummy": [5, 6, 7], "available": [True, True, True],
+                      "price": [14, 15, 16], "tradeable": [True] * 3}),
     ]
 
     for r, e in zip(result, expected):
-        assert_frame_equal(r.reset_index(drop=True), e)
+        assert_frame_equal(r.df.reset_index(drop=True), e)
 
     # More not available dummies
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, False, True, True, True, True]})
@@ -72,20 +79,26 @@ def test_sequence_with_availability():
     result = seq.filter_availability()
 
     expected = [
-        pd.DataFrame({"dummy": [2, 3, 4], "available": [False, False, True]}),
-        pd.DataFrame({"dummy": [3, 4, 5], "available": [False, True, True]}),
-        pd.DataFrame({"dummy": [4, 5, 6], "available": [True, True, True]}),
-        pd.DataFrame({"dummy": [5, 6, 7], "available": [True, True, True]}),
+        pd.DataFrame({"dummy": [2, 3, 4], "available": [False, False, True],
+                      "price": [11, 12, 13], "tradeable": [True] * 3}),
+        pd.DataFrame({"dummy": [3, 4, 5], "available": [False, True, True],
+                      "price": [12, 13, 14], "tradeable": [True] * 3}),
+        pd.DataFrame({"dummy": [4, 5, 6], "available": [True, True, True],
+                      "price": [13, 14, 15], "tradeable": [True] * 3}),
+        pd.DataFrame({"dummy": [5, 6, 7], "available": [True, True, True],
+                      "price": [14, 15, 16], "tradeable": [True] * 3}),
     ]
 
     for r, e in zip(result, expected):
-        assert_frame_equal(r.reset_index(drop=True), e)
+        assert_frame_equal(r.df.reset_index(drop=True), e.df)
 
 
 def test_flat_sequence():
-    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7]})
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
+                       "price": list(range(10, 17)), "tradeable": [True] * 7})
 
-    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False)
+    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, exclude_cols_from_sequence=[
+        "tradeable", "available", "price"])
     result = fs.make_sequence()
 
     expected = [
@@ -97,14 +110,16 @@ def test_flat_sequence():
     ]
 
     for r, e in zip(result, expected):
-        r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
-        assert_frame_equal(r, e, check_column_type=False)
+        r.df.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r.df, e, check_column_type=False)
 
 
 def test_arr_sequence():
-    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7]})
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
+                       "price": list(range(10, 17)), "tradeable": [True] * 7})
 
-    seq = ArraySequenceGenerator(df=df, sequence_len=3, include_available_days_only=False)
+    seq = ArraySequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, exclude_cols_from_sequence=[
+        "tradeable", "available", "price"])
     result = seq.make_sequence()
 
     expected = [
@@ -116,7 +131,7 @@ def test_arr_sequence():
     ]
 
     for r, e in zip(result, expected):
-        assert_frame_equal(r.reset_index(drop=True), e)
+        assert_frame_equal(r.df.reset_index(drop=True), e)
 
 
 def test_sequence_len_too_long():
@@ -129,9 +144,12 @@ def test_sequence_len_too_long():
 
 
 def test_exclude_cols():
-    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True]})
-    seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True, exclude_cols_from_sequence=["available"])
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
+                       "price": list(range(10, 17)), "tradeable": [True] * 7})
+    seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True,
+                            exclude_cols_from_sequence=["tradeable", "available", "price"])
     seq.slice_sequences()
+    seq.sliced_to_sequence_obj()
     seq.filter_availability()
     result = seq.exclude_columns()
 
@@ -144,34 +162,15 @@ def test_exclude_cols():
     ]
 
     for r, e in zip(result, expected):
-        assert_frame_equal(r.reset_index(drop=True), e)
-
-
-def test_flat_sequence_drop_available():
-    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True]})
-
-    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
-                               exclude_cols_from_sequence=["available"])
-    result = fs.make_sequence()
-
-    expected = [
-        pd.DataFrame({"dummy/0": [1], "dummy/1": [2], "dummy/2": [3]}),
-        pd.DataFrame({"dummy/1": [2], "dummy/2": [3], "dummy/3": [4]}),
-        pd.DataFrame({"dummy/2": [3], "dummy/3": [4], "dummy/4": [5]}),
-        pd.DataFrame({"dummy/3": [4], "dummy/4": [5], "dummy/5": [6]}),
-        pd.DataFrame({"dummy/4": [5], "dummy/5": [6], "dummy/6": [7]}),
-    ]
-
-    for r, e in zip(result, expected):
-        r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
-        assert_frame_equal(r, e, check_column_type=False)
+        assert_frame_equal(r.df.reset_index(drop=True), e)
 
 
 def test_flat_sequence_column_order():
-    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "price": [10, 11, 12, 13, 14, 15, 16]})
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
+                       "price": [10, 11, 12, 13, 14, 15, 16], "tradeable": [True] * 7})
 
     fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
-                               exclude_cols_from_sequence=[], last_column="dummy")
+                               exclude_cols_from_sequence=["available", "tradeable"], last_column="dummy")
     result = fs.make_sequence()
 
     expected = [
@@ -188,11 +187,11 @@ def test_flat_sequence_column_order():
     ]
 
     for r, e in zip(result, expected):
-        r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
-        assert_frame_equal(r, e, check_column_type=False)
+        r.df.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r.df, e, check_column_type=False)
 
     fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
-                               exclude_cols_from_sequence=[], last_column="price")
+                               exclude_cols_from_sequence=["available", "tradeable"], last_column="price")
     result = fs.make_sequence()
 
     expected = [
@@ -209,14 +208,35 @@ def test_flat_sequence_column_order():
     ]
 
     for r, e in zip(result, expected):
-        r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
-        assert_frame_equal(r, e, check_column_type=False)
+        r.df.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r.df, e, check_column_type=False)
 
 
 def test_empty_sequences():
-    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, False, False, False, False, False]})
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False] * 7,
+                       "price": [10, 11, 12, 13, 14, 15, 16], "tradeable": [True] * 7})
     seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True)
     seq.slice_sequences()
+    seq.sliced_to_sequence_obj()
     result = seq.filter_availability()
 
     assert not result
+
+
+def test_attributes():
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
+                       "price": [10, 11, 12, 13, 14, 15, 16],
+                       "tradeable": [False, False, True, True, False, False, False]})
+    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False)
+    result = fs.make_sequence()
+
+    expected_price = [12, 13, 14, 15, 16]
+    expected_tradeable = [True, True, False, False, False]
+    expected_available = [True, True, True, True, True]
+
+    i = 0
+    while i < len(result):
+        assert result[i].price == expected_price[i]
+        assert result[i].tradeable == expected_tradeable[i]
+        assert result[i].available == expected_available[i]
+        i += 1
