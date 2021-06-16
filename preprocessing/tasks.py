@@ -6,23 +6,12 @@ from sklearn.preprocessing import MinMaxScaler
 
 from preprocessing.sequences import FlatSequenceGenerator, ArraySequenceGenerator
 from preprocessing.stock_prices import StockPrices, MissingDataException, OldDataException
+from preprocessing.ticker import Ticker
 
 date_col = "date"
 date_day_col = "date_day"
 date_shifted_col = "date_shifted"
 date_day_shifted_col = "date_day_shifted"
-
-
-class Ticker:
-
-    def __init__(self, name, df):
-        self.df = df
-        self.name = name
-        self.metadata = None
-        self.exclude = False
-
-        self.flat_sequence = None
-        self.array_sequence = None
 
 
 @task

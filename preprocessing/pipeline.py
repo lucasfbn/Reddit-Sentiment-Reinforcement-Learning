@@ -11,6 +11,7 @@ from prefect.executors import LocalExecutor, LocalDaskExecutor
 import paths
 from preprocessing.tasks import *
 from utils.util_tasks import mlflow_log_file, unpack_union_mapping, reduce_list
+from preprocessing.ticker import Ticker
 
 mlflow.set_tracking_uri(paths.mlflow_path)
 mlflow.set_experiment("Tests")
