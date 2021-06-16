@@ -170,8 +170,16 @@ class EnvNN(Env):
     def _assign_new_sequences(self):
         self._current_sequences = self._current_ticker.flat_sequence
 
+    @staticmethod
+    def get_sequences(ticker):
+        return ticker.flat_sequence
+    
 
 class EnvCNN(Env):
+
+    @staticmethod
+    def get_sequences(ticker):
+        return ticker.array_sequence
 
     def states(self):
         shape = self.data[0].array_sequence[0].df.shape
