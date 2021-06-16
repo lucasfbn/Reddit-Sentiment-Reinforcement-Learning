@@ -9,16 +9,6 @@ class Sequence:
         self.available = available
         self.price = price
 
-        self.action = None
-        self.action_output = None
-
-    def add_eval(self, action, action_output):
-        """
-        Used later on when the sequence will be evaluated.
-        """
-        self.action = action
-        self.action_output = action_output
-
     def __len__(self):
         return len(self.df)
 
