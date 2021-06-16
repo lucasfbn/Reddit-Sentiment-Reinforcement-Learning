@@ -4,7 +4,7 @@ import pandas as pd
 from prefect import task
 from sklearn.preprocessing import MinMaxScaler
 
-from preprocessing.sequences import FlatSequence, ArraySequence
+from preprocessing.sequences import FlatSequenceGenerator, ArraySequenceGenerator
 from preprocessing.stock_prices import StockPrices, MissingDataException, OldDataException
 
 date_col = "date"
@@ -562,16 +562,16 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
         last_column: The column of each sequence that shall be the last one. This is usually the price column since the
          NN uses the last column as an indicator of the current price.
     """
-    flat_seq = FlatSequence(df=ticker.df, sequence_len=sequence_length,
-                            include_available_days_only=include_available_days_only,
-                            exclude_cols_from_sequence=columns_to_be_excluded_from_sequences,
-                            last_column=last_column)
+    flat_seq = FlatSequenceGenerator(df=ticker.df, sequence_len=sequence_length,
+                                     include_available_days_only=include_available_days_only,
+                                     exclude_cols_from_sequence=columns_to_be_excluded_from_sequences,
+                                     last_column=last_column)
     ticker.flat_sequence = flat_seq.make_sequence()
 
-    arr_seq = ArraySequence(df=ticker.df, sequence_len=sequence_length,
-                            include_available_days_only=include_available_days_only,
-                            exclude_cols_from_sequence=columns_to_be_excluded_from_sequences,
-                            last_column=last_column)
+    arr_seq = ArraySequenceGenerator(df=ticker.df, sequence_len=sequence_length,
+                                     include_available_days_only=include_available_days_only,
+                                     exclude_cols_from_sequence=columns_to_be_excluded_from_sequences,
+                                     last_column=last_column)
     ticker.array_sequence = arr_seq.make_sequence()
     return ticker
 
