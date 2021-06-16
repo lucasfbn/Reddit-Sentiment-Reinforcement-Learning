@@ -159,21 +159,17 @@ class Env(Environment):
 class EnvNN(Env):
 
     def states(self):
-        shape = self.data[0].flat_sequence[0].shape
+        shape = self.data[0].flat_sequence[0].df.shape
         return dict(type="float", shape=(shape[1],))
 
-    def _shape_state(self, state):
-        state = np.asarray(state).astype("float32")
-        state = state.reshape((state.shape[1],))
+    @staticmethod
+    def _shape_state(state):
+        state.df = np.asarray(state.df).astype("float32")
+        state.df = state.df.reshape((state.df.shape[1],))
         return state
 
     def _assign_new_sequences(self):
         self._current_sequences = self._current_ticker.flat_sequence
-
-    def _current_price(self):
-        shape = self._state.shape
-        last_element = self._state[shape[0] - 1]
-        return last_element
 
 
 class EnvCNN(Env):
