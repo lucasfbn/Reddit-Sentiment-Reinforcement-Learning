@@ -286,29 +286,34 @@ def test_scale_price_data():
 
 def test_make_sequence():
     # For more tests see test_sequences
-    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5]})
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5], "available": [False, False, True, True, True],
+                       "price": [10, 11, 12, 13, 14], "tradeable": [True] * 5})
     ticker = Ticker(None, df)
 
-    result = make_sequences.run(ticker, 3, False)
+    result = make_sequences.run(ticker, 3, False, columns_to_be_excluded_from_sequences=["available", "tradeable"],
+                                last_column="price")
 
     expected_flat_sequence = [
-        pd.DataFrame({"dummy/0": [1], "dummy/1": [2], "dummy/2": [3]}),
-        pd.DataFrame({"dummy/1": [2], "dummy/2": [3], "dummy/3": [4]}),
-        pd.DataFrame({"dummy/2": [3], "dummy/3": [4], "dummy/4": [5]}),
+        pd.DataFrame(
+            {"dummy/0": [1], "dummy/1": [2], "dummy/2": [3], "price/0": [10], "price/1": [11], "price/2": [12]}),
+        pd.DataFrame(
+            {"dummy/1": [2], "dummy/2": [3], "dummy/3": [4], "price/1": [11], "price/2": [12], "price/3": [13]}),
+        pd.DataFrame(
+            {"dummy/2": [3], "dummy/3": [4], "dummy/4": [5], "price/2": [12], "price/3": [13], "price/4": [14]}),
     ]
 
     for r, e in zip(result.flat_sequence, expected_flat_sequence):
-        r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
-        assert_frame_equal(r, e, check_column_type=False)
+        r.df.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r.df, e, check_column_type=False)
 
     expected_arr_sequence = [
-        pd.DataFrame({"dummy": [1, 2, 3]}),
-        pd.DataFrame({"dummy": [2, 3, 4]}),
-        pd.DataFrame({"dummy": [3, 4, 5]})
+        pd.DataFrame({"dummy": [1, 2, 3], "price": [10, 11, 12]}),
+        pd.DataFrame({"dummy": [2, 3, 4], "price": [11, 12, 13]}),
+        pd.DataFrame({"dummy": [3, 4, 5], "price": [12, 13, 14]})
     ]
 
-    for r, e in zip(result.flat_sequence, expected_flat_sequence):
-        assert_frame_equal(r, e)
+    for r, e in zip(result.array_sequence, expected_arr_sequence):
+        assert_frame_equal(r.df.reset_index(drop=True), e)
 
 
 def test_remove_old_price_col_from_price_data_columns():
