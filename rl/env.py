@@ -81,15 +81,15 @@ class Env(Environment):
             else:
                 log.debug(f"Attempted sell, but inventory is empty.")
 
-        next_state = self._shape_state(self._states.popleft())
-
         if len(self._states) == 0:
             self._episode_ended = True
+        else:
+            next_state = self._shape_state(self._states.popleft())
+            self._state = next_state
 
         self._handle_step_counter(reward)
-        self._state = next_state
 
-        return next_state.df, self._episode_ended, reward
+        return self._state.df, self._episode_ended, reward
 
     def _handle_reset_counter(self):
         mlflow.log_metric("full run reward", self._episode_reward, step=self._episode_counter)
