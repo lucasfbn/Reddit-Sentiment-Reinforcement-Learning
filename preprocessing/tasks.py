@@ -548,7 +548,7 @@ def add_metadata_to_ticker(ticker: Ticker, metadata_cols: list) -> Ticker:
 
 @task
 def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_only: bool,
-                   columns_to_be_excluded_from_sequences: list, last_column: str) -> Ticker:
+                   columns_to_be_excluded_from_sequences: list, price_column: str) -> Ticker:
     """
     Generates flat and array sequences from a given ticker df. For further details on what sequences are please check
     the documentation in the sequence class (sequences.py) itself.
@@ -565,13 +565,13 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
     flat_seq = FlatSequenceGenerator(df=ticker.df, sequence_len=sequence_length,
                                      include_available_days_only=include_available_days_only,
                                      exclude_cols_from_sequence=columns_to_be_excluded_from_sequences,
-                                     last_column=last_column)
+                                     price_column=price_column)
     ticker.flat_sequence = flat_seq.make_sequence()
 
     arr_seq = ArraySequenceGenerator(df=ticker.df, sequence_len=sequence_length,
                                      include_available_days_only=include_available_days_only,
                                      exclude_cols_from_sequence=columns_to_be_excluded_from_sequences,
-                                     last_column=last_column)
+                                     price_column=price_column)
     ticker.array_sequence = arr_seq.make_sequence()
     return ticker
 
