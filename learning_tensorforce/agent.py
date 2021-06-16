@@ -12,8 +12,7 @@ from utils.util_funcs import log
 from utils.mlflow_api import log_file
 import paths
 import mlflow
-
-from preprocessing.dataset_loader import DatasetLoader
+from utils.mlflow_api import load_file
 
 
 class RLAgent:
@@ -98,21 +97,15 @@ class RLAgent:
 
 
 if __name__ == '__main__':
-    training_ids = ["0596d9538e144350b1db529e583fd134"]
-
-    training_data = DatasetLoader(training_ids, "cnn").merge()
-    training_data = training_data[:10]
+    training_data = load_file(run_id="cdd0ea6c04d64b009dc1ebdeabcba818", fn="ticker.pkl", experiment="Tests")
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Learning")
-    mlflow.start_run()
 
-    rla = RLAgent(environment=EnvCNN, train_data=training_data)
-    rla.load_agent(
-        "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
-    # rla.train(n_full_episodes=15)
-    a = rla.eval_agent()[1]["thresholds"]
-    print(a)
-    rla.close()
-
-    mlflow.end_run()
+    with mlflow.start_run():
+        rla = RLAgent(environment=EnvCNN, train_data=training_data)
+        # rla.load_agent(
+        #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
+        rla.train(n_full_episodes=15)
+        a = rla.eval_agent()[1]["thresholds"]
+        rla.close()
