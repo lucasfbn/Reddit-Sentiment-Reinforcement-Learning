@@ -4,7 +4,7 @@ physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 from tensorforce import Runner, Agent, Environment
-from learning_tensorforce.env import EnvCNN
+from rl.env import EnvCNN
 import pandas as pd
 from tqdm import tqdm
 

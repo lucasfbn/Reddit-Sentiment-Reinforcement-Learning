@@ -7,8 +7,8 @@ import paths
 import preprocessing.config as preprocessing_config
 import preprocessing.new_dataset as preprocessing_new_dataset
 from evaluate.eval_portfolio import EvalLive
-from learning_tensorforce.agent import RLAgent
-from learning_tensorforce.env import EnvCNN
+from rl.agent import RLAgent
+from rl.env import EnvCNN
 from preprocessing.dataset_loader import DatasetLoader
 from sentiment_analysis.pipeline import flow as sentiment_analysis_flow
 from utils import log
