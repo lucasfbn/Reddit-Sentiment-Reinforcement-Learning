@@ -6,7 +6,6 @@ import mlflow
 import numpy as np
 from tensorforce import Environment
 
-from utils.mlflow_api import load_file
 from utils.util_funcs import log
 
 
@@ -186,27 +185,3 @@ class EnvCNN(Env):
         state.df = state.df.values.reshape((1, state.df.shape[0], state.df.shape[1]))
         state.df = np.asarray(state.df).astype('float32')
         return state
-
-
-if __name__ == "__main__":
-    import paths
-    import random
-
-    mlflow.set_tracking_uri(paths.mlflow_path)
-    mlflow.set_experiment("Testing-Environment")  #
-
-    with mlflow.start_run():
-        data = load_file(run_id="cdd0ea6c04d64b009dc1ebdeabcba818", fn="ticker.pkl", experiment="Tests")
-        EnvCNN.data = data
-
-        env = EnvCNN()
-
-        for _ in range(10000):
-            states = env.reset()
-            terminal = False
-            print(_)
-            states_ = []
-
-            while not terminal:
-                actions = random.randint(0, 2)
-                states, terminal, reward = env.execute(actions=actions)
