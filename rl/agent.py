@@ -1,18 +1,17 @@
+import mlflow
+import pandas as pd
 import tensorflow as tf
+from tensorforce import Runner, Agent, Environment
+from tqdm import tqdm
+
+import paths
+from rl.env import EnvCNN
+from utils.mlflow_api import load_file
+from utils.mlflow_api import log_file
+from utils.util_funcs import log
 
 physical_devices = tf.config.list_physical_devices('GPU')
 tf.config.experimental.set_memory_growth(physical_devices[0], True)
-
-from tensorforce import Runner, Agent, Environment
-from rl.env import EnvCNN
-import pandas as pd
-from tqdm import tqdm
-
-from utils.util_funcs import log
-from utils.mlflow_api import log_file
-import paths
-import mlflow
-from utils.mlflow_api import load_file
 
 
 class RLAgent:
