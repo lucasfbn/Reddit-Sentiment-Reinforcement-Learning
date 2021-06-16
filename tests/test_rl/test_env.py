@@ -1,0 +1,132 @@
+from rl.env import EnvCNN, EnvNN
+from preprocessing.sequences import Sequence
+from preprocessing.tasks import Ticker
+import pandas as pd
+import random
+import numpy as np
+from numpy.testing import assert_array_equal
+
+t1 = Ticker(None, None)
+t2 = Ticker(None, None)
+
+t1.flat_sequence = [
+    Sequence(price=12, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy/0": [1], "dummy/1": [2], "dummy/2": [3],
+                              "price/0": [10], "price/1": [11], "price/2": [12]})),
+
+    Sequence(price=13, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy/1": [2], "dummy/2": [3], "dummy/3": [4],
+                              "price/1": [11], "price/2": [12], "price/3": [13]})),
+
+    Sequence(price=14, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy/2": [3], "dummy/3": [4], "dummy/4": [5],
+                              "price/2": [12], "price/3": [13], "price/4": [14]})),
+]
+t1.array_sequence = [
+    Sequence(price=12, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy": [1, 2, 3], "price": [10, 11, 12]})),
+    Sequence(price=13, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy": [2, 3, 4], "price": [11, 12, 13]})),
+    Sequence(price=14, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy": [3, 4, 5], "price": [12, 13, 14]})),
+]
+
+t2.flat_sequence = [
+    Sequence(price=812, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy/0": [81], "dummy/1": [82], "dummy/2": [83],
+                              "price/0": [810], "price/1": [811], "price/2": [812]})),
+
+    Sequence(price=813, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy/1": [82], "dummy/2": [83], "dummy/3": [84],
+                              "price/1": [811], "price/2": [812], "price/3": [813]})),
+
+    Sequence(price=814, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy/2": [83], "dummy/3": [84], "dummy/4": [85],
+                              "price/2": [812], "price/3": [813], "price/4": [814]})),
+]
+t2.array_sequence = [
+    Sequence(price=812, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy": [81, 82, 83], "price": [810, 811, 812]})),
+    Sequence(price=813, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy": [82, 83, 84], "price": [811, 812, 813]})),
+    Sequence(price=814, tradeable=False, available=False,
+             df=pd.DataFrame({"dummy": [83, 84, 85], "price": [812, 813, 814]})),
+]
+
+data = [t1, t2]
+
+
+def test_basic_env_cnn_run():
+    EnvCNN.data = data
+    EnvCNN.shuffle_sequences = False
+    env = EnvCNN()
+
+    expected_states = [
+        np.array([[1, 2, 3], [10, 11, 12]], dtype=np.float32).T,
+        np.array([[2, 3, 4], [11, 12, 13]], dtype=np.float32).T,
+        np.array([[3, 4, 5], [12, 13, 14]], dtype=np.float32).T,
+        np.array([[81, 82, 83], [810, 811, 812]], dtype=np.float32).T,
+        np.array([[82, 83, 84], [811, 812, 813]], dtype=np.float32).T,
+        np.array([[83, 84, 85], [812, 813, 814]], dtype=np.float32).T
+    ]
+
+    i = 0
+    for _ in range(2):
+        state = env.reset()
+        terminal = False
+
+        while not terminal:
+            assert_array_equal(state, expected_states[i].reshape(1, 3, 2))
+            actions = random.randint(0, 2)
+            state, terminal, reward = env.execute(actions=actions)
+
+            i += 1
+
+    assert i == len(expected_states)
+
+
+def test_basic_env_nn_run():
+    EnvNN.data = data
+    EnvNN.shuffle_sequences = False
+    env = EnvNN()
+
+    expected_states = [
+        np.array([[1, 2, 3, 10, 11, 12]], dtype=np.float32),
+        np.array([[2, 3, 4, 11, 12, 13]], dtype=np.float32),
+        np.array([[3, 4, 5, 12, 13, 14]], dtype=np.float32),
+        np.array([[81, 82, 83, 810, 811, 812]], dtype=np.float32),
+        np.array([[82, 83, 84, 811, 812, 813]], dtype=np.float32),
+        np.array([[83, 84, 85, 812, 813, 814]], dtype=np.float32)
+    ]
+
+    i = 0
+    for _ in range(2):
+        state = env.reset()
+        terminal = False
+
+        while not terminal:
+            assert_array_equal(state, expected_states[i].reshape(6, ))
+            actions = random.randint(0, 2)
+            state, terminal, reward = env.execute(actions=actions)
+
+            i += 1
+
+    assert i == len(expected_states)
+
+
+def test_reward():
+    EnvCNN.data = data
+    EnvCNN.shuffle_sequences = False
+    env = EnvCNN()
+
+    expected_rewards = [0, 0, 3, 0, 0, 1]
+    actions = [1, 1, 2, 0, 1, 2]
+    i = 0
+    for _ in range(2):
+        state = env.reset()
+        terminal = False
+
+        while not terminal:
+            state, terminal, reward = env.execute(actions=actions[i])
+            assert reward == expected_rewards[i]
+            i += 1
