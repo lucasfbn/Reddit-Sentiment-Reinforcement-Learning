@@ -12,6 +12,7 @@ from utils.util_funcs import log
 
 class Env(Environment):
     data = None
+    shuffle_sequences = True
 
     def __init__(self):
         super().__init__()
@@ -118,7 +119,8 @@ class Env(Environment):
         raise NotImplementedError
 
     def _assign_new_states(self):
-        shuffle(self._current_sequences)
+        if self.shuffle_sequences:
+            shuffle(self._current_sequences)
         self._states = deque(self._current_sequences)
 
     def reset(self):
