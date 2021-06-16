@@ -165,3 +165,36 @@ def test_w_real_data_nn():
         while not terminal:
             actions = random.randint(0, 2)
             states, terminal, reward = env.execute(actions=actions)
+
+
+def test_cnn_loop():
+    """
+    Should loop through the whole data twice
+    """
+    EnvCNN.data = data
+    EnvCNN.shuffle_sequences = False
+    env = EnvCNN()
+
+    expected_states = [
+        np.array([[1, 2, 3], [10, 11, 12]], dtype=np.float32).T,
+        np.array([[2, 3, 4], [11, 12, 13]], dtype=np.float32).T,
+        np.array([[3, 4, 5], [12, 13, 14]], dtype=np.float32).T,
+        np.array([[81, 82, 83], [810, 811, 812]], dtype=np.float32).T,
+        np.array([[82, 83, 84], [811, 812, 813]], dtype=np.float32).T,
+        np.array([[83, 84, 85], [812, 813, 814]], dtype=np.float32).T
+    ]
+
+    i = 0
+    for _ in range(4):
+        state = env.reset()
+        terminal = False
+
+        while not terminal:
+            assert_array_equal(state, expected_states[i].reshape(1, 3, 2))
+            actions = random.randint(0, 2)
+            state, terminal, reward = env.execute(actions=actions)
+
+            i += 1
+
+        if i == len(expected_states):
+            i = 0
