@@ -291,7 +291,7 @@ def test_make_sequence():
     ticker = Ticker(None, df)
 
     result = make_sequences.run(ticker, 3, False, columns_to_be_excluded_from_sequences=["available", "tradeable"],
-                                last_column="price")
+                                price_column="price")
 
     expected_flat_sequence = [
         pd.DataFrame(
