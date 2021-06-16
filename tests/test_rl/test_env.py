@@ -5,6 +5,7 @@ import pandas as pd
 import random
 import numpy as np
 from numpy.testing import assert_array_equal
+import pickle as pkl
 
 t1 = Ticker(None, None)
 t2 = Ticker(None, None)
@@ -130,3 +131,35 @@ def test_reward():
             state, terminal, reward = env.execute(actions=actions[i])
             assert reward == expected_rewards[i]
             i += 1
+
+
+def test_w_real_data_cnn():
+    with open("ticker.pkl", "rb") as f:
+        data = pkl.load(f)
+
+    EnvCNN.data = data
+    env = EnvCNN()
+
+    for _ in range(100):
+        states = env.reset()
+        terminal = False
+
+        while not terminal:
+            actions = random.randint(0, 2)
+            states, terminal, reward = env.execute(actions=actions)
+
+
+def test_w_real_data_nn():
+    with open("ticker.pkl", "rb") as f:
+        data = pkl.load(f)
+
+    EnvNN.data = data
+    env = EnvNN()
+
+    for _ in range(100):
+        states = env.reset()
+        terminal = False
+
+        while not terminal:
+            actions = random.randint(0, 2)
+            states, terminal, reward = env.execute(actions=actions)
