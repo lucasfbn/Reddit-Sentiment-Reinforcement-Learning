@@ -1,11 +1,13 @@
-from rl.env import EnvCNN, EnvNN
+import pickle as pkl
+import random
+
+import numpy as np
+import pandas as pd
+from numpy.testing import assert_array_equal
+
 from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
-import pandas as pd
-import random
-import numpy as np
-from numpy.testing import assert_array_equal
-import pickle as pkl
+from rl.env import EnvCNN, EnvNN
 
 t1 = Ticker(None, None)
 t2 = Ticker(None, None)
