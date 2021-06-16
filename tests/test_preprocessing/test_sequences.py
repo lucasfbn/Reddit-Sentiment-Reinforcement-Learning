@@ -51,7 +51,7 @@ def test_sequence_longer_sequence_len():
 def test_sequence_with_availability():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
                        "price": list(range(10, 17)), "tradeable": [True] * 7})
-    seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True)
+    seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True, price_column="price")
     seq.slice_sequences()
     seq.sliced_to_sequence_obj()
     result = seq.filter_availability()
@@ -98,7 +98,7 @@ def test_flat_sequence():
                        "price": list(range(10, 17)), "tradeable": [True] * 7})
 
     fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, exclude_cols_from_sequence=[
-        "tradeable", "available", "price"])
+        "tradeable", "available", "price"], price_column="price")
     result = fs.make_sequence()
 
     expected = [
@@ -119,7 +119,7 @@ def test_arr_sequence():
                        "price": list(range(10, 17)), "tradeable": [True] * 7})
 
     seq = ArraySequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, exclude_cols_from_sequence=[
-        "tradeable", "available", "price"])
+        "tradeable", "available", "price"], price_column="price")
     result = seq.make_sequence()
 
     expected = [
@@ -137,7 +137,7 @@ def test_arr_sequence():
 def test_sequence_len_too_long():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7]})
 
-    seq = SequenceGenerator(df, sequence_len=8, include_available_days_only=False)
+    seq = SequenceGenerator(df, sequence_len=8, include_available_days_only=False, price_column="price")
 
     result = seq.slice_sequences()
     assert len(result) == 0
@@ -147,7 +147,7 @@ def test_exclude_cols():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
                        "price": list(range(10, 17)), "tradeable": [True] * 7})
     seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True,
-                            exclude_cols_from_sequence=["tradeable", "available", "price"])
+                            exclude_cols_from_sequence=["tradeable", "available", "price"], price_column="price")
     seq.slice_sequences()
     seq.sliced_to_sequence_obj()
     seq.filter_availability()
@@ -170,7 +170,7 @@ def test_flat_sequence_column_order():
                        "price": [10, 11, 12, 13, 14, 15, 16], "tradeable": [True] * 7})
 
     fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
-                               exclude_cols_from_sequence=["available", "tradeable"], last_column="dummy")
+                               exclude_cols_from_sequence=["available", "tradeable"], price_column="dummy")
     result = fs.make_sequence()
 
     expected = [
@@ -191,7 +191,7 @@ def test_flat_sequence_column_order():
         assert_frame_equal(r.df, e, check_column_type=False)
 
     fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
-                               exclude_cols_from_sequence=["available", "tradeable"], last_column="price")
+                               exclude_cols_from_sequence=["available", "tradeable"], price_column="price")
     result = fs.make_sequence()
 
     expected = [
@@ -215,7 +215,7 @@ def test_flat_sequence_column_order():
 def test_empty_sequences():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False] * 7,
                        "price": [10, 11, 12, 13, 14, 15, 16], "tradeable": [True] * 7})
-    seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True)
+    seq = SequenceGenerator(df, sequence_len=3, include_available_days_only=True, price_column="price")
     seq.slice_sequences()
     seq.sliced_to_sequence_obj()
     result = seq.filter_availability()
@@ -227,7 +227,7 @@ def test_attributes():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
                        "price": [10, 11, 12, 13, 14, 15, 16],
                        "tradeable": [False, False, True, True, False, False, False]})
-    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False)
+    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, price_column="price")
     result = fs.make_sequence()
 
     expected_price = [12, 13, 14, 15, 16]

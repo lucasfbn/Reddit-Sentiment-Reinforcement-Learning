@@ -15,7 +15,7 @@ class Sequence:
 
 class SequenceGenerator:
 
-    def __init__(self, df: pd.DataFrame, sequence_len: int, include_available_days_only: bool, last_column: str = None,
+    def __init__(self, df: pd.DataFrame, sequence_len: int, include_available_days_only: bool, price_column: str = None,
                  exclude_cols_from_sequence: list = []):
         """
         Generates sequences from a given dataframe.
@@ -24,7 +24,7 @@ class SequenceGenerator:
             df: Input dataframe
             sequence_len: Length of the desired sequence
             include_available_days_only: Whether to filter sequences which were not available for trading
-            last_column: Name of the last column (in most cases: "price"). The NN will use the last column of a sequence
+            price_column: Name of the last column (in most cases: "price"). The NN will use the last column of a sequence
              as the price, therefore we have to ensure that the last column is the correct one
             exclude_cols_from_sequence: Cols that may be used during the generation of sequences but are not subject of
              the final sequences and can therefore be dropped
@@ -32,7 +32,7 @@ class SequenceGenerator:
         self.df = df
         self.sequence_len = sequence_len
         self.include_available_days_only = include_available_days_only
-        self.last_column = last_column
+        self.price_column = price_column
         self.exclude_cols_from_sequence = exclude_cols_from_sequence
 
         self._sliced = []
@@ -61,12 +61,11 @@ class SequenceGenerator:
         """
         return bool(df["available"].iloc[len(df) - 1])
 
-    @staticmethod
-    def _add_price(df):
+    def _add_price(self, df):
         """
         See @_add_availability
         """
-        return float(df["price"].iloc[len(df) - 1])
+        return float(df[self.price_column].iloc[len(df) - 1])
 
     @staticmethod
     def _add_tradeable(df):
@@ -104,12 +103,12 @@ class SequenceGenerator:
         """
         Reorders the columns of a sequence. The last_column will be the last column. (captain obvious)
         """
-        if self.last_column is None or not self._sequences:  # If sequences is empty
+        if self.price_column is None or not self._sequences:  # If sequences is empty
             return self._sequences
 
         cols = self._sequences[0].df.columns.tolist()
-        cols.remove(self.last_column)
-        cols += [self.last_column]
+        cols.remove(self.price_column)
+        cols += [self.price_column]
 
         for seq in self._sequences:
             seq.df = seq.df[cols]
