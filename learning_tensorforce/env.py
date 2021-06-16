@@ -21,8 +21,11 @@ class Env(Environment):
         self._inventory = deque()
         self._episode_reward = 0
 
+        self._current_ticker = None
+        self._current_sequences = None
+        self._states = None
+
         self._episode_ended = False
-        self._x = None
         self._state = None
 
         # Counter
@@ -32,13 +35,7 @@ class Env(Environment):
         self._even_reward_counter = 0
         self._pos_reward_counter = 0
 
-    def set_data(self, data):
-        self.data = data
-
     def _shape_state(self, state):
-        raise NotImplemented
-
-    def _current_price(self):
         raise NotImplemented
 
     def _calculate_margin(self, current_price):
@@ -83,15 +80,15 @@ class Env(Environment):
             else:
                 log.debug(f"Attempted sell, but inventory is empty.")
 
-        next_state = self._shape_state(self._x.popleft())
+        next_state = self._shape_state(self._states.popleft())
 
-        if len(self._x) == 0:
+        if len(self._states) == 0:
             self._episode_ended = True
 
         self._handle_step_counter(reward)
         self._state = next_state
 
-        return next_state, self._episode_ended, reward
+        return next_state.df, self._episode_ended, reward
 
     def _handle_reset_counter(self):
         mlflow.log_metric("full run reward", self._episode_reward, step=self._episode_counter)
@@ -104,11 +101,7 @@ class Env(Environment):
         self._neg_reward_counter = 0
         self._pos_reward_counter = 0
 
-    def reset(self):
-        self._episode_ended = False
-
-        self._x = copy.deepcopy(self._episode_data[self._counter].array_sequence)
-        shuffle(self._x)
+    def _handle_counter(self):
         self._counter += 1
         self._episode_counter += 1
 
@@ -118,17 +111,30 @@ class Env(Environment):
 
         mlflow.log_metric("counter", self._counter, step=self._episode_counter)
 
-        self._x = deque(self._x)
+    def _assign_new_ticker(self):
+        self._current_ticker = copy.deepcopy(self._episode_data[self._counter])
 
+    def _assign_new_sequences(self):
+        raise NotImplementedError
+
+    def _assign_new_states(self):
+        shuffle(self._current_sequences)
+        self._states = deque(self._current_sequences)
+
+    def reset(self):
+        self._episode_ended = False
+
+        self._assign_new_ticker()
+        self._assign_new_sequences()
+        self._assign_new_states()
+
+        self._handle_counter()
         self._inventory = deque()
 
-        try:
-            self._state = self._x.popleft()
-        except:
-            pass
+        self._state = self._states.popleft()
         self._state = self._shape_state(self._state)
 
-        return self._state
+        return self._state.df
 
     def max_episode_timesteps(self):
 
@@ -144,6 +150,9 @@ class Env(Environment):
     def actions(self):
         return dict(type="int", num_values=3)
 
+    def _current_price(self):
+        return self._state.price
+
 
 class EnvNN(Env):
 
@@ -156,6 +165,9 @@ class EnvNN(Env):
         state = state.reshape((state.shape[1],))
         return state
 
+    def _assign_new_sequences(self):
+        self._current_sequences = self._current_ticker.flat_sequence
+
     def _current_price(self):
         shape = self._state.shape
         last_element = self._state[shape[0] - 1]
@@ -165,19 +177,17 @@ class EnvNN(Env):
 class EnvCNN(Env):
 
     def states(self):
-        shape = self.data[0].array_sequence[0].shape
+        shape = self.data[0].array_sequence[0].df.shape
         return dict(type="float", shape=(1, shape[0], shape[1]))
 
-    def _shape_state(self, state):
-        state = state.values.reshape((1, state.shape[0], state.shape[1]))
-        state = np.asarray(state).astype('float32')
-        return state
+    def _assign_new_sequences(self):
+        self._current_sequences = self._current_ticker.array_sequence
 
-    def _current_price(self):
-        shape = self._state.shape
-        last_row = self._state[0][shape[1] - 1]
-        last_element = last_row[shape[2] - 1]
-        return last_element
+    @staticmethod
+    def _shape_state(state):
+        state.df = state.df.values.reshape((1, state.df.shape[0], state.df.shape[1]))
+        state.df = np.asarray(state.df).astype('float32')
+        return state
 
 
 if __name__ == "__main__":
@@ -188,7 +198,7 @@ if __name__ == "__main__":
     mlflow.set_experiment("Testing-Environment")  #
 
     with mlflow.start_run():
-        data = load_file(run_id="031bfd42e667441cb4a54056f11d60b2", fn="ticker.pkl", experiment="Tests")
+        data = load_file(run_id="cdd0ea6c04d64b009dc1ebdeabcba818", fn="ticker.pkl", experiment="Tests")
         EnvCNN.data = data
 
         env = EnvCNN()
