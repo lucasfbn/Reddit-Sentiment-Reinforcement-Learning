@@ -15,7 +15,7 @@ from utils import mlflow_api
 
 @dataclass
 class EvaluatePortfolioInit:
-    data: list
+    ticker: list
     initial_balance: int = 1000
     max_investment_per_trade: float = 0.07
     max_price_per_stock: int = 10
@@ -53,7 +53,7 @@ class EvaluatePortfolioInit:
                 "balance": self.balance,
                 "profit": self.profit,
                 "len_inventory": len(self._inventory),
-                "index_performance": self.data[0]["index_comparison"]["perf"]}
+                "index_performance": self.ticker[0]["index_comparison"]["perf"]}
 
     def log_result(self):
         mlflow.log_params(self.get_result())
@@ -62,7 +62,7 @@ class EvaluatePortfolioInit:
 class EvaluatePortfolio(EvaluatePortfolioInit):
 
     def _prepare_data(self):
-        for grp in self.data:
+        for grp in self.ticker:
             df = grp["metadata"]
             df["actions"] = df["actions"].replace({0: "hold", 1: "buy", 2: "sell"})
             grp["data"] = df
@@ -95,7 +95,7 @@ class EvaluatePortfolio(EvaluatePortfolioInit):
         min_date = None
         max_date = None
 
-        for i, grp in enumerate(self.data):
+        for i, grp in enumerate(self.ticker):
             df = grp["data"]
 
             if i == 0:
@@ -120,7 +120,7 @@ class EvaluatePortfolio(EvaluatePortfolioInit):
 
         for date in tqdm(dates):
             dates_trades_combinations[date.strftime("%d-%m-%Y")] = []
-            for grp in self.data:
+            for grp in self.ticker:
                 df = grp["data"]
                 df = df[(df["date"] - date).dt.days == 0]
                 df_dict = df.to_dict("records")
@@ -148,7 +148,7 @@ class EvaluatePortfolio(EvaluatePortfolioInit):
                 thresholds[action] = 0
             else:
                 same_action_value = []
-                for grp in self.data:
+                for grp in self.ticker:
                     df = grp["data"]
                     df = df[df["actions"] == action]
                     same_action_value.extend(df[action + "_probability"].tolist())
@@ -210,7 +210,7 @@ class EvalLive(EvaluatePortfolio):
         potential_buys = []
         sells = []
 
-        for grp in self.data:
+        for grp in self.ticker:
             trade = grp["data"].to_dict("records")
             assert len(trade) == 1
             trade = trade[0]
@@ -236,13 +236,13 @@ if __name__ == "__main__":
 
     with mlflow.start_run():
         with open(path, "rb") as f:
-            data = pkl.load(f)
+            ticker = pkl.load(f)
 
         combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20,
                        'max_investment_per_trade': 0.07,
                        'quantiles_thresholds': {'hold': None, 'buy': 0.9978524124622346, 'sell': None}}
 
-        ep = EvaluatePortfolio(data=data, fixed_thresholds=True, **combination)
+        ep = EvaluatePortfolio(data=ticker, fixed_thresholds=True, **combination)
         ep.initialize()
         ep.act()
         ep.force_sell()
