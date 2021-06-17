@@ -37,8 +37,8 @@ class RLAgent:
             self._agent_saved = True
 
     @staticmethod
-    def _merge_actions(actions, actions_outputs):
-        df = pd.DataFrame(actions, columns=["action"]).reset_index(drop=True)
+    def _merge_actions(actions, prices, actions_outputs):
+        df = pd.DataFrame(dict(actions=actions, prices=prices)).reset_index(drop=True)
         actions_outputs = pd.concat(actions_outputs, axis="rows").reset_index(drop=True)
         df = pd.concat([df, actions_outputs], axis="columns")
         return df
@@ -50,6 +50,7 @@ class RLAgent:
 
         for ticker in tqdm(self.ticker, "Processing ticker "):
 
+            prices = []
             actions = []
             actions_outputs = []
 
@@ -61,10 +62,11 @@ class RLAgent:
                     [self.agent.tracked_tensors()["agent/policy/action_distribution/probabilities"]],
                     columns=["hold_probability", "buy_probability", "sell_probability"])
 
+                prices.append(sequence.price)
                 actions.append(action)
                 actions_outputs.append(action_proba)
 
-            ticker.add_eval(self._merge_actions(actions, actions_outputs))
+            ticker.add_eval(self._merge_actions(actions, prices, actions_outputs))
 
     def eval_agent(self):
         self._eval()
@@ -76,7 +78,7 @@ class RLAgent:
             self.save_agent()
 
     def train(self, n_full_episodes):
-        self.environment.data = self.ticker
+        self.environment.ticker = self.ticker
         environment = Environment.create(environment=self.environment)
 
         self.agent = Agent.create(
