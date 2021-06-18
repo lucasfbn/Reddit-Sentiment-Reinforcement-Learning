@@ -266,6 +266,23 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
 
 
 @task
+def mark_sentiment_data_available_column(ticker: Ticker, sentiment_data_columns) -> Ticker:
+    """
+    Marks whether sentiment data was available for a given date or not.
+    Args:
+        ticker:
+        sentiment_data_columns: List of sentiment data columns. Will pick the first in the list to determine whether
+         sentiment data was available or not
+
+    Adds:
+        ["sentiment_data_available"]
+    """
+    arbitrary_sentiment_columns = sentiment_data_columns[0]
+    ticker.df["sentiment_data_available"] = (~ticker.df[arbitrary_sentiment_columns].isnull())
+    return ticker
+
+
+@task
 def remove_excluded_ticker(ticker: list) -> list:
     """
     Removes all ticker that are marked for exclusion.

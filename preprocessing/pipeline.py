@@ -49,7 +49,9 @@ with Flow("preprocessing") as flow:
     ticker = mark_trainable_days.map(ticker, unmapped(ticker_min_len))
     ticker = add_price_data.map(ticker, unmapped(price_data_start_offset), unmapped(enable_live_behaviour))
     ticker = remove_excluded_ticker(ticker)
-    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("adj_close_column", default=["Adj Close"])))
+    ticker = mark_sentiment_data_available_column.map(ticker, unmapped(sentiment_data_columns))
+    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("adj_close_column_plus_merged",
+                                                                   default=["Adj Close", "_merge"])))
     ticker = sort_ticker_df_chronologically.map(ticker, unmapped(Parameter("date_day", date_day_col)))
     ticker = backfill_availability.map(ticker)
     ticker = assign_price_col.map(ticker, unmapped(price_column))
@@ -64,10 +66,12 @@ with Flow("preprocessing") as flow:
     ticker = add_metric_rel_price_change.map(ticker)
     ticker = add_metadata_to_ticker.map(ticker, unmapped(Parameter("metadata_cols",
                                                                    default=["price", date_day_col, "tradeable",
-                                                                            "available"])))
+                                                                            "available", "sentiment_data_available"])))
     ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("date_cols", default=[date_col, date_day_col,
                                                                                          date_shifted_col,
                                                                                          date_day_shifted_col])))
+    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("sentiment_data_available_col",
+                                                                   default=["sentiment_data_available"])))
     _ = assert_no_nan.map(ticker)
 
     # Cannot unpack directly, therefore we need to unpack manually
@@ -103,7 +107,7 @@ def main(test_mode=False):
         df = pd.read_csv(
             "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/3/39aaaaa5c33741218844a315f229093d/artifacts/report.csv",
             sep=";")
-        df = df.head(1000)
+        df = df.head(500)
         with mlflow.start_run():
             flow.run(dict(input_df=df))
 
