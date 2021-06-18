@@ -103,3 +103,15 @@ def test_merge():
 
     assert_series_equal(expected["date_day"], merged["date_day"])
     assert_series_equal(expected["compound"], merged["compound"])
+
+
+def test_merge_indicator():
+    df = pd.DataFrame({"date_day": [Period('2021-05-10', 'D'),
+                                    Period('2021-05-20', 'D')]})
+
+    sp = StockPrices(ticker_name="GME", ticker_df=df, start_offset=0, live=False)
+    sp.download()
+
+    result = sp.merge()
+    expected = pd.Series(["both"] + ["left_only"] * 7 + ["both"])
+    assert_series_equal(result["_merge"], expected, check_dtype=False, check_names=False, check_categorical=False)

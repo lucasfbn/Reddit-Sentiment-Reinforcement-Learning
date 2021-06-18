@@ -106,7 +106,7 @@ class StockPrices:
         Merges the price data with the original df. Be aware that is merges the "outer" values, meaning that gaps
         between two dates will be filled with price data (as long as there is any at the specific day).
         """
-        return self.prices.merge(self.df, on="date_day", how="outer")
+        return self.prices.merge(self.df, on="date_day", how="outer", indicator=True)
 
 
 class IndexPerformance:
