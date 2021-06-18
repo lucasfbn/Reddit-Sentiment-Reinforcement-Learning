@@ -266,7 +266,7 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
 
 
 @task
-def mark_sentiment_data_available_column(ticker: Ticker, sentiment_data_columns) -> Ticker:
+def mark_sentiment_data_available_days(ticker: Ticker, sentiment_data_columns) -> Ticker:
     """
     Marks whether sentiment data was available for a given date or not.
     Args:
