@@ -45,28 +45,30 @@ with Flow("preprocessing") as flow:
     ticker = grp_by_ticker(df)
     ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("ticker_column", default=["ticker"])))
     ticker = drop_ticker_with_too_few_data(ticker, ticker_min_len)
-    ticker = sort_ticker_df_chronologically.map(ticker)
+    ticker = sort_ticker_df_chronologically.map(ticker, unmapped(Parameter("date_shifted", date_shifted_col)))
     ticker = mark_trainable_days.map(ticker, unmapped(ticker_min_len))
     ticker = add_price_data.map(ticker, unmapped(price_data_start_offset), unmapped(enable_live_behaviour))
     ticker = remove_excluded_ticker(ticker)
     ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("adj_close_column", default=["Adj Close"])))
-    ticker = sort_ticker_df_chronologically.map(ticker)
+    ticker = sort_ticker_df_chronologically.map(ticker, unmapped(Parameter("date_day", date_day_col)))
     ticker = backfill_availability.map(ticker)
     ticker = assign_price_col.map(ticker, unmapped(price_column))
     ticker = drop_ticker_df_columns.map(ticker, unmapped(price_column))
     price_data_columns = remove_old_price_col_from_price_data_columns(price_data_columns, price_column)
     ticker = mark_tradeable_days.map(ticker)
-
-    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("date_cols", default=[date_col, date_day_col,
-                                                                                         date_shifted_col,
-                                                                                         date_day_shifted_col])))
     ticker = forward_fill_price.map(ticker)
     ticker = mark_ticker_where_all_prices_are_nan.map(ticker)
     ticker = mark_ipo_ticker.map(ticker)
     ticker = remove_excluded_ticker(ticker)
     ticker = fill_missing_sentiment_data.map(ticker, unmapped(sentiment_data_columns))
-    _ = assert_no_nan.map(ticker)
     ticker = add_metric_rel_price_change.map(ticker)
+    ticker = add_metadata_to_ticker.map(ticker, unmapped(Parameter("metadata_cols",
+                                                                   default=["price", date_day_col, "tradeable",
+                                                                            "available"])))
+    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("date_cols", default=[date_col, date_day_col,
+                                                                                         date_shifted_col,
+                                                                                         date_day_shifted_col])))
+    _ = assert_no_nan.map(ticker)
 
     # Cannot unpack directly, therefore we need to unpack manually
     temp_result = scale_price_data.map(ticker, unmapped(price_data_columns), unmapped(drop_unscaled_cols))
@@ -84,8 +86,8 @@ with Flow("preprocessing") as flow:
 
 
 def main(test_mode=False):
-    flow.executor = LocalDaskExecutor(scheduler="processes", num_workers=8)
-    # flow.executor = LocalExecutor()
+    # flow.executor = LocalDaskExecutor(scheduler="processes", num_workers=8)
+    flow.executor = LocalExecutor()
 
     if test_mode:
         import pickle as pkl

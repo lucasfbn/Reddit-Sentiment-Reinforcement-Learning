@@ -188,6 +188,20 @@ def test_mark_tradeable_days():
 
     assert set(result.df.columns) == {date_col, "tradeable"}
 
+    df = pd.DataFrame([{date_col: Period('2021-01-28', 'D')},
+                       {date_col: Period('2021-01-29', 'D')},
+                       {date_col: Period('2021-02-01', 'D')},
+                       {date_col: Period('2021-02-02', 'D')},
+                       {date_col: Period('2021-02-03', 'D')},
+                       {date_col: Period('2021-02-04', 'D')},
+                       {date_col: Period('2021-02-05', 'D')},
+                       {date_col: Period('2021-02-08', 'D')}])
+    result = mark_tradeable_days.run(Ticker(None, df))
+    expected = pd.Series([True, False, False, True])
+    assert_series_equal(result.df["tradeable"], expected, check_names=False)
+
+    assert set(result.df.columns) == {date_col, "tradeable"}
+
 
 def test_forward_fill_price():
     df = pd.DataFrame([{date_col: Timestamp('2021-06-04 00:00:00'), "price": 5},

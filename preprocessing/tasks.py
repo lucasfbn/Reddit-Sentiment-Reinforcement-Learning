@@ -183,8 +183,8 @@ def drop_ticker_with_too_few_data(ticker: list, ticker_min_len: int) -> list:
 
 
 @task
-def sort_ticker_df_chronologically(ticker: Ticker) -> Ticker:
-    ticker.df = ticker.df.sort_values(by=[date_shifted_col], ascending=True)
+def sort_ticker_df_chronologically(ticker: Ticker, by: list = []) -> Ticker:
+    ticker.df = ticker.df.sort_values(by=by, ascending=True)
     return ticker
 
 
@@ -369,7 +369,7 @@ def mark_tradeable_days(ticker: Ticker) -> Ticker:
 
     """
 
-    ticker.df["temp_weekday"] = ticker.df[date_col].dt.dayofweek
+    ticker.df["temp_weekday"] = ticker.df[date_day_col].dt.dayofweek
     ticker.df["tradeable"] = ticker.df["temp_weekday"] < 5
     ticker.df = ticker.df.drop(columns=["temp_weekday"])
     return ticker
