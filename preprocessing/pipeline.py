@@ -49,7 +49,7 @@ with Flow("preprocessing") as flow:
     ticker = mark_trainable_days.map(ticker, unmapped(ticker_min_len))
     ticker = add_price_data.map(ticker, unmapped(price_data_start_offset), unmapped(enable_live_behaviour))
     ticker = remove_excluded_ticker(ticker)
-    ticker = mark_sentiment_data_available_column.map(ticker, unmapped(sentiment_data_columns))
+    ticker = mark_sentiment_data_available_days.map(ticker, unmapped(sentiment_data_columns))
     ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("adj_close_column_plus_merged",
                                                                    default=["Adj Close", "_merge"])))
     ticker = sort_ticker_df_chronologically.map(ticker, unmapped(Parameter("date_day", date_day_col)))
@@ -114,5 +114,5 @@ def main(test_mode=False):
 
 if __name__ == "__main__":
     # flow.register("test")
-    # flow.visualize()
-    main(False)
+    flow.visualize()
+    # main(False)

@@ -342,6 +342,6 @@ def test_mark_sentiment_data_available_column():
     df = pd.DataFrame({"price": [1, 2, 3, 4, 5, 10], "dummy": [None, None, 0.14, 10.4, None, None]})
     ticker = Ticker(None, df)
 
-    result = mark_sentiment_data_available_column.run(ticker, sentiment_data_columns=["dummy"])
+    result = mark_sentiment_data_available_days.run(ticker, sentiment_data_columns=["dummy"])
     assert_series_equal(result.df["sentiment_data_available"], pd.Series([False, False, True, True, False, False]),
                         check_names=False, check_dtype=False)
