@@ -115,7 +115,7 @@ def test_sort_ticker_df_chronologically():
     df = pd.DataFrame([{date_shifted_col: Timestamp('2021-05-19 00:00:00')},
                        {date_shifted_col: Timestamp('2021-05-21 00:00:00')},
                        {date_shifted_col: Timestamp('2021-05-20 00:00:00')}])
-    result = sort_ticker_df_chronologically.run(Ticker(None, df))
+    result = sort_ticker_df_chronologically.run(Ticker(None, df), by=[date_shifted_col])
     expected = pd.DataFrame([{date_shifted_col: Timestamp('2021-05-19 00:00:00')},
                              {date_shifted_col: Timestamp('2021-05-20 00:00:00')},
                              {date_shifted_col: Timestamp('2021-05-21 00:00:00')}])
@@ -178,29 +178,29 @@ def test_assign_price_col():
 
 
 def test_mark_tradeable_days():
-    df = pd.DataFrame([{date_col: Timestamp('2021-06-04 00:00:00')},
-                       {date_col: Timestamp('2021-06-05 00:00:00')},
-                       {date_col: Timestamp('2021-06-06 00:00:00')},
-                       {date_col: Timestamp('2021-06-07 00:00:00')}])
+    df = pd.DataFrame([{date_day_col: Timestamp('2021-06-04 00:00:00')},
+                       {date_day_col: Timestamp('2021-06-05 00:00:00')},
+                       {date_day_col: Timestamp('2021-06-06 00:00:00')},
+                       {date_day_col: Timestamp('2021-06-07 00:00:00')}])
     result = mark_tradeable_days.run(Ticker(None, df))
     expected = pd.Series([True, False, False, True])
     assert_series_equal(result.df["tradeable"], expected, check_names=False)
 
-    assert set(result.df.columns) == {date_col, "tradeable"}
+    assert set(result.df.columns) == {date_day_col, "tradeable"}
 
-    df = pd.DataFrame([{date_col: Period('2021-01-28', 'D')},
-                       {date_col: Period('2021-01-29', 'D')},
-                       {date_col: Period('2021-02-01', 'D')},
-                       {date_col: Period('2021-02-02', 'D')},
-                       {date_col: Period('2021-02-03', 'D')},
-                       {date_col: Period('2021-02-04', 'D')},
-                       {date_col: Period('2021-02-05', 'D')},
-                       {date_col: Period('2021-02-08', 'D')}])
+    df = pd.DataFrame([{date_day_col: Period('2021-01-28', 'D')},
+                       {date_day_col: Period('2021-01-29', 'D')},
+                       {date_day_col: Period('2021-02-01', 'D')},
+                       {date_day_col: Period('2021-02-02', 'D')},
+                       {date_day_col: Period('2021-02-03', 'D')},
+                       {date_day_col: Period('2021-02-04', 'D')},
+                       {date_day_col: Period('2021-02-05', 'D')},
+                       {date_day_col: Period('2021-02-08', 'D')}])
     result = mark_tradeable_days.run(Ticker(None, df))
-    expected = pd.Series([True, False, False, True])
+    expected = pd.Series([True] * 8)
     assert_series_equal(result.df["tradeable"], expected, check_names=False)
 
-    assert set(result.df.columns) == {date_col, "tradeable"}
+    assert set(result.df.columns) == {date_day_col, "tradeable"}
 
 
 def test_forward_fill_price():
