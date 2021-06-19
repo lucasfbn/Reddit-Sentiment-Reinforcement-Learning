@@ -4,7 +4,7 @@ import pandas as pd
 from prefect import task
 from sklearn.preprocessing import MinMaxScaler
 
-from preprocessing.sequences import FlatSequenceGenerator, ArraySequenceGenerator
+from preprocessing.sequences import FlatSequenceGenerator, ArraySequenceGenerator, SequenceGenerator
 from preprocessing.stock_prices import StockPrices, MissingDataException, OldDataException
 from preprocessing.ticker import Ticker
 
@@ -536,20 +536,6 @@ def scale_price_data(ticker: Ticker, price_data_columns: list, drop_unscaled_col
     ticker.df = scale(ticker.df, cols_to_be_scaled=price_data_columns)
     ticker.df, price_data_columns = handle_scaled_columns(ticker.df, price_data_columns, drop_unscaled_cols)
     return ticker, price_data_columns
-
-
-@task
-def add_metadata_to_ticker(ticker: Ticker, metadata_cols: list) -> Ticker:
-    """
-    Basically copies part of the df to a separate df. This might be useful later on when the actual df is transformed
-    into a timeseries.
-
-    Args:
-        ticker:
-        metadata_cols:
-    """
-    ticker.metadata = ticker.df[metadata_cols]
-    return ticker
 
 
 @task
