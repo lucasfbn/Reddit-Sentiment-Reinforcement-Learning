@@ -33,8 +33,9 @@ with Flow("preprocessing") as flow:
     enable_live_behaviour = Parameter("enable_live_behaviour", default=False)
     include_available_days_only = Parameter("include_available_days_only", default=True)
     sequence_length = Parameter("sequence_length", default=3)
-    columns_to_be_excluded_from_sequences = Parameter("columns_to_be_excluded_from_sequences", default=["available",
-                                                                                                        "tradeable"])
+    columns_to_be_excluded_from_sequences = Parameter("columns_to_be_excluded_from_sequences",
+                                                      default=["available", "tradeable", date_day_col,
+                                                               "sentiment_data_available"])
 
     df = add_time(input_df)
     df = shift_time(df, start_hour, start_min)
@@ -64,14 +65,9 @@ with Flow("preprocessing") as flow:
     ticker = remove_excluded_ticker(ticker)
     ticker = fill_missing_sentiment_data.map(ticker, unmapped(sentiment_data_columns))
     ticker = add_metric_rel_price_change.map(ticker)
-    ticker = add_metadata_to_ticker.map(ticker, unmapped(Parameter("metadata_cols",
-                                                                   default=["price", date_day_col, "tradeable",
-                                                                            "available", "sentiment_data_available"])))
-    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("date_cols", default=[date_col, date_day_col,
+    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("date_cols", default=[date_col,
                                                                                          date_shifted_col,
                                                                                          date_day_shifted_col])))
-    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("sentiment_data_available_col",
-                                                                   default=["sentiment_data_available"])))
     _ = assert_no_nan.map(ticker)
 
     # Cannot unpack directly, therefore we need to unpack manually
