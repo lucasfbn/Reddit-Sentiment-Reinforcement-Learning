@@ -3,11 +3,13 @@ import pandas as pd
 
 class Sequence:
 
-    def __init__(self, price, available, tradeable, df):
+    def __init__(self, price, available, tradeable, date, sentiment_data_available, df):
         self.df = df
         self.tradeable = tradeable
         self.available = available
         self.price = price
+        self.sentiment_data_available = sentiment_data_available
+        self.date = date
 
     def __len__(self):
         return len(self.df)
@@ -74,6 +76,18 @@ class SequenceGenerator:
         """
         return bool(df["tradeable"].iloc[len(df) - 1])
 
+    @staticmethod
+    def _add_date(df):
+        if "date_day" in df.columns:
+            return df["date_day"].iloc[len(df) - 1]
+        return None
+
+    @staticmethod
+    def _add_sentiment_data_availability(df):
+        if "sentiment_data_available" in df.columns:
+            return bool(df["sentiment_data_available"].iloc[len(df) - 1])
+        return None
+
     def sliced_to_sequence_obj(self):
         """
         Transforms each slice into a Sequence object.
@@ -85,6 +99,8 @@ class SequenceGenerator:
                     available=self._add_availability(slice),
                     tradeable=self._add_tradeable(slice),
                     price=self._add_price(slice),
+                    sentiment_data_available=self._add_sentiment_data_availability(slice),
+                    date=self._add_date(slice),
                     df=slice
                 ))
         return self._sequences
