@@ -14,6 +14,17 @@ class Sequence:
         self.flat = flat
         self.arr = arr
 
+        # Used later on during evaluation
+        self.action = None
+        self.action_probas = None
+
+    def add_eval(self, action, action_probas):
+        """
+        Quickly add evaluation information.
+        """
+        self.action = action
+        self.action_probas = action_probas
+
     def __len__(self):
         return len(self.df)
 
