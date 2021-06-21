@@ -115,7 +115,7 @@ class Env(Environment):
         self._current_ticker = copy.deepcopy(self._episode_data[self._counter])
 
     def _assign_new_sequences(self):
-        raise NotImplementedError
+        self._current_sequences = self._current_ticker.sequences
 
     def _assign_new_states(self):
         if self.shuffle_sequences:
@@ -141,10 +141,9 @@ class Env(Environment):
 
         max_ = 0
 
-        for d in self.data:
-            assert len(d.array_sequence) == len(d.flat_sequence)
-            if len(d.array_sequence) > max_:
-                max_ = len(d.array_sequence)
+        for ticker in self.data:
+            if len(ticker.sequences) > max_:
+                max_ = len(ticker.sequences)
 
         return max_
 
@@ -154,42 +153,32 @@ class Env(Environment):
     def _current_price(self):
         return self._state.price
 
+    @staticmethod
+    def get_sequences(ticker):
+        return ticker.sequences
+
 
 class EnvNN(Env):
 
     def states(self):
-        shape = self.data[0].flat_sequence[0].df.shape
+        shape = self.data[0].sequence[0].flat.shape
         return dict(type="float", shape=(shape[1],))
 
     @staticmethod
     def _shape_state(state):
-        state.df = np.asarray(state.df).astype("float32")
+        state.df = np.asarray(state.flat).astype("float32")
         state.df = state.df.reshape((state.df.shape[1],))
         return state
 
-    def _assign_new_sequences(self):
-        self._current_sequences = self._current_ticker.flat_sequence
-
-    @staticmethod
-    def get_sequences(ticker):
-        return ticker.flat_sequence
-    
 
 class EnvCNN(Env):
 
-    @staticmethod
-    def get_sequences(ticker):
-        return ticker.array_sequence
-
     def states(self):
-        shape = self.data[0].array_sequence[0].df.shape
+        shape = self.data[0].sequence[0].arr.shape
         return dict(type="float", shape=(1, shape[0], shape[1]))
-
-    def _assign_new_sequences(self):
-        self._current_sequences = self._current_ticker.array_sequence
 
     @staticmethod
     def _shape_state(state):
-        state.df = state.df.values.reshape((1, state.df.shape[0], state.df.shape[1]))
+        state.df = state.arr.values.reshape((1, state.arr.shape[0], state.arr.shape[1]))
         state.df = np.asarray(state.df).astype('float32')
         return state
