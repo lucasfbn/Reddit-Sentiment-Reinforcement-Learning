@@ -4,7 +4,7 @@ import pandas as pd
 from prefect import task
 from sklearn.preprocessing import MinMaxScaler
 
-from preprocessing.sequences import FlatSequenceGenerator, ArraySequenceGenerator, SequenceGenerator
+from preprocessing.sequences import SequenceGenerator
 from preprocessing.stock_prices import StockPrices, MissingDataException, OldDataException
 from preprocessing.ticker import Ticker
 
@@ -554,17 +554,15 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
         last_column: The column of each sequence that shall be the last one. This is usually the price column since the
          NN uses the last column as an indicator of the current price.
     """
-    flat_seq = FlatSequenceGenerator(df=ticker.df, sequence_len=sequence_length,
-                                     include_available_days_only=include_available_days_only,
-                                     exclude_cols_from_sequence=columns_to_be_excluded_from_sequences,
-                                     price_column=price_column)
-    ticker.flat_sequence = flat_seq.make_sequence()
+    seq_gen = SequenceGenerator(df=ticker.df, sequence_len=sequence_length,
+                                include_available_days_only=include_available_days_only,
+                                exclude_cols_from_sequence=columns_to_be_excluded_from_sequences,
+                                price_column=price_column)
+    seq_gen.make_sequence()
+    seq_gen.add_flat_sequences()
+    seq_gen.add_array_sequences()
 
-    arr_seq = ArraySequenceGenerator(df=ticker.df, sequence_len=sequence_length,
-                                     include_available_days_only=include_available_days_only,
-                                     exclude_cols_from_sequence=columns_to_be_excluded_from_sequences,
-                                     price_column=price_column)
-    ticker.array_sequence = arr_seq.make_sequence()
+    ticker.sequences = seq_gen.get_sequences()
     return ticker
 
 
@@ -573,9 +571,8 @@ def mark_empty_sequences(ticker: Ticker):
     """
     Marks the sequences which are empty due to entries not being tradeable or available or being too short.
     """
-    assert len(ticker.array_sequence) == len(ticker.flat_sequence)
 
-    if not ticker.array_sequence:
+    if not ticker.sequences:
         ticker.exclude = True
 
     return ticker
