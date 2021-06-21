@@ -185,6 +185,13 @@ def test_cnn_loop():
             state, terminal, reward = env.execute(actions=actions)
 
             i += 1
-            
+
         if i == len(expected_states):
             i = 0
+
+
+def test_max_episode_timesteps():
+    EnvNN.data = data
+    env = EnvNN()
+
+    assert env.max_episode_timesteps() == 3
