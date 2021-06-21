@@ -97,9 +97,10 @@ def test_flat_sequence():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
                        "price": list(range(10, 17)), "tradeable": [True] * 7})
 
-    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, exclude_cols_from_sequence=[
+    fs = SequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, exclude_cols_from_sequence=[
         "tradeable", "available", "price"], price_column="price")
-    result = fs.make_sequence()
+    fs.make_sequence()
+    result = fs.add_flat_sequences()
 
     expected = [
         pd.DataFrame({"dummy/0": [1], "dummy/1": [2], "dummy/2": [3]}),
@@ -110,17 +111,19 @@ def test_flat_sequence():
     ]
 
     for r, e in zip(result, expected):
-        r.df.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
-        assert_frame_equal(r.df, e, check_column_type=False)
+        r = r.flat
+        r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r, e, check_column_type=False)
 
 
 def test_arr_sequence():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
                        "price": list(range(10, 17)), "tradeable": [True] * 7})
 
-    seq = ArraySequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, exclude_cols_from_sequence=[
+    seq = SequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, exclude_cols_from_sequence=[
         "tradeable", "available", "price"], price_column="price")
-    result = seq.make_sequence()
+    seq.make_sequence()
+    result = seq.add_array_sequences()
 
     expected = [
         pd.DataFrame({"dummy": [1, 2, 3]}),
@@ -131,7 +134,7 @@ def test_arr_sequence():
     ]
 
     for r, e in zip(result, expected):
-        assert_frame_equal(r.df.reset_index(drop=True), e)
+        assert_frame_equal(r.arr.reset_index(drop=True), e)
 
 
 def test_sequence_len_too_long():
@@ -169,9 +172,10 @@ def test_flat_sequence_column_order():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
                        "price": [10, 11, 12, 13, 14, 15, 16], "tradeable": [True] * 7})
 
-    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
-                               exclude_cols_from_sequence=["available", "tradeable"], price_column="dummy")
-    result = fs.make_sequence()
+    fs = SequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
+                           exclude_cols_from_sequence=["available", "tradeable"], price_column="dummy")
+    fs.make_sequence()
+    result = fs.add_flat_sequences()
 
     expected = [
         pd.DataFrame(
@@ -187,12 +191,14 @@ def test_flat_sequence_column_order():
     ]
 
     for r, e in zip(result, expected):
-        r.df.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
-        assert_frame_equal(r.df, e, check_column_type=False)
+        r = r.flat
+        r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r, e, check_column_type=False)
 
-    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
-                               exclude_cols_from_sequence=["available", "tradeable"], price_column="price")
-    result = fs.make_sequence()
+    fs = SequenceGenerator(df=df, sequence_len=3, include_available_days_only=False,
+                           exclude_cols_from_sequence=["available", "tradeable"], price_column="price")
+    fs.make_sequence()
+    result = fs.add_flat_sequences()
 
     expected = [
         pd.DataFrame(
@@ -208,8 +214,9 @@ def test_flat_sequence_column_order():
     ]
 
     for r, e in zip(result, expected):
-        r.df.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
-        assert_frame_equal(r.df, e, check_column_type=False)
+        r = r.flat
+        r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r, e, check_column_type=False)
 
 
 def test_empty_sequences():
@@ -226,17 +233,26 @@ def test_empty_sequences():
 def test_attributes():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, True, True, True, True, True],
                        "price": [10, 11, 12, 13, 14, 15, 16],
-                       "tradeable": [False, False, True, True, False, False, False]})
-    fs = FlatSequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, price_column="price")
+                       "tradeable": [False, False, True, True, False, False, False],
+                       "sentiment_data_available": [False, False, True, True, True, True, False],
+                       "date_day": [pd.Period("01-01-2021"), pd.Period("02-01-2021"), pd.Period("03-01-2021"),
+                                    pd.Period("04-01-2021"), pd.Period("05-01-2021"), pd.Period("06-01-2021"),
+                                    pd.Period("07-01-2021")]})
+    fs = SequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, price_column="price")
     result = fs.make_sequence()
 
     expected_price = [12, 13, 14, 15, 16]
     expected_tradeable = [True, True, False, False, False]
     expected_available = [True, True, True, True, True]
+    expected_sentiment_data_available = [True, True, True, True, False]
+    expected_date = [pd.Period("03-01-2021"), pd.Period("04-01-2021"), pd.Period("05-01-2021"), pd.Period("06-01-2021"),
+                     pd.Period("07-01-2021")]
 
     i = 0
     while i < len(result):
         assert result[i].price == expected_price[i]
         assert result[i].tradeable == expected_tradeable[i]
         assert result[i].available == expected_available[i]
+        assert result[i].sentiment_data_available == expected_sentiment_data_available[i]
+        assert result[i].date == expected_date[i]
         i += 1
