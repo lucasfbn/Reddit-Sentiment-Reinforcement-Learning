@@ -11,6 +11,9 @@ class Sequence:
         self.sentiment_data_available = sentiment_data_available
         self.date = date
 
+        self.flat = None
+        self.arr = None
+
     def __len__(self):
         return len(self.df)
 
@@ -149,36 +152,24 @@ class SequenceGenerator:
         self.exclude_columns()
 
     def make_sequence(self):
-        """
-        Wrapper to run through all steps to create a sequence
-        """
-        raise NotImplementedError
-
-    def to_list(self):
+        self._make_sequence()
         return self._sequences
 
+    def add_array_sequences(self):
+        for seq in self._sequences:
+            seq.arr = seq.df.copy()
+        return self._sequences
 
-class FlatSequenceGenerator(SequenceGenerator):
-
-    def flatten(self):
+    def add_flat_sequences(self):
         """
         Flattens a df. Example: If we have 10 rows and 5 columns we will have 1 row and 50 columns afterwards. Each
         value that gets transformed into a new column will have a prefix with an integer indicating the index in the
         original df it was located at.
         """
         # TODO Might be faster to use numpy reshape here - but we would have to deal with the column names then
-        for sequence in self._sequences:
-            sequence.df = sequence.df.unstack().to_frame().T
+        for seq in self._sequences:
+            seq.flat = seq.df.unstack().to_frame().T
         return self._sequences
 
-    def make_sequence(self):
-        self._make_sequence()
-        self.flatten()
-        return self._sequences
-
-
-class ArraySequenceGenerator(SequenceGenerator):
-
-    def make_sequence(self):
-        self._make_sequence()
+    def to_list(self):
         return self._sequences
