@@ -195,3 +195,15 @@ def test_max_episode_timesteps():
     env = EnvNN()
 
     assert env.max_episode_timesteps() == 3
+
+
+def test_nn_states():
+    EnvNN.data = data
+    env = EnvNN()
+    assert env.states() == {'shape': (6,), 'type': 'float'}
+
+
+def test_cnn_states():
+    EnvCNN.data = data
+    env = EnvCNN()
+    assert env.states() == {'shape': (1, 3, 2), 'type': 'float'}

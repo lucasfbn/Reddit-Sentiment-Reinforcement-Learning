@@ -161,7 +161,7 @@ class Env(Environment):
 class EnvNN(Env):
 
     def states(self):
-        shape = self.data[0].sequence[0].flat.shape
+        shape = self.data[0].sequences[0].flat.shape
         return dict(type="float", shape=(shape[1],))
 
     @staticmethod
@@ -174,7 +174,7 @@ class EnvNN(Env):
 class EnvCNN(Env):
 
     def states(self):
-        shape = self.data[0].sequence[0].arr.shape
+        shape = self.data[0].sequences[0].arr.shape
         return dict(type="float", shape=(1, shape[0], shape[1]))
 
     @staticmethod
