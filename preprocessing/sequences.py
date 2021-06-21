@@ -3,7 +3,7 @@ import pandas as pd
 
 class Sequence:
 
-    def __init__(self, price, available, tradeable, date, sentiment_data_available, df):
+    def __init__(self, price, available, tradeable, date, sentiment_data_available, df, flat=None, arr=None):
         self.df = df
         self.tradeable = tradeable
         self.available = available
@@ -11,8 +11,8 @@ class Sequence:
         self.sentiment_data_available = sentiment_data_available
         self.date = date
 
-        self.flat = None
-        self.arr = None
+        self.flat = flat
+        self.arr = arr
 
     def __len__(self):
         return len(self.df)
