@@ -78,7 +78,7 @@ class RLAgent:
             self.save_agent()
 
     def train(self, n_full_episodes):
-        self.environment.ticker = self.ticker
+        self.environment.data = self.ticker
         environment = Environment.create(environment=self.environment)
 
         self.agent = Agent.create(
@@ -101,13 +101,13 @@ class RLAgent:
 
 
 if __name__ == '__main__':
-    training_data = load_file(run_id="cdd0ea6c04d64b009dc1ebdeabcba818", fn="ticker.pkl", experiment="Tests")
+    data = load_file(run_id="4fd176663687436aa772673e5e3304fb", fn="ticker.pkl", experiment="Tests")
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Learning")
 
     with mlflow.start_run():
-        rla = RLAgent(environment=EnvCNN, ticker=training_data)
+        rla = RLAgent(environment=EnvCNN, ticker=data)
         # rla.load_agent(
         #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
         rla.train(n_full_episodes=1)
