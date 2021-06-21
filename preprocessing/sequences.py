@@ -160,6 +160,9 @@ class SequenceGenerator:
             seq.arr = seq.df.copy()
         return self._sequences
 
+    def get_sequences(self):
+        return self._sequences
+
     def add_flat_sequences(self):
         """
         Flattens a df. Example: If we have 10 rows and 5 columns we will have 1 row and 50 columns afterwards. Each
@@ -169,7 +172,4 @@ class SequenceGenerator:
         # TODO Might be faster to use numpy reshape here - but we would have to deal with the column names then
         for seq in self._sequences:
             seq.flat = seq.df.unstack().to_frame().T
-        return self._sequences
-
-    def to_list(self):
         return self._sequences
