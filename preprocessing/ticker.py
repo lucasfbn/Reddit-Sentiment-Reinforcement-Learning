@@ -5,8 +5,7 @@ class Ticker:
         self.name = name
         self.exclude = False
 
-        self.flat_sequence = None
-        self.array_sequence = None
+        self.sequences = None
 
         self.actions = None
 

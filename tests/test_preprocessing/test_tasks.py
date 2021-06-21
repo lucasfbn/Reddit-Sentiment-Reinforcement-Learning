@@ -316,9 +316,10 @@ def test_make_sequence():
             {"dummy/2": [3], "dummy/3": [4], "dummy/4": [5], "price/2": [12], "price/3": [13], "price/4": [14]}),
     ]
 
-    for r, e in zip(result.flat_sequence, expected_flat_sequence):
-        r.df.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
-        assert_frame_equal(r.df, e, check_column_type=False)
+    for r, e in zip(result.sequences, expected_flat_sequence):
+        r.flat.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r.flat, e, check_column_type=False)
+
 
     expected_arr_sequence = [
         pd.DataFrame({"dummy": [1, 2, 3], "price": [10, 11, 12]}),
@@ -326,8 +327,8 @@ def test_make_sequence():
         pd.DataFrame({"dummy": [3, 4, 5], "price": [12, 13, 14]})
     ]
 
-    for r, e in zip(result.array_sequence, expected_arr_sequence):
-        assert_frame_equal(r.df.reset_index(drop=True), e)
+    for r, e in zip(result.sequences, expected_arr_sequence):
+        assert_frame_equal(r.arr.reset_index(drop=True), e)
 
 
 def test_remove_old_price_col_from_price_data_columns():
