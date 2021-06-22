@@ -256,3 +256,14 @@ def test_attributes():
         assert result[i].sentiment_data_available == expected_sentiment_data_available[i]
         assert result[i].date == expected_date[i]
         i += 1
+
+
+def test_sort_sequences():
+    sequences = [Sequence(1, None, None, None, None, None),
+                 Sequence(4, None, None, None, None, None),
+                 Sequence(3, None, None, None, None, None),
+                 Sequence(2, None, None, None, None, None)]
+
+    sequences.sort(key=lambda x: x.price, reverse=False)
+    for i, seq in enumerate(sequences):
+        assert seq.price == i + 1
