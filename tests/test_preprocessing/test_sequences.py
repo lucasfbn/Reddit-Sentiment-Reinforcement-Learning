@@ -256,3 +256,11 @@ def test_attributes():
         assert result[i].sentiment_data_available == expected_sentiment_data_available[i]
         assert result[i].date == expected_date[i]
         i += 1
+
+
+def test_to_dict():
+    seq = Sequence(price=10, available=True, tradeable=True, date=2, sentiment_data_available=True, df=3)
+
+    result = seq.to_dict()
+    assert result == {'tradeable': True, 'available': True, 'price': 10, 'sentiment_data_available': True,
+                      'action': None, 'action_probas': None}
