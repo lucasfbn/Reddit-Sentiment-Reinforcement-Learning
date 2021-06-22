@@ -25,6 +25,10 @@ class Sequence:
         self.action = action
         self.action_probas = action_probas
 
+    def to_dict(self):
+        keys = ["tradeable", "available", "price", "sentiment_data_available", "action", "action_probas"]
+        return {key: value for key, value in self.__dict__.items() if key in keys}
+
     def __len__(self):
         return len(self.df)
 
