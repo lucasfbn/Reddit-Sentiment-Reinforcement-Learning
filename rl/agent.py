@@ -47,9 +47,9 @@ class RLAgent:
                 state = env._shape_state(sequence).df
 
                 action = self.agent.act(state, independent=True)
-                actions_proba = pd.DataFrame(
-                    [self.agent.tracked_tensors()["agent/policy/action_distribution/probabilities"]],
-                    columns=["hold_probability", "buy_probability", "sell_probability"])
+
+                arr = self.agent.tracked_tensors()["agent/policy/action_distribution/probabilities"]
+                actions_proba = {"hold": arr[0], "buy": arr[1], "sell": arr[2]}
 
                 sequence.add_eval(action, actions_proba)
 
