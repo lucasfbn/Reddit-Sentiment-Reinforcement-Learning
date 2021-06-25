@@ -62,6 +62,8 @@ class RLAgent:
         if not self._agent_saved:
             self.save_agent()
 
+        return self.ticker
+
     def train(self, n_full_episodes):
         self.environment.data = self.ticker
         environment = Environment.create(environment=self.environment)
