@@ -75,8 +75,7 @@ def drop_columns(df: pd.DataFrame, columns_to_be_dropped: list):
     return df.drop(columns=columns_to_be_dropped)
 
 
-def handle_scaled_columns(df: pd.DataFrame, unscaled_cols: list, drop_unscaled_cols: bool) \
-        -> Tuple[pd.DataFrame, list]:
+def handle_scaled_columns(df: pd.DataFrame, unscaled_cols: list, drop_unscaled_cols: bool) -> Tuple[pd.DataFrame, list]:
     """
     Handles columns after scaling. If drop_unscaled_cols is True, the unscaled columns will be dropped from the df and
     only the scaled columns will be returned as the new columns. Otherwise the scaled columns will be added to the
@@ -523,6 +522,19 @@ def remove_old_price_col_from_price_data_columns(price_data_columns: list, price
 
 
 @task
+def copy_unscaled_price(ticker: Ticker):
+    """
+    Copies the price column. Can be used prior to scaling to prevent the original price column from dropping (since it
+    will be used in the metadata later on.)
+
+    Adds:
+        ["price_raw"]
+    """
+    ticker.df["price_raw"] = ticker.df["price"]
+    return ticker
+
+
+@task
 def scale_price_data(ticker: Ticker, price_data_columns: list, drop_unscaled_cols: bool) -> Tuple[Ticker, list]:
     """
     Scales the price data (or any other arbitrage list of columns).
@@ -530,9 +542,8 @@ def scale_price_data(ticker: Ticker, price_data_columns: list, drop_unscaled_col
     Args:
         ticker:
         price_data_columns: Column names of the price data
-        drop_unscaled_cols:
+        drop_unscaled_cols: Whether to drop the unscaled columns after scaling or not
     """
-
     ticker.df = scale(ticker.df, cols_to_be_scaled=price_data_columns)
     ticker.df, price_data_columns = handle_scaled_columns(ticker.df, price_data_columns, drop_unscaled_cols)
     return ticker, price_data_columns

@@ -69,6 +69,7 @@ with Flow("preprocessing") as flow:
                                                                                          date_shifted_col,
                                                                                          date_day_shifted_col])))
     _ = assert_no_nan.map(ticker)
+    ticker = copy_unscaled_price.map(ticker)
 
     # Cannot unpack directly, therefore we need to unpack manually
     temp_result = scale_price_data.map(ticker, unmapped(price_data_columns), unmapped(drop_unscaled_cols))
