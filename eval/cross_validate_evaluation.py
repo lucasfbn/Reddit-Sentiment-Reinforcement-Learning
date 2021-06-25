@@ -1,12 +1,14 @@
+import copy
+import multiprocessing
 from dataclasses import dataclass
 from itertools import product
-from evaluate.evaluate import Evaluate
-from utils.util_funcs import log
-from tqdm import tqdm
-import multiprocessing
-import copy
+
 import mlflow
+from tqdm import tqdm
+
 import paths
+from eval.evaluate import Evaluate
+from utils.util_funcs import log
 
 
 @dataclass
@@ -73,7 +75,7 @@ class ParameterTuning:
             for key in base_keys:
                 mapping.pop(key, None)
 
-            mapping["quantiles_thresholds"] = base
+            mapping["threshold"] = base
 
     @staticmethod
     def _chunks(lst, n):
@@ -83,7 +85,8 @@ class ParameterTuning:
 
     def _save_init_values(self):
         log.info("Retrieving initial values...")
-        ep = Evaluate(data=self.data, quantiles_thresholds={"hold": None, "buy": None, "sell": None})
+        ep = Evaluate(ticker=self.data)
+        ep.set_thresholds({"hold": None, "buy": None, "sell": None})
         ep.initialize()
         self._dates_trades_combinations = ep._dates_trades_combination
         self._min_date, self._max_date = ep._min_date, ep._max_date
@@ -96,9 +99,9 @@ class ParameterTuning:
         dates_trades_combinations = None
 
         for combination in tqdm(combinations_list):
-            ep = Evaluate(data=self.data, **combination)
-            ep._dates_trades_combination = self._dates_trades_combinations
-            ep._min_date, ep._max_date = self._min_date, self._max_date
+            ep = Evaluate(ticker=self.data, **combination)
+            ep.set_dates_trade_combination(self._dates_trades_combinations)
+            ep.set_min_max_date(self._min_date, self._max_date)
 
             ep.initialize()
             ep.act()
@@ -169,9 +172,9 @@ if __name__ == "__main__":
     with mlflow.start_run():
         pt = ParameterTuning(data,
                              parameter={"buy": Interval(0.7, 1, 0.01)},
-                                        # "max_trades_per_day": Choice([1, 3, 5, 7, 10, 15]),
-                                        # "max_price_per_stock": Choice([10, 20, 25, 30, 40, 50]),
-                                        # "max_investment_per_trade": Choice([0.03, 0.05, 0.07, 0.1])},
+                             # "max_trades_per_day": Choice([1, 3, 5, 7, 10, 15]),
+                             # "max_price_per_stock": Choice([10, 20, 25, 30, 40, 50]),
+                             # "max_investment_per_trade": Choice([0.03, 0.05, 0.07, 0.1])},
                              n_worker=10)
         pt.tune()
         print(pt.get_top_results(3))
