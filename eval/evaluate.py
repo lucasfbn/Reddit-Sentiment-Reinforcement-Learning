@@ -134,6 +134,9 @@ class Evaluate(EvaluateInit):
     def set_min_max_date(self, min_date, max_date):
         self._min_date, self._max_date = min_date, max_date
 
+    def set_dates_trade_combination(self, dates_trades_combination):
+        self._dates_trades_combination = dates_trades_combination
+
     def _find_min_max_date(self):
         if self._min_date is not None and self._max_date is not None:
             return
