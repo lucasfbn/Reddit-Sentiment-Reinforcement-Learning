@@ -3,11 +3,12 @@ import pandas as pd
 
 class Sequence:
 
-    def __init__(self, price, available, tradeable, date, sentiment_data_available, df, flat=None, arr=None):
+    def __init__(self, price, available, tradeable, date, sentiment_data_available, df, price_raw, flat=None, arr=None):
         self.df = df
         self.tradeable = tradeable
         self.available = available
         self.price = price
+        self.price_raw = price_raw
         self.sentiment_data_available = sentiment_data_available
         self.date = date
 
@@ -83,6 +84,9 @@ class SequenceGenerator:
         """
         return float(df[self.price_column].iloc[len(df) - 1])
 
+    def _add_raw_price(self, df):
+        return float(df["price_raw"].iloc[len(df) - 1]) if "price_raw" in df.columns else None
+
     @staticmethod
     def _add_tradeable(df):
         """
@@ -113,6 +117,7 @@ class SequenceGenerator:
                     available=self._add_availability(slice),
                     tradeable=self._add_tradeable(slice),
                     price=self._add_price(slice),
+                    price_raw=self._add_raw_price(slice),
                     sentiment_data_available=self._add_sentiment_data_availability(slice),
                     date=self._add_date(slice),
                     df=slice

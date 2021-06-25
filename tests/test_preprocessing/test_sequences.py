@@ -259,10 +259,10 @@ def test_attributes():
 
 
 def test_sort_sequences():
-    sequences = [Sequence(1, None, None, None, None, None),
-                 Sequence(4, None, None, None, None, None),
-                 Sequence(3, None, None, None, None, None),
-                 Sequence(2, None, None, None, None, None)]
+    sequences = [Sequence(1, None, None, None, None, None, None),
+                 Sequence(4, None, None, None, None, None, None),
+                 Sequence(3, None, None, None, None, None, None),
+                 Sequence(2, None, None, None, None, None, None)]
 
     sequences.sort(key=lambda x: x.price, reverse=False)
     for i, seq in enumerate(sequences):
