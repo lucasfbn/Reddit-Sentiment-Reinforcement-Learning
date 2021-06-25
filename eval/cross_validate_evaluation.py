@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from itertools import product
-from evaluate.eval_portfolio import EvaluatePortfolio
+from evaluate.evaluate import Evaluate
 from utils.util_funcs import log
 from tqdm import tqdm
 import multiprocessing
@@ -83,7 +83,7 @@ class ParameterTuning:
 
     def _save_init_values(self):
         log.info("Retrieving initial values...")
-        ep = EvaluatePortfolio(data=self.data, quantiles_thresholds={"hold": None, "buy": None, "sell": None})
+        ep = Evaluate(data=self.data, quantiles_thresholds={"hold": None, "buy": None, "sell": None})
         ep.initialize()
         self._dates_trades_combinations = ep._dates_trades_combination
         self._min_date, self._max_date = ep._min_date, ep._max_date
@@ -96,7 +96,7 @@ class ParameterTuning:
         dates_trades_combinations = None
 
         for combination in tqdm(combinations_list):
-            ep = EvaluatePortfolio(data=self.data, **combination)
+            ep = Evaluate(data=self.data, **combination)
             ep._dates_trades_combination = self._dates_trades_combinations
             ep._min_date, ep._max_date = self._min_date, self._max_date
 
