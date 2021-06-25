@@ -67,14 +67,11 @@ class EvaluateInit:
                 "max_price_per_stock": self.max_price_per_stock,
                 "max_trades_per_day": self.max_trades_per_day,
                 "slippage": self.slippage,
-                "partial_share_possible": self.partial_shares_possible,
-                "quantiles_thresholds": self.quantiles_thresholds,
                 "thresholds": self.thresholds,
                 "order_fee": self.order_fee,
                 "balance": self.balance,
                 "profit": self.profit,
-                "len_inventory": len(self._inventory),
-                "index_performance": self.ticker[0]["index_comparison"]["perf"]}
+                "len_inventory": len(self._inventory)}
 
     def log_result(self):
         mlflow.log_params(self.get_result())
