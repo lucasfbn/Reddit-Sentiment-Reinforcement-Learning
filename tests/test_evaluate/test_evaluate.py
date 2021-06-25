@@ -183,3 +183,8 @@ def test_act_threshold():
     ev.set_thresholds({"hold": 0, "buy": 0.5, "sell": 0})
     ev.act()
     assert round(ev.balance, 3) == 10240.130
+
+
+def test_force_sell():
+    # TBD
+    pass
