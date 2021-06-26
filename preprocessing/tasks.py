@@ -401,18 +401,16 @@ def drop_ticker_df_columns(ticker: Ticker, columns_to_be_dropped: list) -> Ticke
 
 
 @task
-def forward_fill_price(ticker: Ticker) -> Ticker:
+def forward_fill_price_data(ticker: Ticker, price_data_cols: list) -> Ticker:
     """
     Forward fills the price. This is useful when we have data from a date where no price data exists (on the weekend
     for example). In such a case the price from friday will be carried forward to saturday and sunday.
 
     Args:
         ticker:
-
-    Returns:
-
+        price_data_cols:
     """
-    ticker.df["price"] = ticker.df["price"].fillna(method="ffill")
+    ticker.df[price_data_cols] = ticker.df[price_data_cols].fillna(method="ffill")
     return ticker
 
 

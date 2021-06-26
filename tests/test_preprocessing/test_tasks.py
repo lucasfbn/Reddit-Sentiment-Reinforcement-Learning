@@ -203,12 +203,12 @@ def test_mark_tradeable_days():
     assert set(result.df.columns) == {date_day_col, "tradeable"}
 
 
-def test_forward_fill_price():
+def test_forward_fill_price_data():
     df = pd.DataFrame([{date_col: Timestamp('2021-06-04 00:00:00'), "price": 5},
                        {date_col: Timestamp('2021-06-05 00:00:00'), "price": None},
                        {date_col: Timestamp('2021-06-06 00:00:00'), "price": None},
                        {date_col: Timestamp('2021-06-07 00:00:00'), "price": 10}])
-    result = forward_fill_price.run(Ticker(None, df))
+    result = forward_fill_price_data.run(Ticker(None, df))
     expected = df = pd.DataFrame([{date_col: Timestamp('2021-06-04 00:00:00'), "price": 5.0},
                                   {date_col: Timestamp('2021-06-05 00:00:00'), "price": 5.0},
                                   {date_col: Timestamp('2021-06-06 00:00:00'), "price": 5.0},

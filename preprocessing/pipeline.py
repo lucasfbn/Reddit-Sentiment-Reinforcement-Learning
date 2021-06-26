@@ -11,6 +11,7 @@ from prefect.executors import LocalExecutor, LocalDaskExecutor
 import paths
 from preprocessing.tasks import *
 from utils.util_tasks import mlflow_log_file, unpack_union_mapping, reduce_list
+from utils.mlflow_api import load_file
 from preprocessing.ticker import Ticker
 
 mlflow.set_tracking_uri(paths.mlflow_path)
@@ -58,7 +59,7 @@ with Flow("preprocessing") as flow:
     ticker = drop_ticker_df_columns.map(ticker, unmapped(price_column))
     price_data_columns = remove_old_price_col_from_price_data_columns(price_data_columns, price_column)
     ticker = mark_tradeable_days.map(ticker)
-    ticker = forward_fill_price.map(ticker)
+    ticker = forward_fill_price_data.map(ticker, unmapped(price_data_columns))
     ticker = mark_ticker_where_all_prices_are_nan.map(ticker)
     ticker = mark_ipo_ticker.map(ticker)
     ticker = remove_excluded_ticker(ticker)
@@ -67,6 +68,7 @@ with Flow("preprocessing") as flow:
     ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("date_cols", default=[date_col,
                                                                                          date_shifted_col,
                                                                                          date_day_shifted_col])))
+    _ = mlflow_log_file(ticker, "ticker.pkl")
     _ = assert_no_nan.map(ticker)
     ticker = copy_unscaled_price.map(ticker)
 
@@ -90,19 +92,13 @@ def main(test_mode=False):
     flow.executor = LocalExecutor()
 
     if test_mode:
-        import pickle as pkl
-        with open(
-                "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/8/a974b4d81a434ea793e93e255ca18b19/artifacts/ticker.pkl",
-                "rb") as f:
-            file = pkl.load(f)
-        task = flow.get_tasks("temp")[0]
-        task_states = {task: Success("test_mode", result=file)}
+        retrieve_task = flow.get_tasks("drop_ticker_df_columns")[0]
+        task_states = {retrieve_task: Success("test_state",
+                                              result=load_file("c47516069f3b40dfb1c88f5407659c96", "tickera.pkl")[:50])}
         with mlflow.start_run():
             flow.run(task_states=task_states)
     else:
-        df = pd.read_csv(
-            "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/3/39aaaaa5c33741218844a315f229093d/artifacts/report.csv",
-            sep=";")
+        df = load_file("c47516069f3b40dfb1c88f5407659c96", "report.csv")
         df = df.head(500)
         with mlflow.start_run():
             flow.run(dict(input_df=df))
