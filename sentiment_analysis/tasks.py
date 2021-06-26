@@ -416,6 +416,9 @@ def aggregate_submissions_per_timespan(ts: Timespan):
         ["num_posts"]
     """
 
+    # In case some numeric columns are not float or int dtypes (most likely they are object type)
+    ts.df = ts.df.apply(pd.to_numeric, errors="ignore")
+
     # By adding a col where each value is one we can easily see the sum of posts that got aggregated
     # afterwards
     ts.df["num_posts"] = 1
