@@ -5,6 +5,7 @@ from prefect.engine.state import Success
 
 from sentiment_analysis.tasks import *
 from utils.util_tasks import mlflow_log_file
+from utils.mlflow_api import load_file
 
 mlflow.set_tracking_uri(paths.mlflow_path)
 mlflow.set_experiment("Tests")
@@ -58,10 +59,9 @@ def main(test_mode=False):
     params = dict(start=datetime(year=2021, month=5, day=1), end=datetime(year=2021, month=5, day=14))
 
     if test_mode:
-        gc_download_task = flow.get_tasks("get_from_gc")[0]
-        task_states = {gc_download_task: Success(
-            "Skip GC download",
-            result=pd.read_csv(paths.tests_path / "files" / "test_gc_dump_small.csv", sep=";"))}
+        retrieve_task = flow.get_tasks("retrieve_timespans")[0]
+        task_states = {retrieve_task: Success("test_state",
+                                              result=load_file("9f44509129aa4f61aae57afdca9fede5", "timespans.pkl"))}
 
     with mlflow.start_run():
         flow.run(params, task_states=task_states if test_mode else None)
