@@ -49,11 +49,10 @@ with Flow("sentiment_analysis") as flow:
                                                                           "pos", "neu", "neg", "compound"])
 
     timespans = retrieve_timespans(flattened_ticker_df, relevant_timespan_cols)
+    timespans = aggregate_submissions_per_timespan.map(timespans)
     df = summarize_timespans(timespans)
     _ = mlflow_log_file(df, report_fn)
 
-
-# flow.executor = LocalDaskExecutor(scheduler="processes", num_workers=8)
 
 def main(test_mode=False):
     params = dict(start=datetime(year=2021, month=5, day=1), end=datetime(year=2021, month=5, day=14))
@@ -70,5 +69,5 @@ def main(test_mode=False):
 
 if __name__ == "__main__":
     # flow.register("test")
-    flow.visualize()
-    # main(True)
+    # flow.visualize()
+    main(True)
