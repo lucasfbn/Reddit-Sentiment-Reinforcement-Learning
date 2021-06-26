@@ -412,8 +412,8 @@ def aggregate_submissions_per_timespan(ts: Timespan):
     Args:
         ts:
 
-    Returns:
-
+    Adds:
+        ["num_posts"]
     """
 
     # By adding a col where each value is one we can easily see the sum of posts that got aggregated
