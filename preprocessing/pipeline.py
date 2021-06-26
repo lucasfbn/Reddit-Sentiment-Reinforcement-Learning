@@ -23,7 +23,7 @@ with Flow("preprocessing") as flow:
 
     sentiment_data_columns = Parameter("sentiment_data_columns",
                                        default=["num_comments", "score", "pos", "neu", "neg", "compound",
-                                                "n_posts"])
+                                                "num_posts"])
     price_data_columns = Parameter("price_data_columns", default=["Open", "High", "Low", "Close", "Volume"])
     price_column = Parameter("price_column", default="Close")
 
@@ -39,8 +39,7 @@ with Flow("preprocessing") as flow:
 
     df = add_time(input_df)
     df = shift_time(df, start_hour, start_min)
-    df = drop_columns(df, Parameter("start_end_columns", default=["start", "start_timestamp", "end", "end_timestamp"]))
-    df = drop_columns(df, Parameter("run_id_subreddit_columns", default=["run_id", "subreddit"]))
+    df = drop_columns(df, Parameter("start_end_columns", default=["start", "end"]))
 
     df, sentiment_data_columns = scale_sentiment_data_daywise(df, sentiment_data_columns, drop_unscaled_cols)
     ticker = grp_by_ticker(df)
@@ -111,5 +110,5 @@ def main(test_mode=False):
 
 if __name__ == "__main__":
     # flow.register("test")
-    flow.visualize()
-    # main(False)
+    # flow.visualize()
+    main(False)
