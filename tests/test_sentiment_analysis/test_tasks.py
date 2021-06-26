@@ -202,10 +202,10 @@ def test_aggregate_submissions_per_timespan():
 
 
 def test_summarize_timespans():
-    ts_1_df = pd.DataFrame({"submissions": ["subm_1"], "pos": [0.5]})
+    ts_1_df = pd.DataFrame({"submissions": ["subm_1"]})
     ts_1 = Timespan(df=ts_1_df, start=Timestamp('2021-05-26 21:00:00'), end=Timestamp('2021-05-26 22:00:00'))
 
-    ts_2_df = pd.DataFrame({"submissions": ["subm_2"], "pos": [1.5]})
+    ts_2_df = pd.DataFrame({"submissions": ["subm_2"]})
     ts_2 = Timespan(df=ts_2_df, start=Timestamp('2021-05-26 22:00:00'), end=Timestamp('2021-05-26 23:00:00'))
 
     result = summarize_timespans.run([ts_1, ts_2])
