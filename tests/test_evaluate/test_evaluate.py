@@ -6,61 +6,63 @@ from pandas.testing import assert_frame_equal
 import copy
 import pytest
 
-t1 = Ticker("TSLA", None)
-t2 = Ticker("AAPL", None)
 
-# Period format: MM-DD-YYYY
-t1.sequences = [
-    Sequence(price=12, tradeable=True, available=False, date=pd.Period("01-01-2021"), sentiment_data_available=True,
-             df=None, price_raw=120,
-             flat=pd.DataFrame({"dummy/0": [1], "dummy/1": [2], "dummy/2": [3],
-                                "price/0": [10], "price/1": [11], "price/2": [12]}),
-             arr=pd.DataFrame({"dummy": [1, 2, 3], "price": [10, 11, 12]})),
-    Sequence(price=13, tradeable=True, available=False, date=pd.Period("01-02-2021"), sentiment_data_available=True,
-             df=None, price_raw=130,
-             flat=pd.DataFrame({"dummy/1": [2], "dummy/2": [3], "dummy/3": [4],
-                                "price/1": [11], "price/2": [12], "price/3": [13]}),
-             arr=pd.DataFrame({"dummy": [2, 3, 4], "price": [11, 12, 13]})),
-    Sequence(price=14, tradeable=True, available=False, date=pd.Period("01-03-2021"), sentiment_data_available=True,
-             df=None, price_raw=140,
-             flat=pd.DataFrame({"dummy/2": [3], "dummy/3": [4], "dummy/4": [5],
-                                "price/2": [12], "price/3": [13], "price/4": [14]}),
-             arr=pd.DataFrame({"dummy": [3, 4, 5], "price": [12, 13, 14]}))]
+def generate_ticker():
+    t1 = Ticker("TSLA", None)
+    t2 = Ticker("AAPL", None)
 
-t2.sequences = [
-    Sequence(price=12, tradeable=True, available=False, date=pd.Period("01-15-2021"), sentiment_data_available=True,
-             df=None, price_raw=120,
-             flat=pd.DataFrame({"dummy/0": [81], "dummy/1": [82], "dummy/2": [83],
-                                "price/0": [810], "price/1": [811], "price/2": [812]}),
-             arr=pd.DataFrame({"dummy": [81, 82, 83], "price": [810, 811, 812]})),
-    Sequence(price=13, tradeable=True, available=False, date=pd.Period("01-16-2021"), sentiment_data_available=True,
-             df=None, price_raw=130,
-             flat=pd.DataFrame({"dummy/1": [82], "dummy/2": [83], "dummy/3": [84],
-                                "price/1": [811], "price/2": [812], "price/3": [813]}),
-             arr=pd.DataFrame({"dummy": [82, 83, 84], "price": [811, 812, 813]})),
-    Sequence(price=14, tradeable=True, available=False, date=pd.Period("01-17-2021"), sentiment_data_available=True,
-             df=None, price_raw=140,
-             flat=pd.DataFrame({"dummy/2": [83], "dummy/3": [84], "dummy/4": [85],
-                                "price/2": [812], "price/3": [813], "price/4": [814]}),
-             arr=pd.DataFrame({"dummy": [83, 84, 85], "price": [812, 813, 814]})),
-    Sequence(price=15, tradeable=True, available=False, date=pd.Period("01-18-2021"), sentiment_data_available=True,
-             df=None, price_raw=150,
-             flat=pd.DataFrame({"dummy/2": [84], "dummy/3": [85], "dummy/4": [86],
-                                "price/2": [813], "price/3": [814], "price/4": [815]}),
-             arr=pd.DataFrame({"dummy": [84, 85, 86], "price": [813, 814, 816]}))
-]
+    # Period format: MM-DD-YYYY
+    t1.sequences = [
+        Sequence(price=12, tradeable=True, available=False, date=pd.Period("01-01-2021"), sentiment_data_available=True,
+                 df=None, price_raw=120,
+                 flat=pd.DataFrame({"dummy/0": [1], "dummy/1": [2], "dummy/2": [3],
+                                    "price/0": [10], "price/1": [11], "price/2": [12]}),
+                 arr=pd.DataFrame({"dummy": [1, 2, 3], "price": [10, 11, 12]})),
+        Sequence(price=13, tradeable=True, available=False, date=pd.Period("01-02-2021"), sentiment_data_available=True,
+                 df=None, price_raw=130,
+                 flat=pd.DataFrame({"dummy/1": [2], "dummy/2": [3], "dummy/3": [4],
+                                    "price/1": [11], "price/2": [12], "price/3": [13]}),
+                 arr=pd.DataFrame({"dummy": [2, 3, 4], "price": [11, 12, 13]})),
+        Sequence(price=14, tradeable=True, available=False, date=pd.Period("01-03-2021"), sentiment_data_available=True,
+                 df=None, price_raw=140,
+                 flat=pd.DataFrame({"dummy/2": [3], "dummy/3": [4], "dummy/4": [5],
+                                    "price/2": [12], "price/3": [13], "price/4": [14]}),
+                 arr=pd.DataFrame({"dummy": [3, 4, 5], "price": [12, 13, 14]}))]
 
-for seq in t1.sequences:
-    seq.add_eval(1, {"hold": 0.3, "buy": 0.4, "sell": 0.3})
+    t2.sequences = [
+        Sequence(price=12, tradeable=True, available=False, date=pd.Period("01-15-2021"), sentiment_data_available=True,
+                 df=None, price_raw=120,
+                 flat=pd.DataFrame({"dummy/0": [81], "dummy/1": [82], "dummy/2": [83],
+                                    "price/0": [810], "price/1": [811], "price/2": [812]}),
+                 arr=pd.DataFrame({"dummy": [81, 82, 83], "price": [810, 811, 812]})),
+        Sequence(price=13, tradeable=True, available=False, date=pd.Period("01-16-2021"), sentiment_data_available=True,
+                 df=None, price_raw=130,
+                 flat=pd.DataFrame({"dummy/1": [82], "dummy/2": [83], "dummy/3": [84],
+                                    "price/1": [811], "price/2": [812], "price/3": [813]}),
+                 arr=pd.DataFrame({"dummy": [82, 83, 84], "price": [811, 812, 813]})),
+        Sequence(price=14, tradeable=True, available=False, date=pd.Period("01-17-2021"), sentiment_data_available=True,
+                 df=None, price_raw=140,
+                 flat=pd.DataFrame({"dummy/2": [83], "dummy/3": [84], "dummy/4": [85],
+                                    "price/2": [812], "price/3": [813], "price/4": [814]}),
+                 arr=pd.DataFrame({"dummy": [83, 84, 85], "price": [812, 813, 814]})),
+        Sequence(price=15, tradeable=True, available=False, date=pd.Period("01-18-2021"), sentiment_data_available=True,
+                 df=None, price_raw=150,
+                 flat=pd.DataFrame({"dummy/2": [84], "dummy/3": [85], "dummy/4": [86],
+                                    "price/2": [813], "price/3": [814], "price/4": [815]}),
+                 arr=pd.DataFrame({"dummy": [84, 85, 86], "price": [813, 814, 816]}))
+    ]
 
-for seq in t2.sequences:
-    seq.add_eval(1, {"hold": 0.3, "buy": 0.4, "sell": 0.3})
+    for seq in t1.sequences:
+        seq.add_eval(1, {"hold": 0.3, "buy": 0.4, "sell": 0.3})
 
-data = [t1, t2]
+    for seq in t2.sequences:
+        seq.add_eval(1, {"hold": 0.3, "buy": 0.4, "sell": 0.3})
+
+    return [t1, t2]
 
 
 def test_rename_actions():
-    ev = Evaluate(ticker=copy.deepcopy(data))
+    ev = Evaluate(ticker=generate_ticker())
     ev._rename_actions()
 
     result = ev.ticker
@@ -71,7 +73,7 @@ def test_rename_actions():
 
 
 def test_min_max_date():
-    ev = Evaluate(ticker=copy.deepcopy(data))
+    ev = Evaluate(ticker=copy.deepcopy(generate_ticker()))
     ev._merge_sequence_attributes_to_df()
     ev._find_min_max_date()
 
@@ -80,7 +82,7 @@ def test_min_max_date():
 
 
 def test_merge_sequence_attributes_to_df():
-    ev = Evaluate(ticker=copy.deepcopy(data))
+    ev = Evaluate(ticker=copy.deepcopy(generate_ticker()))
     ev._merge_sequence_attributes_to_df()
 
     result = ev._sequence_attributes_df
@@ -97,7 +99,7 @@ def test_merge_sequence_attributes_to_df():
 
 
 def test_set_quantile_thresholds():
-    ev = Evaluate(ticker=copy.deepcopy(data))
+    ev = Evaluate(ticker=copy.deepcopy(generate_ticker()))
     ev._rename_actions()
     ev._merge_sequence_attributes_to_df()
 
@@ -113,7 +115,7 @@ def test_set_quantile_thresholds():
 
 
 def test_get_dates_trades_combination():
-    ev = Evaluate(ticker=copy.deepcopy(data))
+    ev = Evaluate(ticker=generate_ticker())
     ev._rename_actions()
     ev._merge_sequence_attributes_to_df()
     ev._find_min_max_date()
@@ -130,14 +132,15 @@ def test_act_1():
     actions = [1, 1, 2, 2]
     thresholds = [{"hold": 0.3, "buy": 0.4, "sell": 0.3}] * 4
 
+    ticker = generate_ticker()
+    t1 = ticker[0]
+
     i = 0
     while i < len(t1.sequences):
         t1.sequences[i].add_eval(actions[i], thresholds[i])
         i += 1
 
-    data = [t1]
-
-    ev = Evaluate(ticker=copy.deepcopy(data), max_price_per_stock=1000, initial_balance=10000,
+    ev = Evaluate(ticker=[t1], max_price_per_stock=1000, initial_balance=10000,
                   max_investment_per_trade=0.5, partial_shares_possible=False)
     ev.initialize()
     ev.set_thresholds({"hold": 0, "buy": 0, "sell": 0})
@@ -150,13 +153,17 @@ def test_act_2():
     actions = [1, 1, 2, 2]
     thresholds = [{"hold": 0.3, "buy": 0.4, "sell": 0.3}] * 4
 
+    ticker = generate_ticker()
+    t2 = ticker[1]
+
     i = 0
     while i < len(t2.sequences):
         t2.sequences[i].add_eval(actions[i], thresholds[i])
         i += 1
-    data = [t2]
-    ev = Evaluate(ticker=copy.deepcopy(data), max_price_per_stock=1000, initial_balance=10000,
+
+    ev = Evaluate(ticker=[t2], max_price_per_stock=1000, initial_balance=10000,
                   max_investment_per_trade=0.5, partial_shares_possible=False)
+    ev._inventory = []
     ev.initialize()
     ev.set_thresholds({"hold": 0, "buy": 0, "sell": 0})
     ev.act()
@@ -170,15 +177,17 @@ def test_act_threshold():
     thresholds = [{"hold": 0.3, "buy": 0.4, "sell": 0.3}, {"hold": 0.3, "buy": 0.5, "sell": 0.3},
                   {"hold": 0.3, "buy": 0.4, "sell": 0.3}]
 
+    ticker = generate_ticker()
+    t1 = ticker[0]
+
     i = 0
     while i < len(t1.sequences):
         t1.sequences[i].add_eval(actions[i], thresholds[i])
         i += 1
 
-    data = [t1]
-
-    ev = Evaluate(ticker=copy.deepcopy(data), max_price_per_stock=1000, initial_balance=10000,
+    ev = Evaluate(ticker=[t1], max_price_per_stock=1000, initial_balance=10000,
                   max_investment_per_trade=0.5, partial_shares_possible=False)
+    ev._inventory = []
     ev.initialize()
     ev.set_thresholds({"hold": 0, "buy": 0.5, "sell": 0})
     ev.act()
@@ -186,5 +195,25 @@ def test_act_threshold():
 
 
 def test_force_sell():
-    # TBD
-    pass
+    # TBD, (the returned balance should be the same as the initial if we didnt sell at a profit)
+    actions = [1, 1, 1, 1]
+    thresholds = [{"hold": 0.3, "buy": 0.4, "sell": 0.3}] * 4
+
+    ticker = generate_ticker()
+    t2 = ticker[1]
+
+    i = 0
+    while i < len(t2.sequences):
+        t2.sequences[i].add_eval(actions[i], thresholds[i])
+        i += 1
+
+    ev = Evaluate(ticker=[t2], max_price_per_stock=1000, initial_balance=10000,
+                  max_investment_per_trade=0.5, partial_shares_possible=False)
+    # TODO Check why this is necessary
+    ev._inventory = []
+    ev.initialize()
+    ev.set_thresholds({"hold": 0, "buy": 0, "sell": 0})
+    ev.act()
+    ev.force_sell()
+
+    assert ev.balance == 10000.0
