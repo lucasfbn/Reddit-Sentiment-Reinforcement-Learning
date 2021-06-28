@@ -197,8 +197,9 @@ class Evaluate(EvaluateInit):
 
         new_inventory = []
         for position in self._inventory:
-            if not any(new_position["ticker"] == position["ticker"] for new_position in new_inventory):
-                new_inventory.append({"ticker": position["ticker"], "tradeable": True})
+            if not any(new_position.ticker == position.ticker for new_position in new_inventory):
+                position.tradeable = True
+                new_inventory.append(position)
 
         Sell(portfolio=self, actions=new_inventory, live=self.live, forced=True).execute()
 
