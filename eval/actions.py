@@ -149,7 +149,7 @@ class Sell(Action):
 
                 if sell_ticker == position_ticker and sell.tradeable:
 
-                    bought_price = position.price
+                    bought_price = position.price_bought
                     if "forced" in self.kwargs and self.kwargs["forced"]:
                         current_price = bought_price
                     else:
