@@ -26,6 +26,11 @@ class Sequence:
         self.action = action
         self.action_probas = action_probas
 
+    def cleanup(self):
+        self.flat = None
+        self.df = None
+        self.arr = None
+
     def __len__(self):
         return len(self.df)
 
