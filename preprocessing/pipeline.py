@@ -29,11 +29,11 @@ with Flow("preprocessing") as flow:
     price_column = Parameter("price_column", default="Close")
 
     drop_unscaled_cols = Parameter("drop_unscaled_cols", default=True)
-    ticker_min_len = Parameter("ticker_min_len", default=2)
+    ticker_min_len = Parameter("ticker_min_len", default=6)
     price_data_start_offset = Parameter("price_data_start_offset", default=10)
     enable_live_behaviour = Parameter("enable_live_behaviour", default=False)
     include_available_days_only = Parameter("include_available_days_only", default=True)
-    sequence_length = Parameter("sequence_length", default=3)
+    sequence_length = Parameter("sequence_length", default=7)
     columns_to_be_excluded_from_sequences = Parameter("columns_to_be_excluded_from_sequences",
                                                       default=["available", "tradeable", date_day_col,
                                                                "sentiment_data_available"])
