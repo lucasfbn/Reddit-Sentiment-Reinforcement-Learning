@@ -31,35 +31,37 @@ class Operation:
         self.total_buy_price = total_buy_price
 
 
-@dataclass
 class EvaluateInit:
-    ticker: list
-    initial_balance: int = 1000
-    max_investment_per_trade: float = 0.07
-    max_price_per_stock: int = 10
-    max_trades_per_day: int = 3
-    slippage: float = 0.007
-    order_fee: float = 0.02
-    partial_shares_possible: bool = False
 
-    live: bool = False
+    def __init__(self, ticker,
+                 initial_balance=1000,
+                 max_investment_per_trade=0.07,
+                 max_price_per_stock=10,
+                 max_trades_per_day=3,
+                 slippage=0.007,
+                 order_fee=0.02,
+                 partial_shares_possible=False,
+                 live=False):
+        self.live = live
+        self.partial_shares_possible = partial_shares_possible
+        self.order_fee = order_fee
+        self.slippage = slippage
+        self.max_trades_per_day = max_trades_per_day
+        self.max_price_per_stock = max_price_per_stock
+        self.max_investment_per_trade = max_investment_per_trade
+        self.initial_balance = initial_balance
+        self.ticker = ticker
 
-    balance = None
-    profit = 1
-
-    thresholds = {}
-    _inventory = []
-    _extra_costs = None
-
-    _sequence_attributes_df = None
-
-    _min_date = None
-    _max_date = None
-    _dates_trades_combination = None
-
-    def __post_init__(self):
         self.balance = self.initial_balance
+        self.profit = 1
+
+        self.thresholds = {}
+        self._inventory = []
         self._extra_costs = 1 + self.slippage + self.order_fee
+
+        self._min_date = None
+        self._max_date = None
+        self._dates_trades_combination = None
 
     def get_result(self):
         return {"initial_balance": self.initial_balance,

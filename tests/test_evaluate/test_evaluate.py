@@ -163,7 +163,6 @@ def test_act_2():
 
     ev = Evaluate(ticker=[t2], max_price_per_stock=1000, initial_balance=10000,
                   max_investment_per_trade=0.5, partial_shares_possible=False)
-    ev._inventory = []
     ev.initialize()
     ev.set_thresholds({"hold": 0, "buy": 0, "sell": 0})
     ev.act()
@@ -187,7 +186,6 @@ def test_act_threshold():
 
     ev = Evaluate(ticker=[t1], max_price_per_stock=1000, initial_balance=10000,
                   max_investment_per_trade=0.5, partial_shares_possible=False)
-    ev._inventory = []
     ev.initialize()
     ev.set_thresholds({"hold": 0, "buy": 0.5, "sell": 0})
     ev.act()
@@ -209,8 +207,6 @@ def test_force_sell():
 
     ev = Evaluate(ticker=[t2], max_price_per_stock=1000, initial_balance=10000,
                   max_investment_per_trade=0.5, partial_shares_possible=False)
-    # TODO Check why this is necessary
-    ev._inventory = []
     ev.initialize()
     ev.set_thresholds({"hold": 0, "buy": 0, "sell": 0})
     ev.act()
