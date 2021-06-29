@@ -19,11 +19,10 @@ class OldDataException(Exception):
 
 class StockPrices:
 
-    def __init__(self, ticker_name: str, ticker_df: pd.DataFrame, start_offset: int, live: bool):
+    def __init__(self, ticker_name: str, start_date: pd.Period, end_date: pd.Period, live: bool):
         self.ticker = ticker_name
-        self.df = ticker_df
-
-        self.start_offset = start_offset
+        self.start_date = start_date
+        self.end_date = end_date
         self.live = live
 
         self.prices = None
@@ -38,11 +37,6 @@ class StockPrices:
         sys.stdout = sys.__stdout__  # enable print statements
 
         return df
-
-    def _get_min_max_date(self):
-        min_ = self.df["date_day"].min() - datetime.timedelta(days=self.start_offset)
-        max_ = self.df["date_day"].max() + datetime.timedelta(days=1)
-        return min_, max_
 
     def _live_assertions(self, prices):
         current_price = current_price = prices.tail(1)
@@ -69,18 +63,15 @@ class StockPrices:
             raise OldDataException(ticker=self.ticker, last_date=str(last_current_date))
 
     def _get_live_data(self):
-        start, _ = self._get_min_max_date()
-
         # Retrieve full price data
-        prices = self._get_prices(start, end=None)
+        prices = self._get_prices(self.start_date, end=None)
 
         # Run assertions
         self._live_assertions(prices)
         return prices
 
     def _get_historic_data(self):
-        start, end = self._get_min_max_date()
-        prices = self._get_prices(start - datetime.timedelta(days=self.start_offset), end)
+        prices = self._get_prices(self.start_date, self.end_date)
 
         if prices.empty:
             raise MissingDataException(ticker=self.ticker)
@@ -100,13 +91,6 @@ class StockPrices:
         self.prices = self.prices.reset_index(drop=True)
 
         return self.prices
-
-    def merge(self):
-        """
-        Merges the price data with the original df. Be aware that is merges the "outer" values, meaning that gaps
-        between two dates will be filled with price data (as long as there is any at the specific day).
-        """
-        return self.prices.merge(self.df, on="date_day", how="outer", indicator=True)
 
 
 class IndexPerformance:

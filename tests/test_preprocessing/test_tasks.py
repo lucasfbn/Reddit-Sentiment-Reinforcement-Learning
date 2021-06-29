@@ -138,6 +138,47 @@ def test_add_price_data():
     assert result.exclude is True
 
 
+def test_merge_prices_with_ticker_df():
+    df = pd.DataFrame({"date_day": [Period('2021-05-10', 'D'),
+                                    Period('2021-05-20', 'D')],
+                       "compound": [1, 2]})
+
+    prices = pd.DataFrame({"date_day": [
+        Period('2021-05-10', 'D'),
+        Period('2021-05-11', 'D'),
+        Period('2021-05-12', 'D'),
+        Period('2021-05-13', 'D'),
+        Period('2021-05-14', 'D'),
+        # Period('2021-05-15', 'D'), NO TRADE DAY
+        # Period('2021-05-16', 'D'), NO TRADE DAY
+        Period('2021-05-17', 'D'),
+        Period('2021-05-18', 'D'),
+        Period('2021-05-19', 'D'),
+        Period('2021-05-20', 'D')
+    ], "Close": [1, 2, 3, 4, 5, 8, 9, 10, 11]})
+
+    expected = pd.DataFrame({"date_day": [Period('2021-05-10', 'D'),
+                                          Period('2021-05-11', 'D'),
+                                          Period('2021-05-12', 'D'),
+                                          Period('2021-05-13', 'D'),
+                                          Period('2021-05-14', 'D'),
+                                          # Period('2021-05-15', 'D'), NO TRADE DAY
+                                          # Period('2021-05-16', 'D'), NO TRADE DAY
+                                          Period('2021-05-17', 'D'),
+                                          Period('2021-05-18', 'D'),
+                                          Period('2021-05-19', 'D'),
+                                          Period('2021-05-20', 'D')],
+                             "compound": [1, None, None, None, None, None, None, None, 2]})
+
+    result = merge_prices_with_ticker_df(prices, df)
+
+    assert_series_equal(expected["date_day"], result["date_day"])
+    assert_series_equal(expected["compound"], result["compound"])
+
+    expected = pd.Series(["both"] + ["left_only"] * 7 + ["both"])
+    assert_series_equal(result["_merge"], expected, check_dtype=False, check_names=False, check_categorical=False)
+
+
 def test_remove_excluded_ticker():
     ticker_1 = Ticker("exclude", None)
     ticker_1.exclude = True
