@@ -37,6 +37,7 @@ with Flow("preprocessing") as flow:
     columns_to_be_excluded_from_sequences = Parameter("columns_to_be_excluded_from_sequences",
                                                       default=["available", "tradeable", date_day_col,
                                                                "sentiment_data_available"])
+    sequence_to_be_generated = Parameter("sequence_to_be_generated", default="arr")
 
     df = add_time(input_df)
     df = shift_time(df, start_hour, start_min)
@@ -80,7 +81,8 @@ with Flow("preprocessing") as flow:
     ticker = make_sequences.map(ticker, unmapped(sequence_length),
                                 unmapped(include_available_days_only),
                                 unmapped(columns_to_be_excluded_from_sequences),
-                                unmapped(Parameter("price_col", default="price_scaled")))
+                                unmapped(Parameter("price_col", default="price_scaled")),
+                                unmapped(sequence_to_be_generated))
     ticker = mark_empty_sequences.map(ticker)
     ticker = remove_excluded_ticker(ticker)
 

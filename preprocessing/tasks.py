@@ -549,7 +549,7 @@ def scale_price_data(ticker: Ticker, price_data_columns: list, drop_unscaled_col
 
 @task
 def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_only: bool,
-                   columns_to_be_excluded_from_sequences: list, price_column: str) -> Ticker:
+                   columns_to_be_excluded_from_sequences: list, price_column: str, which="all") -> Ticker:
     """
     Generates flat and array sequences from a given ticker df. For further details on what sequences are please check
     the documentation in the sequence class (sequences.py) itself.
@@ -562,14 +562,21 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
          subject of the final sequences and can therefore be dropped
         last_column: The column of each sequence that shall be the last one. This is usually the price column since the
          NN uses the last column as an indicator of the current price.
+        which: Which sequences to generate. Must be in ["all", "arr", "flat"]
     """
     seq_gen = SequenceGenerator(df=ticker.df, sequence_len=sequence_length,
                                 include_available_days_only=include_available_days_only,
                                 exclude_cols_from_sequence=columns_to_be_excluded_from_sequences,
                                 price_column=price_column)
     seq_gen.make_sequence()
-    seq_gen.add_flat_sequences()
-    seq_gen.add_array_sequences()
+
+    if which == "all":
+        seq_gen.add_flat_sequences()
+        seq_gen.add_array_sequences()
+    else:
+        seq_gen.add_flat_sequences() if which == "flat" else None
+        seq_gen.add_array_sequences() if which == "arr" else None
+
     seq_gen.cleanup()
 
     ticker.sequences = seq_gen.get_sequences()
