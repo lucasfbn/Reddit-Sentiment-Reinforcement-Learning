@@ -3,9 +3,8 @@ import datetime
 import pandas as pd
 import pytest
 from pandas import Period
-from pandas.testing import assert_series_equal
 
-from preprocessing.stock_prices import StockPrices, OldDataException, MissingDataException
+from preprocessing.price_data.stock_prices import StockPrices, OldDataException, MissingDataException
 
 
 def test_historic():

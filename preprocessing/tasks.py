@@ -6,7 +6,7 @@ from prefect import task
 from sklearn.preprocessing import MinMaxScaler
 
 from preprocessing.sequences import SequenceGenerator
-from preprocessing.stock_prices import StockPrices, MissingDataException, OldDataException
+from preprocessing.price_data.stock_prices import StockPrices, MissingDataException, OldDataException
 from preprocessing.ticker import Ticker
 
 date_col = "date"
