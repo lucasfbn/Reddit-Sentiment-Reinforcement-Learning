@@ -32,7 +32,7 @@ class Sequence:
         self.arr = None
 
     def __len__(self):
-        return len(self.df)
+        return len(self.arr)
 
 
 class SequenceGenerator:
