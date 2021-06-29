@@ -71,7 +71,7 @@ class RLAgent:
 
         self.agent = Agent.create(
             agent='ppo', environment=environment,
-            memory=3000, batch_size=32,
+            memory=70000, batch_size=32,
             exploration=0.01,
             tracking="all"
         )
@@ -89,15 +89,15 @@ class RLAgent:
 
 
 if __name__ == '__main__':
-    data = load_file(run_id="6bc3213bdfa84c7f862302b13ef2a21b", fn="ticker.pkl", experiment="Tests")
+    data = load_file(run_id="a4a3c73507fe4d8695ed6e125608ae6e", fn="ticker.pkl", experiment="Tests")
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Tests")
 
-    with mlflow.start_run(run_id="6bc3213bdfa84c7f862302b13ef2a21b"):
+    with mlflow.start_run():
         rla = RLAgent(environment=EnvCNN, ticker=data)
         # rla.load_agent(
         #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
-        rla.train(n_full_episodes=1)
+        rla.train(n_full_episodes=3)
         rla.eval_agent()
         rla.close()
