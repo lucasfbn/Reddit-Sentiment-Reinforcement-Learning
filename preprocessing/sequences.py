@@ -189,3 +189,7 @@ class SequenceGenerator:
         for seq in self._sequences:
             seq.flat = seq.df.unstack().to_frame().T
         return self._sequences
+
+    def cleanup(self):
+        for seq in self._sequences:
+            seq.df = None

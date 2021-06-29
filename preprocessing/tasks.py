@@ -570,6 +570,7 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
     seq_gen.make_sequence()
     seq_gen.add_flat_sequences()
     seq_gen.add_array_sequences()
+    seq_gen.cleanup()
 
     ticker.sequences = seq_gen.get_sequences()
     return ticker
