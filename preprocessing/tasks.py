@@ -1,4 +1,5 @@
 from typing import Tuple
+import datetime
 
 import pandas as pd
 from prefect import task
@@ -230,6 +231,14 @@ def mark_trainable_days(ticker: Ticker, ticker_min_len: int) -> Ticker:
     return ticker
 
 
+def merge_prices_with_ticker_df(prices, df):
+    """
+    Merges the price data with the original df. Be aware that is merges the "outer" values, meaning that gaps
+    between two dates will be filled with price data (as long as there is any at the specific day).
+    """
+    return prices.merge(df, on="date_day", how="outer", indicator=True)
+
+
 @task
 def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_behaviour: bool) -> Ticker:
     """
@@ -249,13 +258,17 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
          See stock_prices.py for additional informations.
     """
 
-    sp = StockPrices(ticker_name=ticker.name, ticker_df=ticker.df, start_offset=price_data_start_offset,
+    start_date = ticker.df["date_day"].min() - datetime.timedelta(days=price_data_start_offset)
+
+    # Will be overwritten to current date if enable_live_behaviour = True
+    end_date = ticker.df["date_day"].max() + datetime.timedelta(days=1)
+
+    sp = StockPrices(ticker_name=ticker.name, start_date=start_date, end_date=end_date,
                      live=enable_live_behaviour)
 
     try:
         prices = sp.download()
-        merged = sp.merge()
-        ticker.df = merged
+        ticker.df = merge_prices_with_ticker_df(prices, ticker.df)
 
     # TODO Add logging
     except (MissingDataException, OldDataException) as e:
