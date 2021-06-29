@@ -208,7 +208,7 @@ def test_forward_fill_price_data():
                        {date_col: Timestamp('2021-06-05 00:00:00'), "price": None},
                        {date_col: Timestamp('2021-06-06 00:00:00'), "price": None},
                        {date_col: Timestamp('2021-06-07 00:00:00'), "price": 10}])
-    result = forward_fill_price_data.run(Ticker(None, df))
+    result = forward_fill_price_data.run(Ticker(None, df), price_data_cols=["price"])
     expected = df = pd.DataFrame([{date_col: Timestamp('2021-06-04 00:00:00'), "price": 5.0},
                                   {date_col: Timestamp('2021-06-05 00:00:00'), "price": 5.0},
                                   {date_col: Timestamp('2021-06-06 00:00:00'), "price": 5.0},
