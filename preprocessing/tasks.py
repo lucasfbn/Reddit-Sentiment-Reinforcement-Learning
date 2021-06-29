@@ -577,7 +577,7 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
         seq_gen.add_flat_sequences() if which == "flat" else None
         seq_gen.add_array_sequences() if which == "arr" else None
 
-    seq_gen.cleanup()
+    # seq_gen.cleanup()
 
     ticker.sequences = seq_gen.get_sequences()
     return ticker
