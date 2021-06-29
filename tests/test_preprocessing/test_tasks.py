@@ -320,7 +320,6 @@ def test_make_sequence():
         r.flat.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
         assert_frame_equal(r.flat, e, check_column_type=False)
 
-
     expected_arr_sequence = [
         pd.DataFrame({"dummy": [1, 2, 3], "price": [10, 11, 12]}),
         pd.DataFrame({"dummy": [2, 3, 4], "price": [11, 12, 13]}),
@@ -329,6 +328,7 @@ def test_make_sequence():
 
     for r, e in zip(result.sequences, expected_arr_sequence):
         assert_frame_equal(r.arr.reset_index(drop=True), e)
+
 
 def test_make_sequences_which():
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5], "available": [False, False, True, True, True],
