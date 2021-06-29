@@ -330,6 +330,32 @@ def test_make_sequence():
     for r, e in zip(result.sequences, expected_arr_sequence):
         assert_frame_equal(r.arr.reset_index(drop=True), e)
 
+def test_make_sequences_which():
+    df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5], "available": [False, False, True, True, True],
+                       "price": [10, 11, 12, 13, 14], "tradeable": [True] * 5})
+    ticker = Ticker(None, df)
+
+    result = make_sequences.run(ticker, 3, False, columns_to_be_excluded_from_sequences=["available", "tradeable"],
+                                price_column="price", which="flat")
+
+    for r in result.sequences:
+        assert r.flat is not None
+        assert r.arr is None
+
+    result = make_sequences.run(ticker, 3, False, columns_to_be_excluded_from_sequences=["available", "tradeable"],
+                                price_column="price", which="arr")
+
+    for r in result.sequences:
+        assert r.flat is None
+        assert r.arr is not None
+
+    result = make_sequences.run(ticker, 3, False, columns_to_be_excluded_from_sequences=["available", "tradeable"],
+                                price_column="price", which="all")
+
+    for r in result.sequences:
+        assert r.flat is not None
+        assert r.arr is not None
+
 
 def test_remove_old_price_col_from_price_data_columns():
     price_data_columns = ["Close", "Open"]
