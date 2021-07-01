@@ -12,7 +12,7 @@ data_path = storage_path / "data"
 mlflow_path = f"file:///{(storage_path / 'mlflow' / 'mlruns').as_posix()}"
 artifact_path = lambda artifact_uri: Path("C:" + artifact_uri.split(":")[2])
 
-stock_cache = storage_path / "stock_cache" / "yfinance_cache"
+price_data_cache = storage_path / "price_data_cache.sqlite"
 
 
 def create_dir(path, fn="", suffix=0):
