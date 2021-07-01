@@ -12,7 +12,7 @@ def test_historic():
                                     Period('2021-05-20', 'D')]})
 
     sp = StockPrices(ticker_name="GME", start_date=df["date_day"].min(),
-                     end_date=df["date_day"].max() + datetime.timedelta(days=1), live=False)
+                     end_date=df["date_day"].max(), live=False)
     prices = sp.download()
 
     assert prices.loc[0, "date_day"] == Period('2021-05-10', 'D')
@@ -24,7 +24,7 @@ def test_offset():
                                     Period('2021-05-20', 'D')]})
 
     sp = StockPrices(ticker_name="GME", start_date=df["date_day"].min() - datetime.timedelta(days=10),
-                     end_date=df["date_day"].max() + datetime.timedelta(days=1), live=False)
+                     end_date=df["date_day"].max(), live=False)
     prices = sp.download()
 
     assert prices.loc[0, "date_day"] == Period('2021-04-29', 'D')
@@ -37,7 +37,7 @@ def test_historic_last_date_weekend():
                                     Period('2021-06-05', 'D')]})
 
     sp = StockPrices(ticker_name="GME", start_date=df["date_day"].min(),
-                     end_date=df["date_day"].max() + datetime.timedelta(days=1), live=False)
+                     end_date=df["date_day"].max(), live=False)
     prices = sp.download()
 
     assert prices.loc[0, "date_day"] == Period('2021-06-01', 'D')
@@ -56,7 +56,7 @@ def test_live_too_early():
                                     Period('2021-06-06', 'D')]})
 
     sp = StockPrices(ticker_name="GME", start_date=df["date_day"].min(),
-                     end_date=df["date_day"].max() + datetime.timedelta(days=1), live=True)
+                     end_date=df["date_day"].max(), live=True)
 
     with pytest.raises(OldDataException):
         prices = sp.download()
@@ -67,7 +67,7 @@ def test_historic_missing_data():
                                     Period('2021-05-20', 'D')]})
 
     sp = StockPrices(ticker_name="AHJZT", start_date=df["date_day"].min(),
-                     end_date=df["date_day"].max() + datetime.timedelta(days=1), live=False)
+                     end_date=df["date_day"].max(), live=False)
 
     with pytest.raises(MissingDataException):
         prices = sp.download()
@@ -78,7 +78,7 @@ def test_live_missing_data():
                                     Period('2021-05-20', 'D')]})
 
     sp = StockPrices(ticker_name="AHJZT", start_date=df["date_day"].min(),
-                     end_date=df["date_day"].max() + datetime.timedelta(days=1), live=True)
+                     end_date=df["date_day"].max(), live=True)
 
     with pytest.raises(MissingDataException):
         prices = sp.download()

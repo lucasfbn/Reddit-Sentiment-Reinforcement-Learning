@@ -22,7 +22,7 @@ class StockPrices:
     def __init__(self, ticker_name: str, start_date: pd.Period, end_date: pd.Period, live: bool):
         self.ticker = ticker_name
         self.start_date = start_date
-        self.end_date = end_date
+        self.end_date = end_date + datetime.timedelta(days=1)
         self.live = live
 
         self.prices = None
