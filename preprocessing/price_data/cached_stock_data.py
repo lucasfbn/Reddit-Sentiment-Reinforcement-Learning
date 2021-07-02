@@ -56,7 +56,7 @@ class CachedStockData:
     def download(self, date_sequences):
         for ds in date_sequences:
             sp = StockPrices(ticker_name=self.ticker, start_date=ds[0],
-                             end_date=ds[1], live=self.live)
+                             end_date=ds[len(ds) - 1], live=self.live)
             data = sp.download()
             data["ticker"] = self.ticker
             self.c.append(data, drop_duplicates=False)

@@ -78,6 +78,15 @@ def test_get_sequences():
 
     assert result == expected
 
+    # Check one entry
+    df = pd.DataFrame({"date_day": [Period('2021-05-11', 'D')]})
+    csd = CachedStockData(None, None, None, None)
+    result = csd.get_consecutive_sequences(df)
+
+    expected = [[Timestamp('2021-05-11 00:00:00')]]
+
+    assert result == expected
+
 
 def test_get_from_cache():
     start = Period('2021-05-11', 'D')
@@ -102,6 +111,43 @@ def test_get_from_cache():
     assert_series_equal(result["date_day"], expected["date_day"])
 
 
+def test_download_one_sequence():
+    csd = CachedStockData(ticker="AAPL", start_date=None, end_date=None, live=None)
+    csd.initialize_cache(":memory:")
+
+    sequences = sequences = [[Timestamp('2021-05-11 00:00:00')]]
+    csd.download(sequences)
+    result = csd.c.get("AAPL")
+    expected = pd.DataFrame({'Open': [129.41000366210938, 123.5],
+                             'High': [129.5399932861328, 126.2699966430664],
+                             'Low': [126.80999755859375, 122.7699966430664],
+                             'Close': [126.8499984741211, 125.91000366210938],
+                             'Adj Close': [126.8499984741211, 125.91000366210938],
+                             'Volume': [88071200, 126142800],
+                             'date_day': [Period('2021-05-10', 'D'), Period('2021-05-11', 'D')],
+                             'ticker': ['AAPL', 'AAPL']})
+
+    assert_frame_equal(result, expected)
+
+
+def test_download():
+    csd = CachedStockData(ticker="AAPL", start_date=None, end_date=None, live=None)
+    csd.initialize_cache(":memory:")
+
+    sequences = [[Timestamp('2021-05-11 00:00:00'), Timestamp('2021-05-12 00:00:00')]]
+    csd.download(sequences)
+    result = csd.c.get("AAPL")
+    expected = pd.DataFrame({'Open': [129.41000366210938, 123.5, 123.4000015258789],
+                             'High': [129.5399932861328, 126.2699966430664, 124.63999938964844],
+                             'Low': [126.80999755859375, 122.7699966430664, 122.25],
+                             'Close': [126.8499984741211, 125.91000366210938, 122.7699966430664],
+                             'Adj Close': [126.8499984741211, 125.91000366210938, 122.7699966430664],
+                             'Volume': [88071200, 126142800, 112172300],
+                             'date_day': [Period('2021-05-10', 'D'), Period('2021-05-11', 'D'),
+                                          Period('2021-05-12', 'D')], 'ticker': ['AAPL', 'AAPL', 'AAPL']})
+    assert_frame_equal(result, expected)
+
+
 def test_get():
     csd = CachedStockData(ticker="AAPL", start_date=Period('2021-05-10', 'D'), end_date=Period('2021-05-15', 'D'),
                           live=False)
@@ -120,13 +166,16 @@ def test_get():
 
     result = csd.get()
     expected = pd.DataFrame(
-        {'ticker': ['AAPL', 'AAPL', 'AAPL', 'AAPL'], 'Adj Close': [1.0, 2.0, 122.7699966430664, 124.97000122070312],
-         'Open': [1.0, 2.0, 123.4000015258789, 124.58000183105469], 'Volume': [1, 2, 112172300, 105861300],
-         'Close': [1.0, 2.0, 122.7699966430664, 124.97000122070312],
-         'High': [1.0, 2.0, 124.63999938964844, 126.1500015258789], 'Low': [1.0, 2.0, 122.25, 124.26000213623047],
+        {'ticker': ['AAPL', 'AAPL', 'AAPL', 'AAPL', 'AAPL'],
+         'Adj Close': [1.0, 2.0, 122.7699966430664, 124.97000122070312, 127.44999694824219],
+         'Open': [1.0, 2.0, 123.4000015258789, 124.58000183105469, 126.25],
+         'Volume': [1, 2, 112172300, 105861300, 81918000],
+         'Close': [1.0, 2.0, 122.7699966430664, 124.97000122070312, 127.44999694824219],
+         'High': [1.0, 2.0, 124.63999938964844, 126.1500015258789, 127.88999938964844],
+         'Low': [1.0, 2.0, 122.25, 124.26000213623047, 125.8499984741211],
          'date_day': [Period('2021-05-10', 'D'), Period('2021-05-11', 'D'), Period('2021-05-12', 'D'),
-                      Period('2021-05-13', 'D')]}
-        )
+                      Period('2021-05-13', 'D'), Period('2021-05-14', 'D')]}
+    )
 
     # 2021-05-15 is weekend
 

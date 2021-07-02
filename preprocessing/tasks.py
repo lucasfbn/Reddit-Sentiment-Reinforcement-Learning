@@ -6,7 +6,8 @@ from prefect import task
 from sklearn.preprocessing import MinMaxScaler
 
 from preprocessing.sequences import SequenceGenerator
-from preprocessing.price_data.stock_prices import StockPrices, MissingDataException, OldDataException
+from preprocessing.price_data.stock_prices import MissingDataException, OldDataException
+from preprocessing.price_data.cached_stock_data import CachedStockData
 from preprocessing.ticker import Ticker
 
 date_col = "date"
@@ -261,13 +262,14 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
     start_date = ticker.df["date_day"].min() - datetime.timedelta(days=price_data_start_offset)
 
     # Will be overwritten to current date if enable_live_behaviour = True
-    end_date = ticker.df["date_day"].max() + datetime.timedelta(days=1)
+    end_date = ticker.df["date_day"].max()
 
-    sp = StockPrices(ticker_name=ticker.name, start_date=start_date, end_date=end_date,
-                     live=enable_live_behaviour)
+    csd = CachedStockData(ticker=ticker.name, start_date=start_date, end_date=end_date,
+                          live=enable_live_behaviour)
+    csd.initialize_cache()
 
     try:
-        prices = sp.download()
+        prices = csd.get()
         ticker.df = merge_prices_with_ticker_df(prices, ticker.df)
 
     # TODO Add logging
