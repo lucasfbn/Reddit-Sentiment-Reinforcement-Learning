@@ -82,3 +82,14 @@ def test_live_missing_data():
 
     with pytest.raises(MissingDataException):
         prices = sp.download()
+
+
+def test_space_removal():
+    df = pd.DataFrame({"date_day": [Period('2021-05-10', 'D'),
+                                    Period('2021-05-20', 'D')]})
+
+    sp = StockPrices(ticker_name="GME", start_date=df["date_day"].min(),
+                     end_date=df["date_day"].max(), live=False)
+    prices = sp.download()
+
+    assert list(prices.columns) == ['Open', 'High', 'Low', 'Close', 'Adj_Close', 'Volume', 'date_day']

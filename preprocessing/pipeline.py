@@ -53,7 +53,7 @@ with Flow("preprocessing") as flow:
     ticker = remove_excluded_ticker(ticker)
     ticker = mark_sentiment_data_available_days.map(ticker, unmapped(sentiment_data_columns))
     ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("adj_close_column_plus_merged",
-                                                                   default=["Adj Close", "_merge"])))
+                                                                   default=["Adj_Close", "_merge"])))
     ticker = sort_ticker_df_chronologically.map(ticker, unmapped(Parameter("date_day", date_day_col)))
     ticker = backfill_availability.map(ticker)
     ticker = assign_price_col.map(ticker, unmapped(price_column))
