@@ -44,12 +44,12 @@ class Cache:
 
     def get_all(self):
         cmd = f"SELECT * FROM {self.table}"
-        df = pd.read_sql(sql=cmd, con=self.con).drop(columns=["index"])
+        df = pd.read_sql(sql=cmd, con=self.con).drop(columns=["index", "ticker"])
         df = self._str_to_period(df)
         return df
 
     def get(self, ticker):
         cmd = f"SELECT * FROM {self.table} WHERE {self.ticker_name_col}='{ticker}'"
-        df = pd.read_sql(sql=cmd, con=self.con).drop(columns=["index"])
+        df = pd.read_sql(sql=cmd, con=self.con).drop(columns=["index", "ticker"])
         df = self._str_to_period(df)
         return df
