@@ -22,10 +22,19 @@ class StockPrices:
     def __init__(self, ticker_name: str, start_date: pd.Period, end_date: pd.Period, live: bool):
         self.ticker = ticker_name
         self.start_date = start_date
-        self.end_date = end_date + datetime.timedelta(days=1)
+        self.end_date = end_date
         self.live = live
 
         self.prices = None
+
+        self._correct_dates()
+
+    def _correct_dates(self):
+        """
+        yfinance specific correction such that the correct dates are downloaded.
+        """
+        self.start_date = self.start_date + datetime.timedelta(days=1)
+        self.end_date = self.end_date + datetime.timedelta(days=1)
 
     def _get_prices(self, start, end, interval="1d"):
         start, end = start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d") if end is not None else None
