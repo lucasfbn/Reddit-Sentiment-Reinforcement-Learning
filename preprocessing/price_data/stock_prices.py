@@ -1,9 +1,9 @@
-import datetime, sys, os
+import datetime
+import os
+import sys
 
-import yfinance as yf
 import pandas as pd
-
-import paths
+import yfinance as yf
 
 
 class MissingDataException(Exception):
