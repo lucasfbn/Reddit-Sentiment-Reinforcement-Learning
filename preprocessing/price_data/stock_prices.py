@@ -87,6 +87,9 @@ class StockPrices:
 
         return prices
 
+    def _remove_spaces_from_cols(self):
+        self.prices.columns = [col.replace(" ", "_") for col in self.prices.columns]
+
     def download(self):
 
         if self.live:
@@ -99,6 +102,7 @@ class StockPrices:
         # Index is the dates, we want a numerical index
         self.prices = self.prices.reset_index(drop=True)
 
+        self._remove_spaces_from_cols()
         return self.prices
 
 
