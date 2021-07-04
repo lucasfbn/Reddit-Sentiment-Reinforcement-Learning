@@ -11,7 +11,7 @@ def test_get():
     csd.initialize_cache(":memory:")
 
     df = pd.DataFrame({'ticker': ["AAPL", "AAPL"],
-                       "Adj Close": [1, 2],
+                       "Adj_Close": [1, 2],
                        "Open": [1, 2],
                        "Volume": [1, 2],
                        "Close": [1, 2],
@@ -22,11 +22,9 @@ def test_get():
     csd.c.append(df)
     result = csd.get()
 
-    print()
-
     expected = pd.DataFrame(
         {'ticker': ['AAPL', 'AAPL', 'AAPL', 'AAPL', 'AAPL'],
-         'Adj Close': [1.0, 2.0, 122.7699966430664, 124.97000122070312, 127.44999694824219],
+         'Adj_Close': [1.0, 2.0, 122.7699966430664, 124.97000122070312, 127.44999694824219],
          'Open': [1.0, 2.0, 123.4000015258789, 124.58000183105469, 126.25],
          'Volume': [1, 2, 112172300, 105861300, 81918000],
          'Close': [1.0, 2.0, 122.7699966430664, 124.97000122070312, 127.44999694824219],
@@ -47,7 +45,7 @@ def test_get_filter():
     csd.initialize_cache(":memory:")
 
     # Need some dummy data such that the table has columns
-    df = pd.DataFrame({'ticker': ["AAPL"], "Adj Close": [1], "Open": [1], "Volume": [1], "Close": [1],
+    df = pd.DataFrame({'ticker': ["AAPL"], "Adj_Close": [1], "Open": [1], "Volume": [1], "Close": [1],
                        "High": [1], "Low": [1], "date_day": [Period('2021-05-05', 'D')]})
     csd.c.append(df)
 
@@ -66,7 +64,7 @@ def test_get_filling():
     csd.initialize_cache(":memory:")
 
     # Need some dummy data such that the table has columns
-    df = pd.DataFrame({'ticker': ["AAPL"], "Adj Close": [1], "Open": [1], "Volume": [1], "Close": [1],
+    df = pd.DataFrame({'ticker': ["AAPL"], "Adj_Close": [1], "Open": [1], "Volume": [1], "Close": [1],
                        "High": [1], "Low": [1], "date_day": [Period('2021-05-05', 'D')]})
     csd.c.append(df)
 
@@ -74,10 +72,8 @@ def test_get_filling():
 
     result = csd.c.get("AAPL")
 
-    print(result.to_dict("list"))
-
     expected = pd.DataFrame({'ticker': ['AAPL', 'AAPL', 'AAPL', 'AAPL', 'AAPL', 'AAPL', 'AAPL', 'AAPL', 'AAPL'],
-                             'Adj Close': [1.0, 129.52000427246094, 130.2100067138672, 126.8499984741211,
+                             'Adj_Close': [1.0, 129.52000427246094, 130.2100067138672, 126.8499984741211,
                                            125.91000366210938, 122.7699966430664, 124.97000122070312,
                                            127.44999694824219, 126.2699966430664],
                              'Open': [1.0, 127.88999938964844, 130.85000610351562, 129.41000366210938, 123.5,
@@ -107,7 +103,7 @@ def test_edges():
     csd.initialize_cache(":memory:")
 
     # Need some dummy data such that the table has columns
-    df = pd.DataFrame({'ticker': ["AAPL"], "Adj Close": [1], "Open": [1], "Volume": [1], "Close": [1],
+    df = pd.DataFrame({'ticker': ["AAPL"], "Adj_Close": [1], "Open": [1], "Volume": [1], "Close": [1],
                        "High": [1], "Low": [1], "date_day": [Period('2021-05-05', 'D')]})
     csd.c.append(df)
 
@@ -115,3 +111,24 @@ def test_edges():
 
     assert len(result) == 1
     assert result["date_day"].loc[0] == Period('2021-05-10', 'D')
+
+
+def test_non_existing_ticker():
+    csd = CachedStockData(ticker="TSLA", start_date=Period('2021-02-03', 'D'), end_date=Period('2021-02-05', 'D'),
+                          live=False)
+    csd.initialize_cache(":memory:")
+
+    # Need some dummy data such that the table has columns
+    df = pd.DataFrame({'ticker': ["AAPL"], "Adj_Close": [1], "Open": [1], "Volume": [1], "Close": [1],
+                       "High": [1], "Low": [1], "date_day": [Period('2021-05-05', 'D')]})
+    csd.c.append(df)
+
+    result = csd.get()
+
+    assert result["date_day"].loc[0] == Period('2021-02-03', 'D')
+    assert result["date_day"].loc[len(result) - 1] == Period('2021-02-05', 'D')
+
+    # Check that the data got downloaded from the standard_date on
+    result = csd.c.get("TSLA")
+    assert result["date_day"].loc[0] == Period('2021-02-01', 'D')
+    assert result["date_day"].loc[len(result) - 1] == Period('2021-02-05', 'D')

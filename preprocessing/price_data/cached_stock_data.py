@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas import Period
 import datetime
 from preprocessing.price_data.cache import Cache
 from preprocessing.price_data.stock_prices import StockPrices
@@ -8,6 +9,8 @@ from more_itertools import consecutive_groups
 
 class CachedStockData:
     date_col = "date_day"
+
+    standard_start = Period('2021-02-01', 'D')
 
     def __init__(self, ticker, start_date, end_date, live):
         self.live = live
@@ -24,6 +27,8 @@ class CachedStockData:
         return self.c.get(self.ticker)
 
     def get_last_date(self, df):
+        if df.empty:
+            return None
         return df[self.date_col].max()
 
     def download(self, start_date, end_date):
@@ -40,7 +45,13 @@ class CachedStockData:
     def get(self):
         df = self.get_from_cache()
         last_date = self.get_last_date(df)
-        if last_date < self.end_date:
+
+        if last_date is None:
+            new_df = self.download(start_date=self.standard_start,
+                                   end_date=self.end_date)
+            self.c.append(new_df, drop_duplicates=False)
+            df = self.get_from_cache()
+        elif last_date < self.end_date:
             new_df = self.download(start_date=last_date + datetime.timedelta(days=1),
                                    end_date=self.end_date)
             self.c.append(new_df, drop_duplicates=False)
