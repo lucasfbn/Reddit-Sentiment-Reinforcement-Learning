@@ -1,10 +1,10 @@
-import pandas as pd
-from pandas import Period
 import datetime
+
+from pandas import Period
+
 from preprocessing.price_data.cache import Cache
 from preprocessing.price_data.stock_prices import StockPrices
-
-from more_itertools import consecutive_groups
+from utils.util_funcs import log
 
 
 class CachedStockData:
@@ -42,6 +42,15 @@ class CachedStockData:
         df = df[(df[self.date_col] >= self.start_date) & (df[self.date_col] <= self.end_date)]
         return df
 
+    def drop_duplicates(self, df):
+        old_len = len(df)
+        df = df.drop_duplicates(subset=[self.date_col])
+
+        if not old_len == len(df):
+            log.warn(f"There are duplicates in the DB for ticker {self.ticker}")
+
+        return df
+
     def get(self):
         df = self.get_from_cache()
         last_date = self.get_last_date(df)
@@ -57,5 +66,6 @@ class CachedStockData:
             self.c.append(new_df, drop_duplicates=False)
             df = self.get_from_cache()
 
+        df = self.drop_duplicates(df)
         df = self.filter_timespan(df)
         return df.reset_index(drop=True)
