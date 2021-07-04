@@ -248,7 +248,7 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
     If any price related exception occurs the ticker will be marked to be excluded (in one of the next tasks).
 
     Adds:
-        ["Open", "High", "Low", "Close", "Volume", "Adj Close"]
+        ["Open", "High", "Low", "Close", "Volume", "Adj_Close"]
 
     Args:
         ticker: Ticker instance
