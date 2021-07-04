@@ -1,9 +1,7 @@
 import pandas as pd
+from pandas import Period
+from pandas.testing import assert_frame_equal
 
-from pandas import Period, Timestamp
-import datetime
-from pandas.testing import assert_frame_equal, assert_series_equal
-import pytest
 from preprocessing.price_data.cached_stock_data import CachedStockData
 
 
@@ -101,6 +99,7 @@ def test_get_filling():
                             )
 
     assert_frame_equal(result, expected)
+
 
 def test_edges():
     csd = CachedStockData(ticker="AAPL", start_date=Period('2021-05-10', 'D'), end_date=Period('2021-05-10', 'D'),
