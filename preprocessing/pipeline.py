@@ -36,7 +36,8 @@ with Flow("preprocessing") as flow:
     sequence_length = Parameter("sequence_length", default=7)
     columns_to_be_excluded_from_sequences = Parameter("columns_to_be_excluded_from_sequences",
                                                       default=["available", "tradeable", date_day_col,
-                                                               "sentiment_data_available"])
+                                                               "sentiment_data_available", "price_raw", "Open_scaled",
+                                                               "High_scaled", "Low_scaled", "Volume_scaled"])
     sequence_to_be_generated = Parameter("sequence_to_be_generated", default="arr")
 
     df = add_time(input_df)
