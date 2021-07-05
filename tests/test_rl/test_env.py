@@ -17,34 +17,34 @@ t1.sequences = [
              df=None,
              flat=pd.DataFrame({"dummy/0": [1], "dummy/1": [2], "dummy/2": [3],
                                 "price/0": [10], "price/1": [11], "price/2": [12]}),
-             arr=pd.DataFrame({"dummy": [1, 2, 3], "price": [10, 11, 12]})),
+             arr=pd.DataFrame({"dummy": [1, 2, 3], "price": [10, 11, 12]}), price_raw=120),
     Sequence(price=13, tradeable=False, available=False, date=None, sentiment_data_available=None,
              df=None,
              flat=pd.DataFrame({"dummy/1": [2], "dummy/2": [3], "dummy/3": [4],
                                 "price/1": [11], "price/2": [12], "price/3": [13]}),
-             arr=pd.DataFrame({"dummy": [2, 3, 4], "price": [11, 12, 13]})),
+             arr=pd.DataFrame({"dummy": [2, 3, 4], "price": [11, 12, 13]}), price_raw=130),
     Sequence(price=14, tradeable=False, available=False, date=None, sentiment_data_available=None,
              df=None,
              flat=pd.DataFrame({"dummy/2": [3], "dummy/3": [4], "dummy/4": [5],
                                 "price/2": [12], "price/3": [13], "price/4": [14]}),
-             arr=pd.DataFrame({"dummy": [3, 4, 5], "price": [12, 13, 14]}))]
+             arr=pd.DataFrame({"dummy": [3, 4, 5], "price": [12, 13, 14]}), price_raw=140)]
 
 t2.sequences = [
     Sequence(price=12, tradeable=False, available=False, date=None, sentiment_data_available=None,
              df=None,
              flat=pd.DataFrame({"dummy/0": [81], "dummy/1": [82], "dummy/2": [83],
                                 "price/0": [810], "price/1": [811], "price/2": [812]}),
-             arr=pd.DataFrame({"dummy": [81, 82, 83], "price": [810, 811, 812]})),
+             arr=pd.DataFrame({"dummy": [81, 82, 83], "price": [810, 811, 812]}), price_raw=121),
     Sequence(price=13, tradeable=False, available=False, date=None, sentiment_data_available=None,
              df=None,
              flat=pd.DataFrame({"dummy/1": [82], "dummy/2": [83], "dummy/3": [84],
                                 "price/1": [811], "price/2": [812], "price/3": [813]}),
-             arr=pd.DataFrame({"dummy": [82, 83, 84], "price": [811, 812, 813]})),
+             arr=pd.DataFrame({"dummy": [82, 83, 84], "price": [811, 812, 813]}), price_raw=131),
     Sequence(price=14, tradeable=False, available=False, date=None, sentiment_data_available=None,
              df=None,
              flat=pd.DataFrame({"dummy/2": [83], "dummy/3": [84], "dummy/4": [85],
                                 "price/2": [812], "price/3": [813], "price/4": [814]}),
-             arr=pd.DataFrame({"dummy": [83, 84, 85], "price": [812, 813, 814]}))]
+             arr=pd.DataFrame({"dummy": [83, 84, 85], "price": [812, 813, 814]}), price_raw=141)]
 
 data = [t1, t2]
 
