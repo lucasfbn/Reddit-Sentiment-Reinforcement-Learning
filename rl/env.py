@@ -1,4 +1,3 @@
-import copy
 from collections import deque
 from random import shuffle
 
@@ -112,7 +111,7 @@ class Env(Environment):
         mlflow.log_metric("counter", self._counter, step=self._episode_counter)
 
     def _assign_new_ticker(self):
-        self._current_ticker = copy.deepcopy(self._episode_data[self._counter])
+        self._current_ticker = self._episode_data[self._counter]
 
     def _assign_new_sequences(self):
         self._current_sequences = self._current_ticker.sequences
