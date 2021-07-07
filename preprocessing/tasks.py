@@ -281,9 +281,10 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
 
 
 @task
-def clean_price_data_cache():
+def clean_price_data_cache(ticker: list):
     """
-    Cleans the price data cache by dropping potential duplicates.
+    Cleans the price data cache by dropping potential duplicates. Ticker is only to define upstream dependence (e.g.
+    the cache doesn't get clean prior to the add_price task is finished).
     """
     c = Cache()
     c.drop_duplicates()
