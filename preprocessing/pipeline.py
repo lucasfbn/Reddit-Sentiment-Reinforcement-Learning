@@ -46,8 +46,8 @@ with Flow("preprocessing") as flow:
 
     df, sentiment_data_columns = scale_sentiment_data_daywise(df, sentiment_data_columns, drop_unscaled_cols)
     ticker = grp_by_ticker(df)
-    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("ticker_column", default=["ticker"])))
     ticker = drop_ticker_with_too_few_data(ticker, ticker_min_len)
+    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("ticker_column", default=["ticker"])))
     ticker = sort_ticker_df_chronologically.map(ticker, unmapped(Parameter("date_shifted", date_shifted_col)))
     ticker = mark_trainable_days.map(ticker, unmapped(ticker_min_len))
     ticker = add_price_data.map(ticker, unmapped(price_data_start_offset), unmapped(enable_live_behaviour))
