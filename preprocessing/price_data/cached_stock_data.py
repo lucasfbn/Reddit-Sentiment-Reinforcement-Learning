@@ -38,6 +38,11 @@ class CachedStockData:
         return data
 
     def filter_timespan(self, df):
+
+        # Do not filter when live since we want the most recent data
+        if self.live:
+            return df
+
         # TODO Just order and select per index?
         df = df[(df[self.date_col] >= self.start_date) & (df[self.date_col] <= self.end_date)]
         return df
