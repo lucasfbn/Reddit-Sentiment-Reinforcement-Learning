@@ -1,4 +1,4 @@
-from eval.evaluate import Evaluate
+from eval.evaluate import Evaluate, EvalLive
 import pandas as pd
 from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
@@ -213,3 +213,47 @@ def test_force_sell():
     ev.force_sell()
 
     assert ev.balance == 10000.0
+
+
+def test_eval_live_1():
+    actions = [1, 1, 1]
+    thresholds = [{"hold": 0.3, "buy": 0.4, "sell": 0.3}] * 4
+    dates = [pd.Period("01-17-2021"), pd.Period("01-17-2021"), pd.Period.now("D")]
+
+    ticker = generate_ticker()
+    t1 = ticker[0]
+
+    i = 0
+    while i < len(t1.sequences):
+        t1.sequences[i].add_eval(actions[i], thresholds[i])
+        t1.sequences[i].date = dates[i]
+        i += 1
+
+    ev = EvalLive(ticker=[t1], max_price_per_stock=1000, initial_balance=10000,
+                  max_investment_per_trade=0.5, partial_shares_possible=False)
+    ev.initialize()
+    ev.set_thresholds({"hold": 0, "buy": 0, "sell": 0})
+    ev.act()
+
+    assert ev.balance == 5111.48
+
+def test_eval_live_2():
+    actions = [1, 1, 1]
+    thresholds = [{"hold": 0.3, "buy": 0.4, "sell": 0.3}] * 4
+    dates = [pd.Period("01-17-2021"), pd.Period("01-17-2021"), pd.Period.now("D")]
+
+    ticker = generate_ticker()
+    t1 = ticker[0]
+
+    i = 0
+    while i < len(t1.sequences):
+        t1.sequences[i].add_eval(actions[i], thresholds[i])
+        i += 1
+
+    ev = EvalLive(ticker=[t1], max_price_per_stock=1000, initial_balance=10000,
+                  max_investment_per_trade=0.5, partial_shares_possible=False)
+    ev.initialize()
+    ev.set_thresholds({"hold": 0, "buy": 0, "sell": 0})
+    ev.act()
+
+    assert ev.balance == 10000
