@@ -130,3 +130,18 @@ def test_non_existing_ticker():
     result = csd.c.get("TSLA")
     assert result["date_day"].loc[0] == Period('2021-02-01', 'D')
     assert result["date_day"].loc[len(result) - 1] == Period('2021-02-05', 'D')
+
+
+def test_live():
+    csd = CachedStockData(ticker="AAPL", start_date=Period('2021-05-10', 'D'), end_date=Period('2021-05-17', 'D'),
+                          live=True)
+    csd.initialize_cache(":memory:")
+
+    # Need some dummy data such that the table has columns
+    df = pd.DataFrame({'ticker': ["AAPL"], "Adj_Close": [1], "Open": [1], "Volume": [1], "Close": [1],
+                       "High": [1], "Low": [1], "date_day": [Period('2021-05-05', 'D')]})
+    csd.c.append(df)
+
+    result = csd.get()
+
+    assert result["date_day"].loc[len(result) - 1] == Period.now("D")
