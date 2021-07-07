@@ -84,6 +84,14 @@ def test_live_missing_data():
         prices = sp.download()
 
 
+def test_live():
+    sp = StockPrices(ticker_name="AAPL", start_date=Period('2021-05-10', 'D'),
+                     end_date=Period('2021-05-20', 'D'), live=True)
+
+    prices = sp.download()
+    assert prices["date_day"].loc[len(prices) - 1] == Period.now("D")
+
+
 def test_space_removal():
     df = pd.DataFrame({"date_day": [Period('2021-05-10', 'D'),
                                     Period('2021-05-20', 'D')]})
