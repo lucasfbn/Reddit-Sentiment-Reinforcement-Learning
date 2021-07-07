@@ -51,6 +51,7 @@ with Flow("preprocessing") as flow:
     ticker = sort_ticker_df_chronologically.map(ticker, unmapped(Parameter("date_shifted", date_shifted_col)))
     ticker = mark_trainable_days.map(ticker, unmapped(ticker_min_len))
     ticker = add_price_data.map(ticker, unmapped(price_data_start_offset), unmapped(enable_live_behaviour))
+    _ = clean_price_data_cache()
     ticker = remove_excluded_ticker(ticker)
     ticker = mark_sentiment_data_available_days.map(ticker, unmapped(sentiment_data_columns))
     ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("adj_close_column_plus_merged",

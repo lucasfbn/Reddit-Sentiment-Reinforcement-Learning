@@ -8,6 +8,7 @@ from sklearn.preprocessing import MinMaxScaler
 from preprocessing.sequences import SequenceGenerator
 from preprocessing.price_data.stock_prices import MissingDataException, OldDataException
 from preprocessing.price_data.cached_stock_data import CachedStockData
+from preprocessing.price_data.cache import Cache
 from preprocessing.ticker import Ticker
 
 date_col = "date"
@@ -277,6 +278,15 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
         ticker.exclude = True
 
     return ticker
+
+
+@task
+def clean_price_data_cache():
+    """
+    Cleans the price data cache by dropping potential duplicates.
+    """
+    c = Cache()
+    c.drop_duplicates()
 
 
 @task
