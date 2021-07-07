@@ -1,6 +1,4 @@
 import mlflow
-import pandas as pd
-import tensorflow as tf
 from tensorforce import Runner, Agent, Environment
 from tqdm import tqdm
 
@@ -9,9 +7,6 @@ from rl.env import EnvCNN
 from utils.mlflow_api import load_file
 from utils.mlflow_api import log_file
 from utils.util_funcs import log
-
-physical_devices = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 
 class RLAgent:
@@ -71,9 +66,7 @@ class RLAgent:
 
         self.agent = Agent.create(
             agent='ppo', environment=environment,
-            memory=70000, batch_size=32,
-            exploration=0.01,
-            tracking="all"
+            memory=55000, batch_size=1, tracking="all",
         )
 
         runner = Runner(agent=self.agent, environment=environment)
@@ -89,7 +82,7 @@ class RLAgent:
 
 
 if __name__ == '__main__':
-    data = load_file(run_id="a4a3c73507fe4d8695ed6e125608ae6e", fn="ticker.pkl", experiment="Tests")
+    data = load_file(run_id="d8ba671a547942bf818e58862e8d28ca", fn="ticker.pkl", experiment="Tests")
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Tests")
@@ -98,6 +91,6 @@ if __name__ == '__main__':
         rla = RLAgent(environment=EnvCNN, ticker=data)
         # rla.load_agent(
         #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
-        rla.train(n_full_episodes=3)
+        rla.train(n_full_episodes=15)
         rla.eval_agent()
         rla.close()
