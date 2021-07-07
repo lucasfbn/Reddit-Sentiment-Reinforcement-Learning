@@ -138,6 +138,30 @@ def test_add_price_data():
     assert result.exclude is True
 
 
+def test_add_price_data_live():
+    # For in depth test check the tests of stock_prices.py
+    # We will only test whether the exclusion is done correctly when an error was raised
+
+    # Use non existing ticker to check for MissingDataException
+    df = pd.DataFrame([{date_day_col: Period('2021-05-21')},
+                       {date_day_col: Period('2021-05-19')}])
+    result = add_price_data.run(Ticker("AAPL", df), price_data_start_offset=0, enable_live_behaviour=True)
+
+    assert result.df["date_day"].loc[len(result.df) - 1] == Period.now("D")
+
+
+def test_add_price_data_correct_columns():
+    # For in depth test check the tests of stock_prices.py
+    # We will only test whether the exclusion is done correctly when an error was raised
+
+    # Use non existing ticker to check for MissingDataException
+    df = pd.DataFrame([{date_day_col: Period('2021-05-21')},
+                       {date_day_col: Period('2021-05-19')}])
+    result = add_price_data.run(Ticker("AAPL", df), price_data_start_offset=0, enable_live_behaviour=False)
+
+    assert "ticker" not in result.df.columns
+
+
 def test_merge_prices_with_ticker_df():
     df = pd.DataFrame({"date_day": [Period('2021-05-10', 'D'),
                                     Period('2021-05-20', 'D')],
