@@ -9,7 +9,7 @@ from eval.actions import Buy, Sell
 from utils import mlflow_api
 from utils.util_funcs import log
 
-log.setLevel("INFO")
+log.setLevel("DEBUG")
 
 
 @dataclass
@@ -177,13 +177,13 @@ class Evaluate(EvaluateInit):
             potential_buys = []
             sells = []
 
-            for seq in trade_option:
-                if seq.action == "hold":
+            for operation in trade_option:
+                if operation.action == "hold":
                     continue
-                elif seq.action == "buy" and seq.tradeable:
-                    potential_buys.append(seq)
-                elif seq.action == "sell" and seq.tradeable:
-                    sells.append(seq)
+                elif operation.action == "buy" and operation.tradeable:
+                    potential_buys.append(operation)
+                elif operation.action == "sell" and operation.tradeable:
+                    sells.append(operation)
 
             self._handle_sells(sells)
             self._handle_buys(potential_buys)
@@ -221,22 +221,33 @@ class Evaluate(EvaluateInit):
 
 class EvalLive(Evaluate):
 
+    def initialize(self):
+        self._rename_actions()
+
     def act(self):
+        now = pd.Period.now("D")
 
         potential_buys = []
         sells = []
 
-        for grp in self.ticker:
-            trade = grp["data"].to_dict("records")
-            assert len(trade) == 1
-            trade = trade[0]
-            trade["ticker"] = grp["ticker"]
-            if trade["actions"] == "hold":
-                continue
-            elif trade["actions"] == "buy" and trade["tradeable"]:
-                potential_buys.append(trade)
-            elif trade["actions"] == "sell" and trade["tradeable"]:
-                sells.append(trade)
+        for ticker in self.ticker:
+
+            last_seq = ticker.sequences[len(ticker.sequences) - 1]
+            if last_seq.date == now:
+
+                operation = Operation(ticker=ticker.name,
+                                      price=last_seq.price_raw,
+                                      date=last_seq.date,
+                                      tradeable=last_seq.tradeable,
+                                      action=last_seq.action,
+                                      action_probas=last_seq.action_probas)
+
+                if operation.action == "hold":
+                    continue
+                elif operation.action == "buy" and operation.tradeable:
+                    potential_buys.append(operation)
+                elif operation.action == "sell" and operation.tradeable:
+                    sells.append(operation)
 
         self._handle_sells(sells)
         self._handle_buys(potential_buys)
@@ -248,14 +259,14 @@ if __name__ == "__main__":
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Evaluating")
 
-    ticker = mlflow_api.load_file("6bc3213bdfa84c7f862302b13ef2a21b", "eval.pkl", experiment="Tests")
+    ticker = mlflow_api.load_file("939ea6c487764712830cc118da02bba1", "eval.pkl", experiment="Tests")
 
     with mlflow.start_run():
         combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 0.07}
 
         ep = Evaluate(ticker=ticker, **combination)
-        ep.set_thresholds({'hold': None, 'buy': None, 'sell': None})
         ep.initialize()
+        ep.set_quantile_thresholds({'hold': None, 'buy': 0.95, 'sell': None})
         ep.act()
         ep.force_sell()
         print(ep.get_result())
