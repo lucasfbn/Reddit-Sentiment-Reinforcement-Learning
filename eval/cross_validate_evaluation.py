@@ -3,12 +3,13 @@ import multiprocessing
 from dataclasses import dataclass
 from itertools import product
 
-import mlflow
 from tqdm import tqdm
 
-import paths
 from eval.evaluate import Evaluate
+from utils.mlflow_api import *
 from utils.util_funcs import log
+
+log.setLevel("INFO")
 
 
 @dataclass
@@ -33,10 +34,10 @@ class Choice:
 
 class ParameterTuning:
 
-    def __init__(self, data, parameter, n_worker=10):
+    def __init__(self, ticker, parameter, n_worker=10):
         self.n_worker = n_worker
         self.parameter = parameter
-        self.data = data
+        self.ticker = ticker
 
         self._combinations = None
         self._combinations_mapped = []
@@ -85,7 +86,7 @@ class ParameterTuning:
 
     def _save_init_values(self):
         log.info("Retrieving initial values...")
-        ep = Evaluate(ticker=self.data)
+        ep = Evaluate(ticker=self.ticker)
         ep.set_thresholds({"hold": None, "buy": None, "sell": None})
         ep.initialize()
         self._dates_trades_combinations = ep._dates_trades_combination
@@ -99,11 +100,13 @@ class ParameterTuning:
         dates_trades_combinations = None
 
         for combination in tqdm(combinations_list):
-            ep = Evaluate(ticker=self.data, **combination)
+            threshold = combination.pop("threshold")
+
+            ep = Evaluate(ticker=copy.deepcopy(self.ticker), **combination)
             ep.set_dates_trade_combination(self._dates_trades_combinations)
             ep.set_min_max_date(self._min_date, self._max_date)
-
             ep.initialize()
+            ep.set_quantile_thresholds(threshold)
             ep.act()
             ep.force_sell()
 
@@ -146,6 +149,9 @@ class ParameterTuning:
 
         mlflow.log_params(results[0])
 
+    def t(self):
+        self._multi_cross_validation((self._combinations_mapped, []))
+
     def tune(self):
         self._generate_combinations()
         self._reassign_combinations()
@@ -155,27 +161,23 @@ class ParameterTuning:
                  f"Estimated runtime: {len(self._combinations_mapped) * 13 / 60 / 60 / self.n_worker} h")
 
         self._save_init_values()
-
         self._run_multiprocess()
 
 
 if __name__ == "__main__":
-    path = "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/30ed88b45c974e768caf2949651edfb6/artifacts/eval_train.pkl"
-
-    import pickle as pkl
-
-    with open(path, "rb") as f:
-        data = pkl.load(f)
-    # print(Interval(0, 1, 0.01).values())
     mlflow.set_tracking_uri(paths.mlflow_path)
-    mlflow.set_experiment("Evaluating")
+    mlflow.set_experiment("Tests")
+
+    data = load_file(run_id="fde8b8735cbc4f2c950aa445b6682bf3", experiment="Live", fn="eval.pkl")
+
     with mlflow.start_run():
         pt = ParameterTuning(data,
-                             parameter={"buy": Interval(0.7, 1, 0.01)},
+                             parameter={"buy": Interval(0.8, 1, 0.01)},
+                             # "max_trades_per_day": Choice([1, 3, 5, 7, 10, 15])
                              # "max_trades_per_day": Choice([1, 3, 5, 7, 10, 15]),
                              # "max_price_per_stock": Choice([10, 20, 25, 30, 40, 50]),
                              # "max_investment_per_trade": Choice([0.03, 0.05, 0.07, 0.1])},
                              n_worker=10)
+
         pt.tune()
         print(pt.get_top_results(3))
-        # pt.log_top_results(3)
