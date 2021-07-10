@@ -89,7 +89,9 @@ def test_live():
                      end_date=Period('2021-05-20', 'D'), live=True)
 
     prices = sp.download()
-    assert prices["date_day"].loc[len(prices) - 1] == Period.now("D")
+
+    if Period.now("D").weekday < 5:  # Doesn't work on the weekend
+        assert prices["date_day"].loc[len(prices) - 1] == Period.now("D")
 
 
 def test_space_removal():
