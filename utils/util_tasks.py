@@ -6,6 +6,7 @@ from typing import Tuple
 @task
 def mlflow_log_file(obj, fn):
     log_file(obj, fn)
+    return obj
 
 
 @task
