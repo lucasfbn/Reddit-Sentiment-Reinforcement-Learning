@@ -158,6 +158,18 @@ def grp_by_ticker(df: pd.DataFrame) -> list:
 
 
 @task
+def aggregate_daywise(ticker: Ticker) -> Ticker:
+    """
+    Aggregates (sum) the ticker data daywise (shifted).
+
+    Drops:
+        [ticker, date, date_day, date_shifted] (because they are not numerical)
+    """
+    ticker.df = ticker.df.groupby([date_day_shifted_col]).agg("sum").reset_index()
+    return ticker
+
+
+@task
 def drop_ticker_with_too_few_data(ticker: list, ticker_min_len: int) -> list:
     """
     Drops all ticker which have too few data points (represented by the len of the corresponding df). This is useful when

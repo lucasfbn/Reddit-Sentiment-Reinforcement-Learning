@@ -46,10 +46,11 @@ with Flow("preprocessing") as flow:
 
     df, sentiment_data_columns = scale_sentiment_data_daywise(df, sentiment_data_columns, drop_unscaled_cols)
     ticker = grp_by_ticker(df)
+    ticker = aggregate_daywise.map(ticker)
     ticker = drop_ticker_with_too_few_data(ticker, ticker_min_len)
-    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("ticker_column", default=["ticker"])))
     ticker = sort_ticker_df_chronologically.map(ticker, unmapped(Parameter("date_shifted", date_shifted_col)))
     ticker = mark_trainable_days.map(ticker, unmapped(ticker_min_len))
+    # ticker = mlflow_log_file(ticker, "ticker_intermediate.pkl")
     ticker = add_price_data.map(ticker, unmapped(price_data_start_offset), unmapped(enable_live_behaviour))
     _ = clean_price_data_cache(ticker)
     ticker = remove_excluded_ticker(ticker)
@@ -102,8 +103,8 @@ def main(test_mode=False):
         with mlflow.start_run():
             flow.run(task_states=task_states)
     else:
-        df = load_file("c47516069f3b40dfb1c88f5407659c96", "report.csv")
-        df = df.head(500)
+        df = load_file("fde8b8735cbc4f2c950aa445b6682bf3", "report.csv")
+        # df = df.head(500)
         with mlflow.start_run():
             flow.run(dict(input_df=df))
 
