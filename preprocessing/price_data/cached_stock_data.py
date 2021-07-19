@@ -8,7 +8,7 @@ from utils.util_funcs import log
 
 
 class CachedStockData:
-    date_col = "date_day"
+    date_col = "date_day_shifted"
 
     standard_start = Period('2021-02-01', 'D')
 

@@ -8,7 +8,7 @@ import paths
 class Cache:
     table = "data"
     ticker_name_col = "ticker"
-    date_name_col = "date_day"
+    date_name_col = "date_day_shifted"
 
     def __init__(self, db_path=paths.price_data_cache):
         self.con = sqlite3.connect(db_path)

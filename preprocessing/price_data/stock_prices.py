@@ -19,6 +19,8 @@ class OldDataException(Exception):
 
 class StockPrices:
 
+    date_col = "date_day_shifted"
+
     def __init__(self, ticker_name: str, start_date: pd.Period, end_date: pd.Period, live: bool):
         self.ticker = ticker_name
         self.start_date = start_date
@@ -98,7 +100,7 @@ class StockPrices:
             self.prices = self._get_historic_data()
 
         # Add date_day column from index
-        self.prices["date_day"] = pd.to_datetime(self.prices.index).to_period('D')
+        self.prices[self.date_col] = pd.to_datetime(self.prices.index).to_period('D')
         # Index is the dates, we want a numerical index
         self.prices = self.prices.reset_index(drop=True)
 
