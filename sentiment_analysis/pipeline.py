@@ -27,13 +27,12 @@ params = {
                                "pos", "neu", "neg", "compound"]
 }
 
-gc_dump_fn = "gc_dump.csv"
-report_fn = "report.csv"
 
+def pipeline(**kwargs):
+    params.update(kwargs)
 
-def pipeline():
     df = get_from_gc(params["start"], params["end"], params["check_duplicates"], params["fields_to_retrieve"]).run()
-    log_file(df, gc_dump_fn)
+    log_file(df, params["gc_dump_fn"])
     df = filter_removed(df, params["cols_to_check_if_removed"]).run()
     df = add_temporal_informations(df).run()
     df = filter_authors(df,
@@ -54,14 +53,12 @@ def pipeline():
     timespans = retrieve_timespans(flattened_ticker_df, params["relevant_timespan_cols"]).run()
     timespans = seq_map(aggregate_submissions_per_timespan, timespans).run()
     df = summarize_timespans(timespans).run()
-    log_file(df, report_fn)
+    log_file(df, params["report_fn"])
 
 
 def main(test_mode=False):
-    params.update(dict(start=datetime(year=2021, month=5, day=1), end=datetime(year=2021, month=5, day=14)))
-
     with mlflow.start_run():
-        pipeline()
+        pipeline(start=datetime(year=2021, month=5, day=1), end=datetime(year=2021, month=5, day=14))
 
 
 if __name__ == "__main__":

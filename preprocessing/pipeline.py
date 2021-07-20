@@ -34,7 +34,9 @@ params = {
 }
 
 
-def pipeline():
+def pipeline(**kwargs):
+    params.update(kwargs)
+
     df = add_time(params["input_df"]).run()
     df = shift_time(df, params["start_hour"], params["start_min"]).run()
     df = drop_columns(df, params["start_end_columns"]).run()
@@ -95,8 +97,7 @@ def main(test_mode=False):
     df = load_file("fde8b8735cbc4f2c950aa445b6682bf3", "report.csv")
     # df = df.head(500)
     with mlflow.start_run():
-        params["input_df"] = df
-        pipeline()
+        pipeline(input_df=df)
 
 
 if __name__ == "__main__":
