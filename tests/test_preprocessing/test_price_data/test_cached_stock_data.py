@@ -17,7 +17,7 @@ def test_get():
                        "Close": [1, 2],
                        "High": [1, 2],
                        "Low": [1, 2],
-                       "date_day": [Period('2021-05-10', 'D'),
+                       "date_day_shifted": [Period('2021-05-10', 'D'),
                                     Period('2021-05-11', 'D')]})
     csd.c.append(df)
     result = csd.get()
@@ -29,7 +29,7 @@ def test_get():
          'Close': [1.0, 2.0, 122.7699966430664, 124.97000122070312, 127.44999694824219],
          'High': [1.0, 2.0, 124.63999938964844, 126.1500015258789, 127.88999938964844],
          'Low': [1.0, 2.0, 122.25, 124.26000213623047, 125.8499984741211],
-         'date_day': [Period('2021-05-10', 'D'), Period('2021-05-11', 'D'), Period('2021-05-12', 'D'),
+         'date_day_shifted': [Period('2021-05-10', 'D'), Period('2021-05-11', 'D'), Period('2021-05-12', 'D'),
                       Period('2021-05-13', 'D'), Period('2021-05-14', 'D')]}
     )
 
@@ -45,13 +45,13 @@ def test_get_filter():
 
     # Need some dummy data such that the table has columns
     df = pd.DataFrame({'ticker': ["AAPL"], "Adj_Close": [1], "Open": [1], "Volume": [1], "Close": [1],
-                       "High": [1], "Low": [1], "date_day": [Period('2021-05-05', 'D')]})
+                       "High": [1], "Low": [1], "date_day_shifted": [Period('2021-05-05', 'D')]})
     csd.c.append(df)
 
     result = csd.get()
 
-    assert result["date_day"].loc[0] == Period('2021-05-10', 'D')
-    assert result["date_day"].loc[len(result) - 1] == Period('2021-05-17', 'D')
+    assert result["date_day_shifted"].loc[0] == Period('2021-05-10', 'D')
+    assert result["date_day_shifted"].loc[len(result) - 1] == Period('2021-05-17', 'D')
 
 
 def test_get_filling():
@@ -64,7 +64,7 @@ def test_get_filling():
 
     # Need some dummy data such that the table has columns
     df = pd.DataFrame({'ticker': ["AAPL"], "Adj_Close": [1], "Open": [1], "Volume": [1], "Close": [1],
-                       "High": [1], "Low": [1], "date_day": [Period('2021-05-05', 'D')]})
+                       "High": [1], "Low": [1], "date_day_shifted": [Period('2021-05-05', 'D')]})
     csd.c.append(df)
 
     csd.get()
@@ -85,7 +85,7 @@ def test_get_filling():
                                       124.63999938964844, 126.1500015258789, 127.88999938964844, 126.93000030517578],
                              'Low': [1.0, 127.12999725341797, 129.47999572753906, 126.80999755859375, 122.7699966430664,
                                      122.25, 124.26000213623047, 125.8499984741211, 125.16999816894531],
-                             'date_day': [Period('2021-05-05', 'D'), Period('2021-05-06', 'D'),
+                             'date_day_shifted': [Period('2021-05-05', 'D'), Period('2021-05-06', 'D'),
                                           Period('2021-05-07', 'D'), Period('2021-05-10', 'D'),
                                           Period('2021-05-11', 'D'), Period('2021-05-12', 'D'),
                                           Period('2021-05-13', 'D'), Period('2021-05-14', 'D'),
@@ -102,13 +102,13 @@ def test_edges():
 
     # Need some dummy data such that the table has columns
     df = pd.DataFrame({'ticker': ["AAPL"], "Adj_Close": [1], "Open": [1], "Volume": [1], "Close": [1],
-                       "High": [1], "Low": [1], "date_day": [Period('2021-05-05', 'D')]})
+                       "High": [1], "Low": [1], "date_day_shifted": [Period('2021-05-05', 'D')]})
     csd.c.append(df)
 
     result = csd.get()
 
     assert len(result) == 1
-    assert result["date_day"].loc[0] == Period('2021-05-10', 'D')
+    assert result["date_day_shifted"].loc[0] == Period('2021-05-10', 'D')
 
 
 def test_non_existing_ticker():
@@ -118,18 +118,18 @@ def test_non_existing_ticker():
 
     # Need some dummy data such that the table has columns
     df = pd.DataFrame({'ticker': ["AAPL"], "Adj_Close": [1], "Open": [1], "Volume": [1], "Close": [1],
-                       "High": [1], "Low": [1], "date_day": [Period('2021-05-05', 'D')]})
+                       "High": [1], "Low": [1], "date_day_shifted": [Period('2021-05-05', 'D')]})
     csd.c.append(df)
 
     result = csd.get()
 
-    assert result["date_day"].loc[0] == Period('2021-02-03', 'D')
-    assert result["date_day"].loc[len(result) - 1] == Period('2021-02-05', 'D')
+    assert result["date_day_shifted"].loc[0] == Period('2021-02-03', 'D')
+    assert result["date_day_shifted"].loc[len(result) - 1] == Period('2021-02-05', 'D')
 
     # Check that the data got downloaded from the standard_date on
     result = csd.c.get("TSLA")
-    assert result["date_day"].loc[0] == Period('2021-02-01', 'D')
-    assert result["date_day"].loc[len(result) - 1] == Period('2021-02-05', 'D')
+    assert result["date_day_shifted"].loc[0] == Period('2021-02-01', 'D')
+    assert result["date_day_shifted"].loc[len(result) - 1] == Period('2021-02-05', 'D')
 
 
 def test_live():
@@ -139,9 +139,9 @@ def test_live():
 
     # Need some dummy data such that the table has columns
     df = pd.DataFrame({'ticker': ["AAPL"], "Adj_Close": [1], "Open": [1], "Volume": [1], "Close": [1],
-                       "High": [1], "Low": [1], "date_day": [Period('2021-05-05', 'D')]})
+                       "High": [1], "Low": [1], "date_day_shifted": [Period('2021-05-05', 'D')]})
     csd.c.append(df)
 
     result = csd.get()
 
-    assert result["date_day"].loc[len(result) - 1] == Period.now("D")
+    assert result["date_day_shifted"].loc[len(result) - 1] == Period.now("D")
