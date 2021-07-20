@@ -7,9 +7,10 @@ from preprocessing.price_data.cache import Cache
 
 def test_first_append():
     c = Cache(db_path=":memory:")
-    df = pd.DataFrame({'ticker': ["AAPL", "TSLA", "GOE"], "Close": [1, 2, 3], "date_day": [Period('2021-05-10', 'D'),
-                                                                                           Period('2021-05-11', 'D'),
-                                                                                           Period('2021-05-12', 'D')]})
+    df = pd.DataFrame(
+        {'ticker': ["AAPL", "TSLA", "GOE"], "Close": [1, 2, 3], "date_day_shifted": [Period('2021-05-10', 'D'),
+                                                                                     Period('2021-05-11', 'D'),
+                                                                                     Period('2021-05-12', 'D')]})
     c.append(df)
     result = c.get_all()
     print(result.dtypes)
@@ -20,52 +21,54 @@ def test_first_append():
 
 def test_several_appends():
     c = Cache(db_path=":memory:")
-    df = pd.DataFrame({'ticker': ["AAPL", "TSLA", "GOE"], "Close": [1, 2, 3], "date_day": [Period('2021-05-10', 'D'),
-                                                                                           Period('2021-05-11', 'D'),
-                                                                                           Period('2021-05-12', 'D')]})
+    df = pd.DataFrame(
+        {'ticker': ["AAPL", "TSLA", "GOE"], "Close": [1, 2, 3], "date_day_shifted": [Period('2021-05-10', 'D'),
+                                                                                     Period('2021-05-11', 'D'),
+                                                                                     Period('2021-05-12', 'D')]})
     c.append(df, drop_duplicates=False)
     c.append(df, drop_duplicates=False)
     c.append(df, drop_duplicates=False)
     result = c.get_all()
 
     expected = pd.DataFrame(
-        {"Close": [1, 2, 3] * 3, "date_day": [Period('2021-05-10', 'D'),
-                                              Period('2021-05-11', 'D'),
-                                              Period('2021-05-12', 'D')] * 3})
+        {"Close": [1, 2, 3] * 3, "date_day_shifted": [Period('2021-05-10', 'D'),
+                                                      Period('2021-05-11', 'D'),
+                                                      Period('2021-05-12', 'D')] * 3})
 
     assert_frame_equal(expected, result)
 
     c = Cache(db_path=":memory:")
-    df = pd.DataFrame({'ticker': ["AAPL", "TSLA", "GOE"], "Close": [1, 2, 3], "date_day": [Period('2021-05-10', 'D'),
-                                                                                           Period('2021-05-11', 'D'),
-                                                                                           Period('2021-05-12', 'D')]})
+    df = pd.DataFrame(
+        {'ticker': ["AAPL", "TSLA", "GOE"], "Close": [1, 2, 3], "date_day_shifted": [Period('2021-05-10', 'D'),
+                                                                                     Period('2021-05-11', 'D'),
+                                                                                     Period('2021-05-12', 'D')]})
     c.append(df)
     c.append(df)
     c.append(df)
     result = c.get_all()
 
     expected = pd.DataFrame(
-        {"Close": [1, 2, 3], "date_day": [Period('2021-05-10', 'D'),
-                                          Period('2021-05-11', 'D'),
-                                          Period('2021-05-12', 'D')]})
+        {"Close": [1, 2, 3], "date_day_shifted": [Period('2021-05-10', 'D'),
+                                                  Period('2021-05-11', 'D'),
+                                                  Period('2021-05-12', 'D')]})
 
     assert_frame_equal(expected, result)
 
 
 def test_drop_duplicates():
     c = Cache(db_path=":memory:")
-    df = pd.DataFrame({"ticker": ["AAPL"] * 3, "Close": [1, 2, 3], "date_day": [Period('2021-05-10', 'D'),
-                                                                                Period('2021-05-11', 'D'),
-                                                                                Period('2021-05-12', 'D')]})
+    df = pd.DataFrame({"ticker": ["AAPL"] * 3, "Close": [1, 2, 3], "date_day_shifted": [Period('2021-05-10', 'D'),
+                                                                                        Period('2021-05-11', 'D'),
+                                                                                        Period('2021-05-12', 'D')]})
     c.append(df, drop_duplicates=False)
     c.append(df, drop_duplicates=False)
     c.append(df, drop_duplicates=False)
     result = c.get_all()
 
     expected = pd.DataFrame(
-        {"Close": [1, 2, 3] * 3, "date_day": [Period('2021-05-10', 'D'),
-                                              Period('2021-05-11', 'D'),
-                                              Period('2021-05-12', 'D')] * 3})
+        {"Close": [1, 2, 3] * 3, "date_day_shifted": [Period('2021-05-10', 'D'),
+                                                      Period('2021-05-11', 'D'),
+                                                      Period('2021-05-12', 'D')] * 3})
 
     assert_frame_equal(expected, result)
 
@@ -76,12 +79,13 @@ def test_drop_duplicates():
 
 def test_get_specific():
     c = Cache(db_path=":memory:")
-    df = pd.DataFrame({'ticker': ["AAPL", "TSLA", "GOE"], "Close": [1, 2, 3], "date_day": [Period('2021-05-10', 'D'),
-                                                                                           Period('2021-05-11', 'D'),
-                                                                                           Period('2021-05-12', 'D')]})
+    df = pd.DataFrame(
+        {'ticker': ["AAPL", "TSLA", "GOE"], "Close": [1, 2, 3], "date_day_shifted": [Period('2021-05-10', 'D'),
+                                                                                     Period('2021-05-11', 'D'),
+                                                                                     Period('2021-05-12', 'D')]})
     c.append(df)
     result = c.get("TSLA")
 
-    expected = pd.DataFrame({"Close": [2], "date_day": [Period('2021-05-11', 'D')]})
+    expected = pd.DataFrame({"Close": [2], "date_day_shifted": [Period('2021-05-11', 'D')]})
 
     assert_frame_equal(expected, result)
