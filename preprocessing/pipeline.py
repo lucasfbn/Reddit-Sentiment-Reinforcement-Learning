@@ -100,6 +100,4 @@ def main(test_mode=False):
 
 
 if __name__ == "__main__":
-    # flow.register("test")
-    # flow.visualize()
     main(False)
