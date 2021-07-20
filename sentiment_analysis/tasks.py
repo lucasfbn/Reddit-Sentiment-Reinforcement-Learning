@@ -1,13 +1,13 @@
-from datetime import datetime
 import re
+from datetime import datetime
 
 import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from prefect import task
 
 import paths
-from sentiment_analysis.timespan import Timespan
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
+from sentiment_analysis.timespan import Timespan
+from utils.pipeline_utils import task
 
 
 @task

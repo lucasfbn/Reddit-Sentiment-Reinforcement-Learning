@@ -1,73 +1,68 @@
-# from prefect.executors import LocalDaskExecutor
 import mlflow
-from prefect import Flow, Parameter
-from prefect.engine.state import Success
 
 from sentiment_analysis.tasks import *
-from utils.util_tasks import mlflow_log_file
-from utils.mlflow_api import load_file
+from utils.mlflow_api import log_file
+from utils.pipeline_utils import seq_map
 
 mlflow.set_tracking_uri(paths.mlflow_path)
 mlflow.set_experiment("Tests")
+
+params = {
+    "gc_dump_fn": "gc_dump.csv",
+    "report_fn": "report.csv",
+    "start": None,
+    "end": None,
+    "check_duplicates": True,
+    "fields_to_retrieve": ["author", "created_utc", "id", "num_comments", "score", "title", "selftext",
+                           "subreddit"],
+    "cols_to_check_if_removed": ["author", "selftext", "title"],
+    "filter_too_frequent_authors": True,
+    "author_blacklist": [],
+    "max_submissions_per_author_per_day": 1,
+    "cols_to_be_cleaned_from_non_alphanumeric": ["title"],
+    "ticker_blacklist": [],
+    "search_ticker_in_body": True,
+    "valid_ticker_path": str(paths.all_ticker),
+    "relevant_timespan_cols": ["ticker", "num_comments", "score",
+                               "pos", "neu", "neg", "compound"]
+}
+
 gc_dump_fn = "gc_dump.csv"
 report_fn = "report.csv"
 
-with Flow("sentiment_analysis") as flow:
-    start = Parameter("start")
-    end = Parameter("end")
-    check_duplicates = Parameter("check_duplicates", default=True)
-    fields_to_retrieve = Parameter("fields_to_retrieve",
-                                   default=["author", "created_utc", "id", "num_comments", "score", "title", "selftext",
-                                            "subreddit"])
-    cols_to_check_if_removed = Parameter("cols_to_check_if_removed", default=["author", "selftext", "title"])
-    filter_too_frequent_authors = Parameter("filter_too_frequent_authors", default=True)
-    author_blacklist = Parameter("author_blacklist", default=[])
-    max_submissions_per_author_per_day = Parameter("max_submissions_per_author_per_day", default=1)
-    cols_to_be_cleaned_from_non_alphanumeric = Parameter("cols_to_be_cleaned_from_non_alphanumeric", default=["title"])
 
-    ticker_blacklist = Parameter("ticker_blacklist", default=[])
-    search_ticker_in_body = Parameter("search_ticker_in_body", default=True)
-    valid_ticker_path = Parameter("valid_ticker_path", default=str(paths.all_ticker))
+def pipeline():
+    df = get_from_gc(params["start"], params["end"], params["check_duplicates"], params["fields_to_retrieve"]).run()
+    log_file(df, gc_dump_fn)
+    df = filter_removed(df, params["cols_to_check_if_removed"]).run()
+    df = add_temporal_informations(df).run()
+    df = filter_authors(df,
+                        params["filter_too_frequent_authors"], params["author_blacklist"],
+                        params["max_submissions_per_author_per_day"]).run()
+    df = delete_non_alphanumeric(df, params["cols_to_be_cleaned_from_non_alphanumeric"]).run()
 
-    df = get_from_gc(start, end, check_duplicates, fields_to_retrieve)
-    _ = mlflow_log_file(df, gc_dump_fn)
-    df = filter_removed(df, cols_to_check_if_removed)
-    df = add_temporal_informations(df)
-    df = filter_authors(df, filter_too_frequent_authors, author_blacklist, max_submissions_per_author_per_day)
-    df = delete_non_alphanumeric(df, cols_to_be_cleaned_from_non_alphanumeric)
-
-    valid_ticker = load_valid_ticker(valid_ticker_path)
+    valid_ticker = load_valid_ticker(params["valid_ticker_path"]).run()
     df = get_submission_ticker(df, valid_ticker=valid_ticker,
-                               ticker_blacklist=ticker_blacklist,
-                               search_ticker_in_body=search_ticker_in_body)
+                               ticker_blacklist=params["ticker_blacklist"],
+                               search_ticker_in_body=params["search_ticker_in_body"]).run()
 
-    df = filter_submissions_without_ticker(df)
-    df = merge_ticker_to_a_single_column(df)
-    df = analyze_sentiment(df)
-    flattened_ticker_df = flatten_ticker_scores(df)
+    df = filter_submissions_without_ticker(df).run()
+    df = merge_ticker_to_a_single_column(df).run()
+    df = analyze_sentiment(df).run()
+    flattened_ticker_df = flatten_ticker_scores(df).run()
 
-    relevant_timespan_cols = Parameter("relevant_timespan_cols", default=["ticker", "num_comments", "score",
-                                                                          "pos", "neu", "neg", "compound"])
-
-    timespans = retrieve_timespans(flattened_ticker_df, relevant_timespan_cols)
-    timespans = aggregate_submissions_per_timespan.map(timespans)
-    df = summarize_timespans(timespans)
-    _ = mlflow_log_file(df, report_fn)
+    timespans = retrieve_timespans(flattened_ticker_df, params["relevant_timespan_cols"]).run()
+    timespans = seq_map(aggregate_submissions_per_timespan, timespans).run()
+    df = summarize_timespans(timespans).run()
+    log_file(df, report_fn)
 
 
 def main(test_mode=False):
-    params = dict(start=datetime(year=2021, month=5, day=1), end=datetime(year=2021, month=5, day=14))
-
-    if test_mode:
-        retrieve_task = flow.get_tasks("retrieve_timespans")[0]
-        task_states = {retrieve_task: Success("test_state",
-                                              result=load_file("9f44509129aa4f61aae57afdca9fede5", "timespans.pkl"))}
+    params.update(dict(start=datetime(year=2021, month=5, day=1), end=datetime(year=2021, month=5, day=14)))
 
     with mlflow.start_run():
-        flow.run(params, task_states=task_states if test_mode else None)
+        pipeline()
 
 
 if __name__ == "__main__":
-    # flow.register("test")
-    # flow.visualize()
     main(True)
