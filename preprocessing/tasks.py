@@ -16,6 +16,8 @@ date_day_col = "date_day"
 date_shifted_col = "date_shifted"
 date_day_shifted_col = "date_day_shifted"
 
+main_date_col = date_day_shifted_col
+
 
 @task
 def add_time(df: pd.DataFrame) -> pd.DataFrame:
@@ -117,7 +119,7 @@ def scale_sentiment_data_daywise(df: pd.DataFrame, sentiment_data_cols: list,
         The scaled df and the new sentiment data column when drop_unscaled_cols was True. Else the old sentiment data
         columns + the new scaled columns will be returned.
     """
-    dates = df.groupby([date_day_shifted_col])
+    dates = df.groupby([main_date_col])
 
     scaled = []
 
@@ -165,7 +167,7 @@ def aggregate_daywise(ticker: Ticker) -> Ticker:
     Drops:
         [ticker, date, date_day, date_shifted] (because they are not numerical)
     """
-    ticker.df = ticker.df.groupby([date_day_shifted_col]).agg("sum").reset_index()
+    ticker.df = ticker.df.groupby([main_date_col]).agg("sum").reset_index()
     return ticker
 
 
@@ -235,7 +237,7 @@ def mark_trainable_days(ticker: Ticker, ticker_min_len: int) -> Ticker:
 
     # Assert that the df is ordered correctly. This is important since we mark the first n days as not available
     # (and these should be the the first, not the last or random days)
-    assert ticker.df[date_shifted_col].iloc[0] <= ticker.df[date_shifted_col].iloc[len(ticker.df) - 1]
+    assert ticker.df[main_date_col].iloc[0] <= ticker.df[main_date_col].iloc[len(ticker.df) - 1]
 
     # Create available series
     available = [False] * ticker_min_len + [True] * (len(ticker.df) - ticker_min_len)
@@ -250,7 +252,7 @@ def merge_prices_with_ticker_df(prices, df):
     Merges the price data with the original df. Be aware that is merges the "outer" values, meaning that gaps
     between two dates will be filled with price data (as long as there is any at the specific day).
     """
-    return prices.merge(df, on="date_day", how="outer", indicator=True)
+    return prices.merge(df, on=main_date_col, how="outer", indicator=True)
 
 
 @task
@@ -272,10 +274,10 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
          See stock_prices.py for additional informations.
     """
 
-    start_date = ticker.df["date_day"].min() - datetime.timedelta(days=price_data_start_offset)
+    start_date = ticker.df[main_date_col].min() - datetime.timedelta(days=price_data_start_offset)
 
     # Will be overwritten to current date if enable_live_behaviour = True
-    end_date = ticker.df["date_day"].max()
+    end_date = ticker.df[main_date_col].max()
 
     csd = CachedStockData(ticker=ticker.name, start_date=start_date, end_date=end_date,
                           live=enable_live_behaviour)
@@ -423,7 +425,7 @@ def mark_tradeable_days(ticker: Ticker) -> Ticker:
 
     """
 
-    ticker.df["temp_weekday"] = ticker.df[date_day_col].dt.dayofweek
+    ticker.df["temp_weekday"] = ticker.df[main_date_col].dt.dayofweek
     ticker.df["tradeable"] = ticker.df["temp_weekday"] < 5
     ticker.df = ticker.df.drop(columns=["temp_weekday"])
     return ticker
