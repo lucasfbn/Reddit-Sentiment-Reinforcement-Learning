@@ -235,9 +235,9 @@ def test_attributes():
                        "price": [10, 11, 12, 13, 14, 15, 16],
                        "tradeable": [False, False, True, True, False, False, False],
                        "sentiment_data_available": [False, False, True, True, True, True, False],
-                       "date_day": [pd.Period("01-01-2021"), pd.Period("02-01-2021"), pd.Period("03-01-2021"),
-                                    pd.Period("04-01-2021"), pd.Period("05-01-2021"), pd.Period("06-01-2021"),
-                                    pd.Period("07-01-2021")]})
+                       "date_day_shifted": [pd.Period("01-01-2021"), pd.Period("02-01-2021"), pd.Period("03-01-2021"),
+                                            pd.Period("04-01-2021"), pd.Period("05-01-2021"), pd.Period("06-01-2021"),
+                                            pd.Period("07-01-2021")]})
     fs = SequenceGenerator(df=df, sequence_len=3, include_available_days_only=False, price_column="price")
     result = fs.make_sequence()
 
