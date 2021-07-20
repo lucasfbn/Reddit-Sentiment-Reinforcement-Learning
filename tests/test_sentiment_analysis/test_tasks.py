@@ -10,14 +10,14 @@ def test_get_from_gc():
 
 def test_filter_removed():
     df = pd.DataFrame({"test_0": ["[removed]", "[deleted]", "valid"], "test_1": [1, 2, 3]})
-    result = filter_removed.run(df, cols_to_check_if_removed=["test_0"]).reset_index(drop=True)
+    result = filter_removed(df, cols_to_check_if_removed=["test_0"]).run().reset_index(drop=True)
     expected = pd.DataFrame({"test_0": ["valid"], "test_1": [3]}).reset_index(drop=True)
     assert_frame_equal(result, expected, check_index_type=False)
 
 
 def test_add_temporal_informations():
     df = pd.DataFrame({"created_utc": [1622057400]})
-    result = add_temporal_informations.run(df).reset_index(drop=True)
+    result = add_temporal_informations(df).run().reset_index(drop=True)
     expected = pd.DataFrame(
         {'created_utc': 1622057400, 'date': Timestamp('2021-05-26 21:30:00+0200', tz='Europe/Berlin'),
          'date_day': Period('2021-05-26', 'D'), 'start': Timestamp('2021-05-26 21:00:00'),
@@ -34,12 +34,12 @@ def test_filter_authors():
                        "date_day": [Period('2021-05-26', 'D')] * 7})
 
     # Test handling when filter_too_frequent_authors is False
-    assert_frame_equal(filter_authors.run(df, False, [], 0), df.copy())
+    assert_frame_equal(filter_authors(df, False, [], 0).run(), df.copy())
 
     # Test blacklist - tests whether blacklisted authors are filtered, therefore, set max_submissions_per_author_per_day
     # higher than the highest amount of submissions per author and add an dummy author to the blacklist
-    result = filter_authors.run(df, True, author_blacklist=["blacklisted_author"],
-                                max_submissions_per_author_per_day=5)
+    result = filter_authors(df, True, author_blacklist=["blacklisted_author"],
+                            max_submissions_per_author_per_day=5).run()
     expected = df[df["author"] != "blacklisted_author"]  # Filter the author that is blacklisted
     assert_frame_equal(result, expected, check_like=True)  # check_list = True since order might differ (not relevant)
 
@@ -48,8 +48,8 @@ def test_filter_authors():
     #   max_submissions_per_author_per_day should be reduced to max_submissions_per_author_per_day (e.g. only those
     #   submissions that fit into max_submissions_per_author_per_day and have the highest number of comments should be
     #   kept
-    result = filter_authors.run(df, True, author_blacklist=[],
-                                max_submissions_per_author_per_day=2)
+    result = filter_authors(df, True, author_blacklist=[],
+                            max_submissions_per_author_per_day=2).run()
     # Submission with lowest n_comments from author_with_too_many_subm should be filtered
     expected = df[df["num_comments"] != 44]
     assert_frame_equal(result, expected, check_like=True)
@@ -58,7 +58,7 @@ def test_filter_authors():
 def test_delete_non_alphanumeric():
     df = pd.DataFrame({"text": ["text", "text?", "text!", "text12345", "%/§%(&§%(alphanumeric", ":):D"],
                        "ignore": [0, 1, 2, 3, 4, 5]})
-    result = delete_non_alphanumeric.run(df, cols_to_be_cleaned=["text"])
+    result = delete_non_alphanumeric(df, cols_to_be_cleaned=["text"]).run()
     expected = pd.DataFrame(
         [{'text': 'text', 'ignore': 0}, {'text': 'text?', 'ignore': 1}, {'text': 'text!', 'ignore': 2},
          {'text': 'text12345', 'ignore': 3}, {'text': '((alphanumeric', 'ignore': 4}, {'text': ':):D', 'ignore': 5}])
@@ -111,7 +111,8 @@ def test_get_submission_ticker():
 
     # Case 1: Find valid ticker in title only
     df = pd.DataFrame({"title": ["GME AAPL", "TSLA", "INVALID"], "selftext": ["GME", "INVALID", "GME"]})
-    result = get_submission_ticker.run(df, valid_ticker=valid_ticker, ticker_blacklist=[], search_ticker_in_body=False)
+    result = get_submission_ticker(df, valid_ticker=valid_ticker, ticker_blacklist=[],
+                                   search_ticker_in_body=False).run()
     expected = pd.DataFrame({"title": ["GME AAPL", "TSLA", "INVALID"], "selftext": ["GME", "INVALID", "GME"],
                              "title_ticker": [["GME", "AAPL"], ["TSLA"], None], "body_ticker": [None, None, None]})
     assert_frame_equal(result, expected)
@@ -119,8 +120,8 @@ def test_get_submission_ticker():
     # Case 2: Ignore blacklisted (but valid) ticker
     df = pd.DataFrame({"title": ["GME AAPL", "TSLA", "INVALID", "BLK"], "selftext": ["GME", "INVALID", "GME", "GME"]})
     ticker_blacklist = ["BLK"]
-    result = get_submission_ticker.run(df, valid_ticker=valid_ticker, ticker_blacklist=ticker_blacklist,
-                                       search_ticker_in_body=False)
+    result = get_submission_ticker(df, valid_ticker=valid_ticker, ticker_blacklist=ticker_blacklist,
+                                   search_ticker_in_body=False).run()
     expected = pd.DataFrame({"title": ["GME AAPL", "TSLA", "INVALID", "BLK"],
                              "selftext": ["GME", "INVALID", "GME", "GME"],
                              "title_ticker": [["GME", "AAPL"], ["TSLA"], None, None],
@@ -129,7 +130,7 @@ def test_get_submission_ticker():
 
     # Case 3: Find valid ticker in body if no valid ticker was found in title
     df = pd.DataFrame({"title": ["GME AAPL", "TSLA", "INVALID"], "selftext": ["GME", "INVALID", "GME"]})
-    result = get_submission_ticker.run(df, valid_ticker=valid_ticker, ticker_blacklist=[], search_ticker_in_body=True)
+    result = get_submission_ticker(df, valid_ticker=valid_ticker, ticker_blacklist=[], search_ticker_in_body=True).run()
     expected = pd.DataFrame({"title": ["GME AAPL", "TSLA", "INVALID"], "selftext": ["GME", "INVALID", "GME"],
                              "title_ticker": [["GME", "AAPL"], ["TSLA"], None], "body_ticker": [None, None, ["GME"]]})
     assert_frame_equal(result, expected)
@@ -137,14 +138,14 @@ def test_get_submission_ticker():
 
 def test_filter_submissions_without_ticker():
     df = pd.DataFrame({"title_ticker": [["GME"], None, None], "body_ticker": [None, None, ["GME"]]})
-    result = filter_submissions_without_ticker.run(df)
+    result = filter_submissions_without_ticker(df).run()
     expected = pd.DataFrame({"title_ticker": [["GME"], None], "body_ticker": [None, ["GME"]]})
     assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
 
 
 def test_merge_ticker_to_a_single_column():
     df = pd.DataFrame({"title_ticker": [["GME"], None, None], "body_ticker": [None, ["TSLA"], ["GME"]]})
-    result = merge_ticker_to_a_single_column.run(df)
+    result = merge_ticker_to_a_single_column(df).run()
     expected = pd.DataFrame({"ticker": [["GME"], ["TSLA"], ["GME"]]})
     assert_frame_equal(result, expected)
 
@@ -153,7 +154,7 @@ def test_analyze_sentiment():
     df = pd.DataFrame({"title": ["VADER is smart, handsome, and funny.",
                                  "At least it isn't a horrible book.",
                                  "The book was good."]})
-    result = analyze_sentiment.run(df)
+    result = analyze_sentiment(df).run()
     expected = pd.DataFrame(
         [{'title': 'VADER is smart, handsome, and funny.', 'pos': 0.746, 'neu': 0.254, 'neg': 0.0, 'compound': 0.8316},
          {'title': "At least it isn't a horrible book.", 'pos': 0.363, 'neu': 0.637, 'neg': 0.0, 'compound': 0.431},
@@ -163,7 +164,7 @@ def test_analyze_sentiment():
 
 def test_flatten_ticker_scores():
     df = pd.DataFrame({"ticker": [["GME", "TSLA"], ["TSLA"], ["GME"]], "id": [0, 1, 2]})
-    result = flatten_ticker_scores.run(df)
+    result = flatten_ticker_scores(df).run()
     expected = pd.DataFrame([{'ticker': 'GME', 'id': 0}, {'ticker': 'TSLA', 'id': 0}, {'ticker': 'TSLA', 'id': 1},
                              {'ticker': 'GME', 'id': 2}])
     # dtype changes since we move from list to str for column "ticker"
@@ -176,7 +177,7 @@ def test_retrieve_timespans():
                                  Timestamp('2021-05-26 22:00:00')],
                        "end": [Timestamp('2021-05-26 22:00:00'),
                                Timestamp('2021-05-26 23:00:00')]})
-    result = retrieve_timespans.run(df, relevant_timespan_cols=["submissions"])
+    result = retrieve_timespans(df, relevant_timespan_cols=["submissions"]).run()
 
     # Expected: each "submission" should be in its own Timespan object since they are not within the same
     # start/end period
@@ -194,7 +195,7 @@ def test_aggregate_submissions_per_timespan():
     df = pd.DataFrame({"ticker": ["GME", "GME", "GME", "TSLA", "TSLA", "EMA"], "pos": [0.5, 0.5, 0.5, 7.0, 7.0, 10.0],
                        "will_be_dropped": ["yes", "yes", "yes", "yes", "yes", "yes"]})
     ts = Timespan(df=df, start=None, end=None)
-    result = aggregate_submissions_per_timespan.run(ts)
+    result = aggregate_submissions_per_timespan(ts).run()
     expected = pd.DataFrame([{'ticker': 'EMA', 'pos': 10.0, 'num_posts': 1},
                              {'ticker': 'GME', 'pos': 1.5, 'num_posts': 3},
                              {'ticker': 'TSLA', 'pos': 14.0, 'num_posts': 2}])
@@ -208,7 +209,7 @@ def test_summarize_timespans():
     ts_2_df = pd.DataFrame({"submissions": ["subm_2"]})
     ts_2 = Timespan(df=ts_2_df, start=Timestamp('2021-05-26 22:00:00'), end=Timestamp('2021-05-26 23:00:00'))
 
-    result = summarize_timespans.run([ts_1, ts_2])
+    result = summarize_timespans([ts_1, ts_2]).run()
     expected = pd.DataFrame([
         {'submissions': 'subm_1', 'start': Timestamp('2021-05-26 21:00:00'), 'end': Timestamp('2021-05-26 22:00:00')},
         {'submissions': 'subm_2', 'start': Timestamp('2021-05-26 22:00:00'), 'end': Timestamp('2021-05-26 23:00:00')}])
