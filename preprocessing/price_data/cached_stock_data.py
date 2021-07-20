@@ -14,11 +14,14 @@ class CachedStockData:
 
     def __init__(self, ticker, start_date, end_date, live):
         self.live = live
-        self.end_date = end_date
+        self.end_date = self._get_end_date(end_date, live)
         self.start_date = start_date
         self.ticker = ticker
 
         self.c = None
+
+    def _get_end_date(self, end_date, live):
+        return end_date if not live else Period.now("D")
 
     def initialize_cache(self, db_path=None):
         self.c = Cache() if db_path is None else Cache(db_path)
