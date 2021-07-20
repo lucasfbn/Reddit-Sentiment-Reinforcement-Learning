@@ -20,31 +20,38 @@ def initialize():
 
 class Task:
 
-    def __init__(self, func, args, kwargs):
+    def __init__(self, func, func_name, args, kwargs):
         self.func = func
+        self.func_name = func_name
         self.func_partial = partial(func, *args, **kwargs)
 
     def run_map(self, *args, **kwargs):
-        return self.func(*args, **kwargs)
+        result = self.func(*args, **kwargs)
+        return result
 
     def run(self):
-        return self.func_partial()
+        logging.info(f"Starting: {self.func_name}")
+        result = self.func_partial()
+        logging.info(f"Finished: {self.func_name}")
+        return result
 
 
 class Map:
 
-    def __init__(self, func):
-        self.func = func
+    def __init__(self, partial_func, task):
+        self.partial_func = partial_func
+        self.task = task()
 
     def run(self):
-        return self.func()
+        logging.info(f"Starting: {self.task.func_name}")
+        result = self.partial_func()
+        logging.info(f"Finished: {self.task.func_name}")
+        return result
 
 
 def task(func):
-    logging.info(f"Starting: {func.__name__}")
-
     def wrapper(*args, **kwargs):
-        return Task(func, args, kwargs)
+        return Task(func, func.__name__, args, kwargs)
 
     return wrapper
 
@@ -62,7 +69,7 @@ def seq_map_(func, iterable, **kwargs):
 
 
 def seq_map(func, iterable, **kwargs):
-    return Map(partial(seq_map_, func, iterable, **kwargs))
+    return Map(partial(seq_map_, func, iterable, **kwargs), func)
 
 
 def par_map_(func, iterable, **kwargs):
@@ -80,4 +87,4 @@ def par_map_(func, iterable, **kwargs):
 
 
 def par_map(func, iterable, **kwargs):
-    return Map(partial(par_map_, func, iterable, **kwargs))
+    return Map(partial(par_map_, func, iterable, **kwargs), func)
