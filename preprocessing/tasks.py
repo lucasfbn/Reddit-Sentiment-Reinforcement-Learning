@@ -2,7 +2,7 @@ from typing import Tuple
 import datetime
 
 import pandas as pd
-from prefect import task
+from utils.pipeline_utils import task
 from sklearn.preprocessing import MinMaxScaler
 
 from preprocessing.sequences import SequenceGenerator
@@ -172,7 +172,7 @@ def aggregate_daywise(ticker: Ticker) -> Ticker:
 
 
 @task
-def drop_ticker_with_too_few_data(ticker: list, ticker_min_len: int) -> list:
+def drop_ticker_with_too_few_data(ticker: Ticker, ticker_min_len: int) -> Ticker:
     """
     Drops all ticker which have too few data points (represented by the len of the corresponding df). This is useful when
     you want to have a minimum number of days in which the corresponding ticker was mentioned (and therefore is present
@@ -181,21 +181,16 @@ def drop_ticker_with_too_few_data(ticker: list, ticker_min_len: int) -> list:
     2 is strongly recommended.
 
     Args:
-        ticker: List of Ticker instances
+        ticker:
         ticker_min_len: The minimum number of entries for each ticker
-
-    Returns:
-        Filtered list of the ticker argument
     """
 
     filtered_ticker = []
 
-    for t in ticker:
-        if len(t.df) < ticker_min_len:
-            continue
-        filtered_ticker.append(t)
+    if len(ticker.df) < ticker_min_len:
+        ticker.exclude = True
 
-    return filtered_ticker
+    return ticker
 
 
 @task
