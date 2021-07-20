@@ -36,6 +36,7 @@ class Sequence:
 
 
 class SequenceGenerator:
+    date_col_name = "date_day_shifted"
 
     def __init__(self, df: pd.DataFrame, sequence_len: int, include_available_days_only: bool, price_column: str = None,
                  exclude_cols_from_sequence: list = []):
@@ -99,10 +100,9 @@ class SequenceGenerator:
         """
         return bool(df["tradeable"].iloc[len(df) - 1])
 
-    @staticmethod
-    def _add_date(df):
-        if "date_day" in df.columns:
-            return df["date_day"].iloc[len(df) - 1]
+    def _add_date(self, df):
+        if self.date_col_name in df.columns:
+            return df[self.date_col_name].iloc[len(df) - 1]
         return None
 
     @staticmethod
