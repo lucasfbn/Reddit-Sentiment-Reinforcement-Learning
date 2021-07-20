@@ -75,7 +75,6 @@ def par_map_(func, iterable, **kwargs):
     Returns:
         Result of the function
     """
-    # r_func = ray.remote(run(func()))
     result = [run.remote(func(), i, **kwargs) for i in iterable]
     return ray.get(result)
 
