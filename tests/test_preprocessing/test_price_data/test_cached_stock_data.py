@@ -139,7 +139,7 @@ def test_live():
 
     # Need some dummy data such that the table has columns
     df = pd.DataFrame({'ticker': ["AAPL"], "Adj_Close": [1], "Open": [1], "Volume": [1], "Close": [1],
-                       "High": [1], "Low": [1], "date_day_shifted": [Period('2021-05-05', 'D')]})
+                       "High": [1], "Low": [1], "date_day_shifted": [Period('2021-05-19', 'D')]})
     csd.c.append(df)
 
     result = csd.get()
