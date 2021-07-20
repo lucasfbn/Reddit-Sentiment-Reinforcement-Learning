@@ -35,10 +35,11 @@ with Flow("preprocessing") as flow:
     include_available_days_only = Parameter("include_available_days_only", default=True)
     sequence_length = Parameter("sequence_length", default=7)
     columns_to_be_excluded_from_sequences = Parameter("columns_to_be_excluded_from_sequences",
-                                                      default=["available", "tradeable", date_day_col,
+                                                      default=["available", "tradeable", main_date_col,
                                                                "sentiment_data_available", "price_raw", "Open_scaled",
                                                                "High_scaled", "Low_scaled", "Volume_scaled"])
     sequence_to_be_generated = Parameter("sequence_to_be_generated", default="arr")
+    main_date_col_param = Parameter("main_date_col_param", main_date_col)
 
     df = add_time(input_df)
     df = shift_time(df, start_hour, start_min)
@@ -48,16 +49,15 @@ with Flow("preprocessing") as flow:
     ticker = grp_by_ticker(df)
     ticker = aggregate_daywise.map(ticker)
     ticker = drop_ticker_with_too_few_data(ticker, ticker_min_len)
-    ticker = sort_ticker_df_chronologically.map(ticker, unmapped(Parameter("date_shifted", date_shifted_col)))
+    ticker = sort_ticker_df_chronologically.map(ticker, unmapped(main_date_col_param))
     ticker = mark_trainable_days.map(ticker, unmapped(ticker_min_len))
-    # ticker = mlflow_log_file(ticker, "ticker_intermediate.pkl")
     ticker = add_price_data.map(ticker, unmapped(price_data_start_offset), unmapped(enable_live_behaviour))
     _ = clean_price_data_cache(ticker)
     ticker = remove_excluded_ticker(ticker)
     ticker = mark_sentiment_data_available_days.map(ticker, unmapped(sentiment_data_columns))
     ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("adj_close_column_plus_merged",
                                                                    default=["Adj_Close", "_merge"])))
-    ticker = sort_ticker_df_chronologically.map(ticker, unmapped(Parameter("date_day", date_day_col)))
+    ticker = sort_ticker_df_chronologically.map(ticker, unmapped(main_date_col_param))
     ticker = backfill_availability.map(ticker)
     ticker = assign_price_col.map(ticker, unmapped(price_column))
     ticker = drop_ticker_df_columns.map(ticker, unmapped(price_column))
@@ -69,9 +69,7 @@ with Flow("preprocessing") as flow:
     ticker = remove_excluded_ticker(ticker)
     ticker = fill_missing_sentiment_data.map(ticker, unmapped(sentiment_data_columns))
     ticker = add_metric_rel_price_change.map(ticker)
-    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("date_cols", default=[date_col,
-                                                                                         date_shifted_col,
-                                                                                         date_day_shifted_col])))
+    ticker = drop_ticker_df_columns.map(ticker, unmapped(Parameter("date_cols", default=[main_date_col])))
     _ = mlflow_log_file(ticker, "ticker.pkl")
     _ = assert_no_nan.map(ticker)
     ticker = copy_unscaled_price.map(ticker)
