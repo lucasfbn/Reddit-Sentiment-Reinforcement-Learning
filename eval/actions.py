@@ -47,8 +47,8 @@ class Action:
         if not self.live:
             return True
         else:
-            decision = input(f"Attempting to {self.action_name} {action['ticker']} "
-                             f"@ {action['price']}. Execute {self.action_name}? (y/n)")
+            decision = input(f"Attempting to {self.action_name} {action.ticker} "
+                             f"@ {action.price}. Execute {self.action_name}? (y/n)")
             if decision == "y":
                 return True
             return False
