@@ -95,7 +95,7 @@ def pipeline(**kwargs):
 
 
 def main(test_mode=False):
-    df = load_file("fde8b8735cbc4f2c950aa445b6682bf3", "report.csv")
+    df = load_file(run_id="fde8b8735cbc4f2c950aa445b6682bf3", fn="report.csv")
     # df = df.head(500)
     with mlflow.start_run():
         pipeline(input_df=df)

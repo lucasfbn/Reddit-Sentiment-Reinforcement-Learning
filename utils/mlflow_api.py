@@ -54,7 +54,7 @@ def log_file(file, fn):
         mlflow.log_artifact((tmpdirname_path / fn).as_posix())
 
 
-def load_file(run_id, fn, experiment=None):
+def load_file(fn, run_id=None, experiment=None):
     kind = _get_kind(fn)
 
     active_run = mlflow.active_run()
@@ -64,7 +64,7 @@ def load_file(run_id, fn, experiment=None):
             active_experiment = mlflow.get_experiment(active_run.info.experiment_id).name
         mlflow.set_experiment(experiment)
 
-    from_run = mlflow.get_run(run_id)
+    from_run = active_run if run_id is None else mlflow.get_run(run_id)
     from_artifact_path = _artifact_path(from_run.info.artifact_uri)
 
     if kind == "pkl":
