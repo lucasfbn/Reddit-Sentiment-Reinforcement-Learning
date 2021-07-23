@@ -91,6 +91,7 @@ def pipeline(**kwargs):
     ticker = remove_excluded_ticker(ticker).run()
 
     log_file(ticker, "ticker.pkl")
+    return ticker
 
 
 def main(test_mode=False):
