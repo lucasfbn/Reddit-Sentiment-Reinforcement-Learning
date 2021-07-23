@@ -10,5 +10,5 @@ mlflow.set_experiment("pytest")
 def test_log_load():
     with mlflow.start_run():
         log_file({"test": "successful"}, "test_dict.json")
-        result = load_file(mlflow.active_run().info.run_id, "test_dict.json")
+        result = load_file(run_id=mlflow.active_run().info.run_id, fn="test_dict.json")
     assert result == {"test": "successful"}
