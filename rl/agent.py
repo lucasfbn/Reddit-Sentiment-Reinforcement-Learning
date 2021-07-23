@@ -22,7 +22,7 @@ class RLAgent:
         self._agent_saved = False
 
     def load_agent(self, artifact_path):
-        self.agent = Agent.load(directory=artifact_path + "/model", format='numpy', tracking="all")
+        self.agent = Agent.load(directory=str(artifact_path) + "/model", format='numpy', tracking="all")
         self.artifact_path = self.artifact_path
 
     def save_agent(self):
@@ -82,7 +82,7 @@ class RLAgent:
 
 
 if __name__ == '__main__':
-    data = load_file(run_id="d8ba671a547942bf818e58862e8d28ca", fn="ticker.pkl", experiment="Tests")
+    data = load_file(run_id="50239b04f45f4aea9c9604cb94bdb0c4", fn="ticker.pkl", experiment="Live")
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Tests")
@@ -91,6 +91,6 @@ if __name__ == '__main__':
         rla = RLAgent(environment=EnvCNN, ticker=data)
         # rla.load_agent(
         #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
-        rla.train(n_full_episodes=15)
+        rla.train(n_full_episodes=5)
         rla.eval_agent()
         rla.close()
