@@ -21,6 +21,11 @@ def _artifact_path(artifact_uri):
     return Path("C:/" + artifact_uri.split(":")[2])
 
 
+def get_artifact_path(run_id=None):
+    run = mlflow.active_run() if run_id is None else mlflow.get_run(run_id)
+    return _artifact_path(run.info.artifact_uri)
+
+
 def log_file(file, fn):
     """
     mlflow.set_tracking_uri(paths.mlflow_path)
