@@ -54,6 +54,7 @@ def pipeline(**kwargs):
     timespans = seq_map(aggregate_submissions_per_timespan, timespans).run()
     df = summarize_timespans(timespans).run()
     log_file(df, params["report_fn"])
+    return df
 
 
 def main(test_mode=False):
