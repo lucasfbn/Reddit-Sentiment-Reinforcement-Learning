@@ -15,6 +15,14 @@ logging.basicConfig(level=logging.INFO,
 log = logging.getLogger()
 
 
+def update_check_key(input_dict, update_dict):
+    for key in update_dict.keys():
+        if key not in input_dict.keys():
+            raise ValueError(f"Invalid key: {key}")
+    input_dict.update(update_dict)
+    return input_dict
+
+
 def drop_stats(func):
     def wrapper(*args, **kwargs):
         old_len = len(args[0].df)
