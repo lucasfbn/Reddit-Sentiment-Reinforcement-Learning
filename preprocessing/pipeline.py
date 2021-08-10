@@ -4,6 +4,7 @@ import paths
 from preprocessing.tasks import *
 from utils.mlflow_api import load_file, log_file
 from utils.pipeline_utils import initialize, par_map, seq_map
+from utils.util_funcs import update_check_key
 
 mlflow.set_tracking_uri(paths.mlflow_path)
 mlflow.set_experiment("Tests")
@@ -35,7 +36,8 @@ params = {
 
 
 def pipeline(**kwargs):
-    params.update(kwargs)
+    global params
+    params = update_check_key(params, kwargs)
 
     df = add_time(params["input_df"]).run()
     df = shift_time(df, params["start_hour"], params["start_min"]).run()

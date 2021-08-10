@@ -3,6 +3,7 @@ import mlflow
 from sentiment_analysis.tasks import *
 from utils.mlflow_api import log_file
 from utils.pipeline_utils import seq_map
+from utils.util_funcs import update_check_key
 
 mlflow.set_tracking_uri(paths.mlflow_path)
 mlflow.set_experiment("Tests")
@@ -29,7 +30,8 @@ params = {
 
 
 def pipeline(**kwargs):
-    params.update(kwargs)
+    global params
+    params = update_check_key(params, kwargs)
 
     df = get_from_gc(params["start"], params["end"], params["check_duplicates"], params["fields_to_retrieve"]).run()
     log_file(df, params["gc_dump_fn"])
