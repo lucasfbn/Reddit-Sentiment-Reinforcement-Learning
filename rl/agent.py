@@ -47,7 +47,7 @@ class RLAgent:
                 actions_proba = {"hold": arr[0], "buy": arr[1], "sell": arr[2]}
 
                 sequence.add_eval(action, actions_proba)
-                sequence.cleanup()
+                # sequence.cleanup()
 
     def eval_agent(self):
         self._eval()
@@ -82,7 +82,7 @@ class RLAgent:
 
 
 if __name__ == '__main__':
-    data = load_file(run_id="50239b04f45f4aea9c9604cb94bdb0c4", fn="ticker.pkl", experiment="Live")
+    data = load_file(run_id="662f377d540e42f68f2df688c24a060c", fn="ticker.pkl", experiment="Live")
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Tests")
@@ -91,6 +91,6 @@ if __name__ == '__main__':
         rla = RLAgent(environment=EnvCNN, ticker=data)
         # rla.load_agent(
         #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
-        rla.train(n_full_episodes=5)
+        rla.train(n_full_episodes=3)
         rla.eval_agent()
         rla.close()
