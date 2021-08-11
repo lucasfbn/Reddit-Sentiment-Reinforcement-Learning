@@ -16,7 +16,7 @@ def test_first_append():
     print(result.dtypes)
     print(df.dtypes)
 
-    assert_frame_equal(df.drop(columns=["ticker"]), result)
+    assert_frame_equal(df, result)
 
 
 def test_several_appends():
@@ -31,7 +31,8 @@ def test_several_appends():
     result = c.get_all()
 
     expected = pd.DataFrame(
-        {"Close": [1, 2, 3] * 3, "date_day_shifted": [Period('2021-05-10', 'D'),
+        {'ticker': ["AAPL", "TSLA", "GOE"] * 3,
+         "Close": [1, 2, 3] * 3, "date_day_shifted": [Period('2021-05-10', 'D'),
                                                       Period('2021-05-11', 'D'),
                                                       Period('2021-05-12', 'D')] * 3})
 
@@ -48,7 +49,8 @@ def test_several_appends():
     result = c.get_all()
 
     expected = pd.DataFrame(
-        {"Close": [1, 2, 3], "date_day_shifted": [Period('2021-05-10', 'D'),
+        {'ticker': ["AAPL", "TSLA", "GOE"],
+         "Close": [1, 2, 3], "date_day_shifted": [Period('2021-05-10', 'D'),
                                                   Period('2021-05-11', 'D'),
                                                   Period('2021-05-12', 'D')]})
 
@@ -66,26 +68,25 @@ def test_drop_duplicates():
     result = c.get_all()
 
     expected = pd.DataFrame(
-        {"Close": [1, 2, 3] * 3, "date_day_shifted": [Period('2021-05-10', 'D'),
-                                                      Period('2021-05-11', 'D'),
-                                                      Period('2021-05-12', 'D')] * 3})
+        {"ticker": ["AAPL"] * 9, "Close": [1, 2, 3] * 3, "date_day_shifted": [Period('2021-05-10', 'D'),
+                                                                              Period('2021-05-11', 'D'),
+                                                                              Period('2021-05-12', 'D')] * 3})
 
     assert_frame_equal(expected, result)
 
     c.drop_duplicates()
     result = c.get_all()
-    assert_frame_equal(df.drop(columns=["ticker"]), result)
+    assert_frame_equal(df, result)
 
+    def test_get_specific():
+        c = Cache(db_path=":memory:")
+        df = pd.DataFrame(
+            {'ticker': ["AAPL", "TSLA", "GOE"], "Close": [1, 2, 3], "date_day_shifted": [Period('2021-05-10', 'D'),
+                                                                                         Period('2021-05-11', 'D'),
+                                                                                         Period('2021-05-12', 'D')]})
+        c.append(df)
+        result = c.get("TSLA")
 
-def test_get_specific():
-    c = Cache(db_path=":memory:")
-    df = pd.DataFrame(
-        {'ticker': ["AAPL", "TSLA", "GOE"], "Close": [1, 2, 3], "date_day_shifted": [Period('2021-05-10', 'D'),
-                                                                                     Period('2021-05-11', 'D'),
-                                                                                     Period('2021-05-12', 'D')]})
-    c.append(df)
-    result = c.get("TSLA")
+        expected = pd.DataFrame({"Close": [2], "date_day_shifted": [Period('2021-05-11', 'D')]})
 
-    expected = pd.DataFrame({"Close": [2], "date_day_shifted": [Period('2021-05-11', 'D')]})
-
-    assert_frame_equal(expected, result)
+        assert_frame_equal(expected, result)
