@@ -9,7 +9,7 @@ from preprocessing.price_data.stock_prices import StockPrices, OldDataException,
 
 def test_historic():
     df = pd.DataFrame({"date_day_shifted": [Period('2021-05-10', 'D'),
-                                    Period('2021-05-20', 'D')]})
+                                            Period('2021-05-20', 'D')]})
 
     sp = StockPrices(ticker_name="GME", start_date=df["date_day_shifted"].min(),
                      end_date=df["date_day_shifted"].max(), live=False)
@@ -21,7 +21,7 @@ def test_historic():
 
 def test_offset():
     df = pd.DataFrame({"date_day_shifted": [Period('2021-05-10', 'D'),
-                                    Period('2021-05-20', 'D')]})
+                                            Period('2021-05-20', 'D')]})
 
     sp = StockPrices(ticker_name="GME", start_date=df["date_day_shifted"].min() - datetime.timedelta(days=10),
                      end_date=df["date_day_shifted"].max(), live=False)
@@ -34,7 +34,7 @@ def test_offset():
 def test_historic_last_date_weekend():
     # '2021-06-05' is on a weekend -> no price data
     df = pd.DataFrame({"date_day_shifted": [Period('2021-06-01', 'D'),
-                                    Period('2021-06-05', 'D')]})
+                                            Period('2021-06-05', 'D')]})
 
     sp = StockPrices(ticker_name="GME", start_date=df["date_day_shifted"].min(),
                      end_date=df["date_day_shifted"].max(), live=False)
@@ -53,7 +53,7 @@ def test_live_too_early():
         return
 
     df = pd.DataFrame({"date_day_shifted": [Period('2021-06-05', 'D'),
-                                    Period('2021-06-06', 'D')]})
+                                            Period('2021-06-06', 'D')]})
 
     sp = StockPrices(ticker_name="GME", start_date=df["date_day_shifted"].min(),
                      end_date=df["date_day_shifted"].max(), live=True)
@@ -64,7 +64,7 @@ def test_live_too_early():
 
 def test_historic_missing_data():
     df = pd.DataFrame({"date_day_shifted": [Period('2021-05-10', 'D'),
-                                    Period('2021-05-20', 'D')]})
+                                            Period('2021-05-20', 'D')]})
 
     sp = StockPrices(ticker_name="AHJZT", start_date=df["date_day_shifted"].min(),
                      end_date=df["date_day_shifted"].max(), live=False)
@@ -75,7 +75,7 @@ def test_historic_missing_data():
 
 def test_live_missing_data():
     df = pd.DataFrame({"date_day_shifted": [Period('2021-05-10', 'D'),
-                                    Period('2021-05-20', 'D')]})
+                                            Period('2021-05-20', 'D')]})
 
     sp = StockPrices(ticker_name="AHJZT", start_date=df["date_day_shifted"].min(),
                      end_date=df["date_day_shifted"].max(), live=True)
@@ -88,15 +88,14 @@ def test_live():
     sp = StockPrices(ticker_name="AAPL", start_date=Period('2021-05-10', 'D'),
                      end_date=Period('2021-05-20', 'D'), live=True)
 
-    prices = sp.download()
-
-    if Period.now("D").weekday < 5:  # Doesn't work on the weekend
+    if Period.now("D").weekday < 5 and datetime.datetime.now().hour >= 15:
+        prices = sp.download()
         assert prices["date_day_shifted"].loc[len(prices) - 1] == Period.now("D")
 
 
 def test_space_removal():
     df = pd.DataFrame({"date_day_shifted": [Period('2021-05-10', 'D'),
-                                    Period('2021-05-20', 'D')]})
+                                            Period('2021-05-20', 'D')]})
 
     sp = StockPrices(ticker_name="GME", start_date=df["date_day_shifted"].min(),
                      end_date=df["date_day_shifted"].max(), live=False)

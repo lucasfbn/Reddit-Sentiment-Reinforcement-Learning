@@ -150,7 +150,10 @@ def test_add_price_data_live():
                        {main_date_col: Period('2021-05-19')}])
     result = add_price_data(Ticker("AAPL", df), price_data_start_offset=0, enable_live_behaviour=True).run()
 
-    assert result.df[main_date_col].loc[len(result.df) - 1] == Period.now("D")
+    if Period.now("D").weekday < 5 and datetime.datetime.now().hour >= 15:
+        assert result.exclude is True
+    else:
+        assert result.df[main_date_col].loc[len(result.df) - 1] == Period.now("D")
 
 
 def test_add_price_data_correct_columns():
