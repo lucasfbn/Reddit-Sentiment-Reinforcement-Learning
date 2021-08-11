@@ -90,3 +90,22 @@ def test_drop_duplicates():
         expected = pd.DataFrame({"Close": [2], "date_day_shifted": [Period('2021-05-11', 'D')]})
 
         assert_frame_equal(expected, result)
+
+
+def test_drop_tail():
+    c = Cache(":memory:")
+
+    df = pd.DataFrame({'ticker': ["AAPL", "AAPL", "AAPL", "TSLA", "TSLA", "TSLA"],
+                       "Adj_Close": [1, 2, 3, 4, 5, 6],
+                       "date_day_shifted": [Period('2021-05-11', 'D'), Period('2021-05-10', 'D'),
+                                            Period('2021-05-09', 'D'), Period('2021-05-11', 'D'),
+                                            Period('2021-05-10', 'D'), Period('2021-05-09', 'D')]})
+
+    c.append(df)
+    c.drop_tail(2)
+
+    expected = pd.DataFrame({"ticker": ["AAPL", "TSLA"],
+                             "Adj_Close": [3, 6],
+                             "date_day_shifted": [Period('2021-05-09', 'D'), Period('2021-05-09', 'D')]})
+
+    assert_frame_equal(expected, c.get_all())
