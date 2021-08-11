@@ -44,7 +44,7 @@ class Cache:
 
     def get_all(self):
         cmd = f"SELECT * FROM {self.table}"
-        df = pd.read_sql(sql=cmd, con=self.con).drop(columns=["index", "ticker"])
+        df = pd.read_sql(sql=cmd, con=self.con).drop(columns=["index"])
         df = self._str_to_period(df)
         return df
 
@@ -53,3 +53,22 @@ class Cache:
         df = pd.read_sql(sql=cmd, con=self.con).drop(columns=["index", "ticker"])
         df = self._str_to_period(df)
         return df
+
+    def drop_tail(self, n):
+        """
+        Drops the n last entries of each ticker in the cache.
+        Args:
+            n: Number of entries to be deleted at the tail
+        """
+        df = self.get_all()
+        df = df.sort_values(by=self.date_name_col)
+        df = df.drop(df.groupby(["ticker"]).tail(n).index, axis=0)
+        self._delete_all()
+        self.append(df)
+
+    def _delete_all(self):
+        cmd = (
+            f"DELETE FROM {self.table}"
+        )
+        self.cur.execute(cmd)
+        self.con.commit()
