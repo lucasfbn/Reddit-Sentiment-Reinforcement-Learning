@@ -4,6 +4,9 @@ from functools import partial
 import ray
 from tqdm import tqdm
 
+from timeit import default_timer as timer
+from datetime import timedelta
+
 logging.basicConfig(level=logging.INFO,
                     format="%(levelname)s %(asctime)s - %(message)s")
 log = logging.getLogger()
@@ -31,8 +34,11 @@ class Task:
 
     def run(self):
         logging.info(f"Starting: {self.func_name}")
+        start = timer()
         result = self.func_partial()
-        logging.info(f"Finished: {self.func_name}")
+        end = timer()
+        logging.info(f"Finished: {self.func_name}. "
+                     f"Time elapsed: {str(timedelta(seconds=end - start)).split('.')[0]}")
         return result
 
 
@@ -44,8 +50,11 @@ class Map:
 
     def run(self):
         logging.info(f"Starting: {self.task.func_name}")
+        start = timer()
         result = self.partial_func()
-        logging.info(f"Finished: {self.task.func_name}")
+        end = timer()
+        logging.info(f"Finished: {self.task.func_name}. "
+                     f"Time elapsed: {str(timedelta(seconds=end - start)).split('.')[0]}")
         return result
 
 
