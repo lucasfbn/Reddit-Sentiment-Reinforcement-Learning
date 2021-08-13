@@ -1,15 +1,16 @@
-from typing import Tuple
 import datetime
+from typing import Tuple
 
 import pandas as pd
-from utils.pipeline_utils import task, filter_task
 from sklearn.preprocessing import MinMaxScaler
 
-from preprocessing.sequences import SequenceGenerator
-from preprocessing.price_data.stock_prices import MissingDataException, OldDataException
-from preprocessing.price_data.cached_stock_data import CachedStockData
 from preprocessing.price_data.cache import Cache
+from preprocessing.price_data.cached_stock_data import CachedStockData
+from preprocessing.price_data.stock_prices import MissingDataException, OldDataException
+from preprocessing.sequences import SequenceGenerator
 from preprocessing.ticker import Ticker
+from utils.pipeline_utils import task, filter_task
+from utils.util_funcs import log
 
 date_col = "date"
 date_day_col = "date_day"
@@ -282,8 +283,8 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
         prices = csd.get()
         ticker.df = merge_prices_with_ticker_df(prices, ticker.df)
 
-    # TODO Add logging
     except (MissingDataException, OldDataException) as e:
+        log.debug(f"Excluding ticker {ticker.name}. Reason: {e}")
         ticker.exclude = True
 
     return ticker
