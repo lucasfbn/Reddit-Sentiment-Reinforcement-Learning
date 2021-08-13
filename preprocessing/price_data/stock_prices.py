@@ -35,7 +35,7 @@ class StockPrices:
         """
         yfinance specific correction such that the correct dates are downloaded.
         """
-        self.start_date = self.start_date + datetime.timedelta(days=1)
+        self.start_date = self.start_date
         self.end_date = self.end_date + datetime.timedelta(days=1)
 
     def _get_prices(self, start, end, interval="1d"):
