@@ -51,7 +51,7 @@ class CachedStockData:
 
     def drop_duplicates(self, df):
         old_len = len(df)
-        df = df.drop_duplicates(subset=[self.date_col])
+        df = df.drop_duplicates(subset=[self.date_col], keep="last")
 
         if not old_len == len(df):
             log.warn(f"There are duplicates in the DB for ticker {self.ticker}")
