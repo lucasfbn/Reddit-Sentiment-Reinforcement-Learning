@@ -1,11 +1,10 @@
 import logging
+from datetime import timedelta
 from functools import partial
+from timeit import default_timer as timer
 
 import ray
 from tqdm import tqdm
-
-from timeit import default_timer as timer
-from datetime import timedelta
 
 logging.basicConfig(level=logging.INFO,
                     format="%(levelname)s %(asctime)s - %(message)s")
@@ -21,6 +20,24 @@ def initialize():
     ray.init()
 
 
+class TaskLogger:
+
+    def __init__(self, func_name):
+        self.func_name = func_name
+        self._start = None
+        self._end = None
+
+    def start(self):
+        logging.info(f"Starting: {self.func_name}")
+        self._start = timer()
+
+    def stop(self, additional=""):
+        self._end = timer()
+        logging.info(f"Finished: {self.func_name}. "
+                     f"Time elapsed: {str(timedelta(seconds=self._end - self._start)).split('.')[0]}. "
+                     f"{additional}")
+
+
 class Task:
 
     def __init__(self, func, func_name, args, kwargs):
@@ -33,12 +50,10 @@ class Task:
         return result
 
     def run(self):
-        logging.info(f"Starting: {self.func_name}")
-        start = timer()
+        task_logger = TaskLogger(self.func_name)
+        task_logger.start()
         result = self.func_partial()
-        end = timer()
-        logging.info(f"Finished: {self.func_name}. "
-                     f"Time elapsed: {str(timedelta(seconds=end - start)).split('.')[0]}")
+        task_logger.stop()
         return result
 
 
@@ -49,12 +64,10 @@ class Map:
         self.task = task()
 
     def run(self):
-        logging.info(f"Starting: {self.task.func_name}")
-        start = timer()
+        task_logger = TaskLogger(self.task.func_name)
+        task_logger.start()
         result = self.partial_func()
-        end = timer()
-        logging.info(f"Finished: {self.task.func_name}. "
-                     f"Time elapsed: {str(timedelta(seconds=end - start)).split('.')[0]}")
+        task_logger.stop()
         return result
 
 
@@ -97,3 +110,30 @@ def par_map_(func, iterable, **kwargs):
 
 def par_map(func, iterable, **kwargs):
     return Map(partial(par_map_, func, iterable, **kwargs), func)
+
+
+class FilterTask(Task):
+
+    def __init__(self, func, func_name, args, kwargs):
+        super().__init__(func, func_name, args, kwargs)
+        self.in_len = len(args[0])
+
+    def run(self):
+        task_logger = TaskLogger(self.func_name)
+        task_logger.start()
+        result = self.func_partial()
+
+        if isinstance(result, tuple):
+            out_len = len(result[0])
+        else:
+            out_len = len(result)
+
+        task_logger.stop(f"Dropped {self.in_len - out_len} items.")
+        return result
+
+
+def filter_task(func):
+    def wrapper(*args, **kwargs):
+        return FilterTask(func, func.__name__, args, kwargs)
+
+    return wrapper
