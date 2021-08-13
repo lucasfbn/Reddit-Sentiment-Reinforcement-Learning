@@ -50,7 +50,7 @@ class StockPrices:
         return df
 
     def _live_assertions(self, prices):
-        current_price = current_price = prices.tail(1)
+        current_price = prices.tail(1)
 
         prices = prices.copy()
         prices = prices.drop(prices.tail(1).index)
