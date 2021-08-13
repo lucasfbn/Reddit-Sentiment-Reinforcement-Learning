@@ -102,3 +102,12 @@ def test_space_removal():
     prices = sp.download()
 
     assert list(prices.columns) == ['Open', 'High', 'Low', 'Close', 'Adj_Close', 'Volume', 'date_day_shifted']
+
+
+def test_live_close_start_end():
+    sp = StockPrices(ticker_name="AAPL", start_date=Period.now("D") - datetime.timedelta(days=1),
+                     end_date=Period('2021-05-20', 'D'), live=True)
+
+    if Period.now("D").weekday < 5 and datetime.datetime.now().hour >= 15:
+        prices = sp.download()
+        assert prices["date_day_shifted"].loc[len(prices) - 1] == Period.now("D")
