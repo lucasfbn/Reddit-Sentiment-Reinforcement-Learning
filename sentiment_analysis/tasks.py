@@ -7,7 +7,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 import paths
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sentiment_analysis.timespan import Timespan
-from utils.pipeline_utils import task
+from utils.pipeline_utils import task, filter_task
 
 
 @task
@@ -29,7 +29,7 @@ def get_from_gc(start: datetime, end: datetime, check_duplicates: bool, fields_t
     return df
 
 
-@task
+@filter_task
 def filter_removed(df: pd.DataFrame, cols_to_check_if_removed: list) -> pd.DataFrame:
     """
     Checks if the submission got removed and filters it if it was.
@@ -90,7 +90,7 @@ def add_temporal_informations(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-@task
+@filter_task
 def filter_authors(df: pd.DataFrame, filter_too_frequent_authors: bool, author_blacklist: list,
                    max_submissions_per_author_per_day: int) -> pd.DataFrame:
     """
@@ -253,7 +253,7 @@ def get_submission_ticker(df: pd.DataFrame, valid_ticker: list, ticker_blacklist
     return df
 
 
-@task
+@filter_task
 def filter_submissions_without_ticker(df: pd.DataFrame) -> pd.DataFrame:
     """
     Filters all submission without a valid ticker in either the title or the body.

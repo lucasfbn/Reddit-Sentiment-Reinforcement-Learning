@@ -2,7 +2,7 @@ from typing import Tuple
 import datetime
 
 import pandas as pd
-from utils.pipeline_utils import task
+from utils.pipeline_utils import task, filter_task
 from sklearn.preprocessing import MinMaxScaler
 
 from preprocessing.sequences import SequenceGenerator
@@ -316,7 +316,7 @@ def mark_sentiment_data_available_days(ticker: Ticker, sentiment_data_columns) -
     return ticker
 
 
-@task
+@filter_task
 def remove_excluded_ticker(ticker: list) -> list:
     """
     Removes all ticker that are marked for exclusion.
