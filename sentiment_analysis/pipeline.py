@@ -35,6 +35,8 @@ def pipeline(**kwargs):
 
     df = get_from_gc(params["start"], params["end"], params["check_duplicates"], params["fields_to_retrieve"]).run()
     log_file(df, params["gc_dump_fn"])
+    gaps = retrieve_gaps(df).run()
+    log_file(gaps, "gaps.json")
     df = filter_removed(df, params["cols_to_check_if_removed"]).run()
     df = add_temporal_informations(df).run()
     df = filter_authors(df,
@@ -62,7 +64,7 @@ def pipeline(**kwargs):
 
 def main(test_mode=False):
     with mlflow.start_run():
-        pipeline(start=datetime(year=2021, month=5, day=1), end=datetime(year=2021, month=5, day=14))
+        pipeline(start=datetime(year=2021, month=3, day=1), end=datetime(year=2021, month=8, day=13))
 
 
 if __name__ == "__main__":

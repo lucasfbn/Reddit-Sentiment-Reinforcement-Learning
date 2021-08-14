@@ -5,7 +5,7 @@ import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 import paths
-from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
+from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB, DetectGaps
 from sentiment_analysis.timespan import Timespan
 from utils.pipeline_utils import task, filter_task
 
@@ -27,6 +27,15 @@ def get_from_gc(start: datetime, end: datetime, check_duplicates: bool, fields_t
     db = BigQueryDB()
     df = db.download(start=start, end=end, fields=fields_to_retrieve, check_duplicates=check_duplicates)
     return df
+
+
+@task
+def retrieve_gaps(df: pd.DataFrame):
+    """
+    Retrieves the gaps within the data (e.g. hours/day where no data was scraped from reddit).
+    """
+    db = DetectGaps(df)
+    return db.run()
 
 
 @filter_task
