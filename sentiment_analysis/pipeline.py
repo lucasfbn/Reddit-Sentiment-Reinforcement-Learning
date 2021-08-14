@@ -62,10 +62,10 @@ def pipeline(**kwargs):
     return df
 
 
-def main(test_mode=False):
+def main():
     with mlflow.start_run():
-        pipeline(start=datetime(year=2021, month=3, day=1), end=datetime(year=2021, month=8, day=13))
+        pipeline(start=datetime(year=2021, month=3, day=2), end=datetime(year=2021, month=8, day=13))
 
 
 if __name__ == "__main__":
-    main(True)
+    main()
