@@ -97,12 +97,11 @@ def pipeline(**kwargs):
     return ticker
 
 
-def main(test_mode=False):
-    df = load_file(run_id="b006357013484dd3ad4860cb94309df5", fn="report.csv", experiment="Live")
-    # df = df.head(500)
+def main():
+    df = load_file(run_id="dec6cb437cbc455fa871d1ac5b9300c8", fn="report.csv", experiment="Sentiment")
     with mlflow.start_run():
         pipeline(input_df=df)
 
 
 if __name__ == "__main__":
-    main(False)
+    main()
