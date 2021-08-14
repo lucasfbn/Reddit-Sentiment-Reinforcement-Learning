@@ -93,13 +93,15 @@ def pipeline(**kwargs):
     ticker = remove_excluded_ticker(ticker).run()
 
     log_file(ticker, "ticker.pkl")
+
+    params.pop("input_df")
     mlflow.log_params(params=params)
     return ticker
 
 
 def main():
-    df = load_file(run_id="dec6cb437cbc455fa871d1ac5b9300c8", fn="report.csv", experiment="Sentiment")
     with mlflow.start_run():
+        df = load_file(run_id="dec6cb437cbc455fa871d1ac5b9300c8", fn="report.csv", experiment="Sentiment")
         pipeline(input_df=df)
 
 

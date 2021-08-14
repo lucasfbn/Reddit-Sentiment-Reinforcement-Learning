@@ -8,6 +8,8 @@ from utils.mlflow_api import load_file
 from utils.mlflow_api import log_file
 from utils.util_funcs import log
 
+mlflow.set_tracking_uri(paths.mlflow_path)
+
 
 class RLAgent:
 
@@ -84,7 +86,6 @@ class RLAgent:
 if __name__ == '__main__':
     data = load_file(run_id="662f377d540e42f68f2df688c24a060c", fn="ticker.pkl", experiment="Live")
 
-    mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Tests")
 
     with mlflow.start_run():
