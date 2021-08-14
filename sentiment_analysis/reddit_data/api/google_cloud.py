@@ -27,7 +27,7 @@ class BigQueryDB:
             log.warn(f"Error while uploading. Error:\n {e}. \n Len df: {len(df)}")
 
     def download(self, start, end, fields, sql=None, check_duplicates=True):
-        log.info("Starting download...")
+        log.debug("Starting download...")
         start, end = dt_to_timestamp(start), dt_to_timestamp(end)
 
         if sql is None:
@@ -43,80 +43,43 @@ class BigQueryDB:
             df = df.drop_duplicates(subset=['id'])
         return df
 
-    def detect_gaps(self, start=None, end=None, save_json=True):
-        log.debug("Detecting gaps...")
-        start, end = dt_to_timestamp(start), dt_to_timestamp(end)
 
-        sql = f"""SELECT created_utc FROM `redditdata-305217.data.submissions`"""
+class DetectGaps:
 
-        if start is not None and end is not None:
-            sql += f" WHERE created_utc BETWEEN {start} AND {end}"
-        elif start is not None and end is None:
-            sql += f" WHERE created_utc >= {start}"
-        elif end is not None and start is None:
-            sql += f" WHERE created_utc <= {end}"
+    def __init__(self, df):
+        self.df = df
 
-        df = self.download(None, None, None, sql, check_duplicates=False)
+        self._min_date = None
+        self._max_date = None
 
-        # df.to_csv("gaps.csv", sep=";", index=False)
-        # df = pd.read_csv("gaps.csv", sep=";")
+        self._daterange = None
+        self._diff = None
 
-        date_full = pd.to_datetime(df["created_utc"], unit="s")
-        date_full = date_full.dt.tz_localize("UTC")
-        date_mesz = date_full.dt.tz_convert("Europe/Berlin")
-        df["start"] = date_mesz.dt.to_period('H').dt.to_timestamp()
-        date_list = df["start"].tolist()
+    def _assign_date(self):
+        self.df["temp_date"] = pd.to_datetime(self.df["created_utc"], unit="s")
+        self.df["temp_date"] = self.df["temp_date"].dt.tz_localize("UTC").dt.tz_convert("Europe/Berlin")
+        self.df["temp_date_period"] = self.df["temp_date"].dt.to_period('H').dt.to_timestamp()
+        self.df = self.df.sort_values(by=["temp_date_period"])
 
-        min_date = df["start"].min()
-        max_date = df["start"].max()
+        self._min_date = self.df["temp_date_period"].min()
+        self._max_date = self.df["temp_date_period"].max()
 
-        daterange = pd.date_range(start=min_date, end=max_date - pd.Timedelta(hours=1), freq="H")
-        daterange = daterange.tolist()
+    def _generate_date_range(self):
+        self._daterange = pd.date_range(start=self._min_date, end=self._max_date - pd.Timedelta(hours=1), freq="H")
 
-        difference = list(set(daterange) - set(date_list))
-        difference = pd.Series(difference)
-        difference = difference.sort_values()
-        difference = difference.tolist()
+    def _find_diff(self):
+        diff = list(set(self._daterange.tolist()) - set(self.df["temp_date_period"].tolist()))
+        diff = pd.Series(diff)
+        diff = diff.sort_values()
+        diff = diff.tolist()
+        self._diff = diff
 
-        last_diff = None
-        periods = []
-        sub_period = []
-        for diff in difference:
-            if last_diff is None:
-                last_diff = diff
-                sub_period.append(diff)
-            else:
-                current_diff = diff - last_diff
-                if current_diff.seconds > 3600:
-                    periods.append(sub_period)
-                    sub_period = [diff]
-                else:
-                    sub_period.append(diff)
-            last_diff = diff
+    def _make_report(self):
+        self._diff = [str(x) for x in self._diff]
 
-        if sub_period:
-            periods.append(sub_period)
-
-        min_max_subperiod = [{"start": start, "end": end, "min_date": str(min_date), "max_date": str(max_date)}]
-        for sub_period in periods:
-            min_max_subperiod.append({"min": str(sub_period[0]), "max": str(sub_period[len(sub_period) - 1])})
-
-        if save_json:
-            with open("gaps.json", "w+") as f:
-                json.dump(min_max_subperiod, f)
-        return min_max_subperiod
-
-
-if __name__ == '__main__':
-    start = datetime(year=2021, month=3, day=18)
-    end = datetime(year=2021, month=3, day=25)
-    # db = BigQueryDB()
-    # df = db.download(start, end,
-    #                  fields=["author", "created_utc", "id", "num_comments", "title", "selftext", "subreddit"],
-    #                  check_duplicates=False)
-    # print()
-    # df.to_csv("raw.csv", sep=";", index=False)
-
-    db = BigQueryDB()
-    db.detect_gaps(start=start, end=end)
-    # db.upload(pd.DataFrame({"one": [1, 2, 3]}), dataset="data", table="test_subm1")
+    def run(self):
+        self._assign_date()
+        self._generate_date_range()
+        self._find_diff()
+        self._make_report()
+        return self._diff
