@@ -6,7 +6,7 @@ from utils.pipeline_utils import seq_map
 from utils.util_funcs import update_check_key
 
 mlflow.set_tracking_uri(paths.mlflow_path)
-mlflow.set_experiment("Tests")
+mlflow.set_experiment("Sentiment")
 
 params = {
     "gc_dump_fn": "gc_dump.csv",

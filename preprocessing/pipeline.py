@@ -7,7 +7,7 @@ from utils.pipeline_utils import initialize, par_map, seq_map
 from utils.util_funcs import update_check_key
 
 mlflow.set_tracking_uri(paths.mlflow_path)
-mlflow.set_experiment("Tests")
+mlflow.set_experiment("Datasets")
 
 initialize()
 
