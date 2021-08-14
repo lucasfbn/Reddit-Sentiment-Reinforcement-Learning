@@ -44,7 +44,7 @@ class BigQueryDB:
         return df
 
     def detect_gaps(self, start=None, end=None, save_json=True):
-        log.info("Detecting gaps...")
+        log.debug("Detecting gaps...")
         start, end = dt_to_timestamp(start), dt_to_timestamp(end)
 
         sql = f"""SELECT created_utc FROM `redditdata-305217.data.submissions`"""
@@ -104,8 +104,6 @@ class BigQueryDB:
         if save_json:
             with open("gaps.json", "w+") as f:
                 json.dump(min_max_subperiod, f)
-        else:
-            print(min_max_subperiod)
         return min_max_subperiod
 
 
