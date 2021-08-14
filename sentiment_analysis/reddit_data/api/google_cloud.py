@@ -18,7 +18,7 @@ class BigQueryDB:
         self.upload(pd.DataFrame({"test": [1, 2, 3]}), dataset="auth", table="auth_table")
 
     def upload(self, df, dataset, table):
-        log.info("Starting upload...")
+        log.debug("Starting upload...")
         try:
             df.to_gbq(destination_table=f"{dataset}.{table}",
                       project_id=self.project_id,
