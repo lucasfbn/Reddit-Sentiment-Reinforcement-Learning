@@ -1,3 +1,5 @@
+import os
+
 import mlflow
 
 import paths
@@ -10,6 +12,7 @@ from utils.util_funcs import log
 """
 Examines the impact of the number of episodes on the result.
 """
+
 log.setLevel("INFO")
 
 mlflow.set_tracking_uri(paths.mlflow_path)
@@ -18,7 +21,6 @@ mlflow.set_experiment("N_Episodes_Impact")
 n_episodes = [1, 3, 5, 7, 10, 15, 20]
 
 for ne in n_episodes:
-
     log.info(f"Processing n_episodes: {ne}")
 
     with mlflow.start_run():
@@ -43,3 +45,5 @@ for ne in n_episodes:
         ep.force_sell()
         ep.log_results()
         ep.log_statistics()
+
+os.system("shutdown /s /t 60")
