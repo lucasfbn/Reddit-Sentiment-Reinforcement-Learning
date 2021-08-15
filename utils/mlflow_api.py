@@ -26,7 +26,7 @@ def get_artifact_path(run_id=None):
     return _artifact_path(run.info.artifact_uri)
 
 
-def log_file(file, fn):
+def log_file(file, fn, sep=";"):
     """
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Testing")  #
@@ -49,7 +49,7 @@ def log_file(file, fn):
             with open(tmpdirname_path / fn, "w+") as f:
                 json.dump(file, f)
         elif kind == "csv":
-            file.to_csv(tmpdirname_path / fn, sep=";", index=False)
+            file.to_csv(tmpdirname_path / fn, sep=sep, index=False)
 
         mlflow.log_artifact((tmpdirname_path / fn).as_posix())
 
