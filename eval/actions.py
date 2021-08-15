@@ -1,5 +1,7 @@
 import mlflow
 
+import pandas as pd
+
 from utils.util_funcs import log
 
 log.setLevel("INFO")
@@ -7,6 +9,7 @@ log.setLevel("INFO")
 
 class Action:
     action_name = None
+    _actions_lst = []
 
     def __init__(self, portfolio, actions, live, **kwargs):
         self.portfolio = portfolio
@@ -63,6 +66,14 @@ class Action:
         self.handle()
         # self.log()
 
+    @staticmethod
+    def get_actions():
+        return pd.DataFrame(Action._actions_lst)
+
+    @staticmethod
+    def get_actions_stats():
+        return Action.get_actions().describe(percentiles=[0.25, 0.5, 0.75, 0.8, 0.9, 0.95])
+
 
 class Buy(Action):
     action_name = "buy"
@@ -116,6 +127,19 @@ class Buy(Action):
             self.p.balance -= total_buy_price
             self.p._inventory.append(buy)
 
+            Action._actions_lst.append(
+                dict(
+                    date=str(buy.date),
+                    action="buy",
+                    ticker=buy.ticker,
+                    price=price,
+                    quantity=buy.quantity,
+                    total=buy.total_buy_price,
+                    old_balance=old_depot,
+                    new_balance=self.p.balance
+                )
+            )
+
             log.debug(f"BOUGHT. Ticker: {buy.ticker}. "
                       f"Quantity: {buy.quantity}. "
                       f"Total buy price: {buy.total_buy_price}. "
@@ -149,9 +173,12 @@ class Sell(Action):
 
                 if sell_ticker == position_ticker and sell.tradeable:
 
+                    forced = False
+
                     bought_price = position.price_bought
                     if "forced" in self.kwargs and self.kwargs["forced"]:
                         current_price = bought_price
+                        forced = True
                     else:
                         current_price = sell.price
 
@@ -165,6 +192,22 @@ class Sell(Action):
                     self.p.balance += current_price * position.quantity
                     self.p.profit = self.p.profit + \
                                     (self.p.profit * (self.p.max_investment_per_trade * (profit_perc - 1)))
+
+                    Action._actions_lst.append(
+                        dict(
+                            date=str(position.date),
+                            action="sell",
+                            ticker=position.ticker,
+                            price=current_price,
+                            quantity=position.quantity,
+                            total=current_price * position.quantity,
+                            old_balance=old_depot,
+                            new_balance=self.p.balance,
+                            profit=profit_perc,
+                            profit_raw=profit_raw,
+                            forced=forced
+                        )
+                    )
 
                     log.debug(f"SOLD. Ticker: {position.ticker}. "
                               f"Quantity: {position.quantity}. "
