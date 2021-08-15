@@ -4,11 +4,11 @@ from tqdm import tqdm
 
 import paths
 from rl.env import EnvCNN
-from utils.mlflow_api import load_file
-from utils.mlflow_api import log_file
+from utils.mlflow_api import load_file, log_file
 from utils.util_funcs import log
 
 mlflow.set_tracking_uri(paths.mlflow_path)
+mlflow.set_experiment("Tests")
 
 
 class RLAgent:
@@ -68,7 +68,7 @@ class RLAgent:
 
         self.agent = Agent.create(
             agent='ppo', environment=environment,
-            memory=55000, batch_size=1, tracking="all",
+            memory=55000, batch_size=32, tracking="all",
         )
 
         runner = Runner(agent=self.agent, environment=environment)
@@ -84,14 +84,11 @@ class RLAgent:
 
 
 if __name__ == '__main__':
-    data = load_file(run_id="662f377d540e42f68f2df688c24a060c", fn="ticker.pkl", experiment="Live")
-
-    mlflow.set_experiment("Tests")
-
     with mlflow.start_run():
+        data = load_file(run_id="f4bdae299f694599ba91c7dd1f77c9b5", fn="ticker.pkl", experiment="Datasets")
         rla = RLAgent(environment=EnvCNN, ticker=data)
         # rla.load_agent(
         #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
-        rla.train(n_full_episodes=3)
+        rla.train(n_full_episodes=1)
         rla.eval_agent()
         rla.close()
