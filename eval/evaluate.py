@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 import mlflow
 import pandas as pd
-from tqdm import tqdm
 
 from eval.actions import Buy, Sell
 from utils.mlflow_api import load_file, log_file
@@ -104,6 +103,7 @@ class Evaluate(EvaluateInit):
                     date=seq.date,
                     tradeable=seq.tradeable,
                     action=seq.action,
+                    action_probas=seq.action_probas,
                     hold=seq.action_probas["hold"],
                     buy=seq.action_probas["buy"],
                     sell=seq.action_probas["sell"],
@@ -120,8 +120,7 @@ class Evaluate(EvaluateInit):
         self._rename_actions()
         self._merge_sequence_attributes_to_df()
         self._get_sequence_statistics()
-        self._find_min_max_date()
-        # self._get_dates_trades_combination()
+        self._get_dates_trades_combination()
 
     def set_quantile_thresholds(self, quantiles):
         assert set(quantiles.keys()) == {"hold", "buy", "sell"}
@@ -133,57 +132,58 @@ class Evaluate(EvaluateInit):
                 # anything (as every probability is at least >= 0)
                 self.thresholds[action] = 0.0
             else:
-                same_action_df = self._sequence_attributes_df[self._sequence_attributes_df["actions"] == action]
+                same_action_df = self._sequence_attributes_df[self._sequence_attributes_df["action"] == action]
 
                 # TODO Is this the correct behaviour?
                 if same_action_df.empty:
                     self.thresholds[action] = 0.0
                     continue
 
-                action_probas = same_action_df[action]
-                self.thresholds[action] = action_probas.quantile(q=quantiles[action])
+                self.thresholds[action] = same_action_df[action].quantile(q=quantiles[action])
 
     def set_thresholds(self, thresholds):
         assert set(thresholds.keys()) == {"hold", "buy", "sell"}
         self.thresholds = thresholds
 
-    def set_min_max_date(self, min_date, max_date):
-        self._min_date, self._max_date = min_date, max_date
-
     def set_dates_trade_combination(self, dates_trades_combination):
         self._dates_trades_combination = dates_trades_combination
-
-    def _find_min_max_date(self):
-        if self._min_date is not None and self._max_date is not None:
-            return
-
-        self._min_date = self._sequence_attributes_df["date"].min()
-        self._max_date = self._sequence_attributes_df["date"].max()
 
     def _get_dates_trades_combination(self):
         if self._dates_trades_combination is not None:
             return
 
-        log.info("Retrieving date/trades combinations...")
-        dates = pd.date_range(self._min_date.to_timestamp(), self._max_date.to_timestamp())
+        df = self._sequence_attributes_df
 
-        dates_trades_combinations = {}
+        # Generate a dict with the date range from min to max
+        dates = pd.DataFrame(pd.date_range(df["date"].min().to_timestamp(), df["date"].max().to_timestamp()))
+        dates[0] = dates[0].astype(str)
+        dates = dates.set_index(0)
+        dates["val"] = [[] for _ in range(len(dates))]
+        dates = dates.T.to_dict("records")[0]
 
-        for date in tqdm(dates):
-            dates_trades_combinations[date.strftime("%d-%m-%Y")] = []
-            for ticker in self.ticker:
+        # Group by date, convert grp rows to Operations and add them to the dates dict
+        grps = df.groupby(["date"])
 
-                for seq in ticker.sequences:
+        for name, grp in grps:
+            lst = []
 
-                    if (seq.date.to_timestamp() - date).days == 0:
-                        dates_trades_combinations[date.strftime("%d-%m-%Y")].append(Operation(ticker=ticker.name,
-                                                                                              price=seq.price_raw,
-                                                                                              date=date,
-                                                                                              tradeable=seq.tradeable,
-                                                                                              action=seq.action,
-                                                                                              action_probas=seq.action_probas))
+            def to_operation(row):
+                lst.append(
+                    Operation(
+                        ticker=row["ticker"],
+                        price=row["price"],
+                        date=name,
+                        tradeable=row["tradeable"],
+                        action=row["action"],
+                        action_probas=row["action_probas"],
+                    )
+                )
 
-        self._dates_trades_combination = dates_trades_combinations
+            pd.DataFrame(grp).apply(to_operation, axis="columns")
+
+            dates[name] = lst
+
+        self._dates_trades_combination = dates
 
     def act(self):
         for day, trade_option in self._dates_trades_combination.items():
@@ -284,13 +284,9 @@ if __name__ == "__main__":
 
         ep = Evaluate(ticker=ticker, **combination)
         ep.initialize()
-
-        ep._sequence_attributes_df.to_csv("temp.csv", sep=";")
-        ep._sequence_statistics.to_csv("temp1.csv", sep=";")
-
-        # ep.set_quantile_thresholds({'hold': None, 'buy': 0.95, 'sell': None})
-        # ep.act()
-        # ep.force_sell()
-        # ep.log_results()
-        # ep.log_statistics()
-        # print(ep.get_result())
+        ep.set_quantile_thresholds({'hold': None, 'buy': 0.95, 'sell': None})
+        ep.act()
+        ep.force_sell()
+        ep.log_results()
+        ep.log_statistics()
+        print(ep.get_result())
