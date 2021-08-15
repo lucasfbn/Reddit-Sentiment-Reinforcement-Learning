@@ -82,7 +82,7 @@ class EvaluateInit:
         mlflow.log_params(self.get_result())
 
     def log_statistics(self):
-        log_file(self._sequence_statistics, "stats.csv")
+        log_file(self._sequence_statistics, "stats.csv", sep=",")
 
 
 class Evaluate(EvaluateInit):
