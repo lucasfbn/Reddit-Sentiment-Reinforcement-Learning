@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import mlflow
 import pandas as pd
 
-from eval.actions import Buy, Sell
+from eval.actions import Buy, Sell, Action
 from utils.mlflow_api import load_file, log_file
 from utils.util_funcs import log
 
@@ -81,7 +81,24 @@ class EvaluateInit:
         mlflow.log_params(self.get_result())
 
     def log_statistics(self):
-        log_file(self._sequence_statistics, "stats.csv")
+        log_file(self._sequence_statistics, "eval_probability_stats.csv")
+        log_file(Action.get_actions(), "actions.csv")
+
+        df = Action.get_actions()
+        df = df[~(df["forced"] == True)]
+
+        df = df.describe(percentiles=[0.25, 0.5, 0.75, 0.8, 0.9, 0.95])
+        df["desc"] = df.index  # Need to reset later due to merge with overall results
+        cols = list(df.columns.values)
+        cols = cols[-1:] + cols[:-1]  # swap first and last col such that "desc" is the first col
+        df = df[cols]
+        df = df.reset_index(drop=True)
+        df[" "] = "|"
+
+        results = pd.DataFrame([{"metric": key, "val": value} for key, value in self.get_result().items()])
+
+        eval_stats = df.join(results, how="outer")
+        log_file(eval_stats, "eval_stats.csv")
 
 
 class Evaluate(EvaluateInit):
