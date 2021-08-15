@@ -6,7 +6,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from eval.actions import Buy, Sell
-from utils import mlflow_api
+from utils.mlflow_api import load_file, log_file
 from utils.util_funcs import log
 
 log.setLevel("DEBUG")
@@ -63,6 +63,9 @@ class EvaluateInit:
         self._max_date = None
         self._dates_trades_combination = None
 
+        self._sequence_attributes_df = None
+        self._sequence_statistics = None
+
     def get_result(self):
         return {"initial_balance": self.initial_balance,
                 "max_investment_per_trade": self.max_investment_per_trade,
@@ -75,8 +78,11 @@ class EvaluateInit:
                 "profit": self.profit,
                 "len_inventory": len(self._inventory)}
 
-    def log_result(self):
+    def log_results(self):
         mlflow.log_params(self.get_result())
+
+    def log_statistics(self):
+        log_file(self._sequence_statistics, "stats.csv")
 
 
 class Evaluate(EvaluateInit):
@@ -88,26 +94,34 @@ class Evaluate(EvaluateInit):
                 sequence.action = map_[sequence.action]
 
     def _merge_sequence_attributes_to_df(self):
-        dates = []
-        actions = []
-        action_probas = []
+        dicts = []
 
         for ticker in self.ticker:
             for seq in ticker.sequences:
-                dates.append(seq.date)
-                actions.append(seq.action)
-                action_probas.append(seq.action_probas)
+                seq_dict = dict(
+                    ticker=ticker.name,
+                    price=seq.price_raw,
+                    date=seq.date,
+                    tradeable=seq.tradeable,
+                    action=seq.action,
+                    hold=seq.action_probas["hold"],
+                    buy=seq.action_probas["buy"],
+                    sell=seq.action_probas["sell"],
+                )
+                dicts.append(seq_dict)
 
-        df = pd.DataFrame(action_probas)
-        df["dates"] = dates
-        df["actions"] = actions
-        self._sequence_attributes_df = df
+        self._sequence_attributes_df = pd.DataFrame(dicts)
+
+    def _get_sequence_statistics(self):
+        self._sequence_statistics = self._sequence_attributes_df.describe(percentiles=[0.25, 0.5, 0.75,
+                                                                                       0.85, 0.9, 0.95])
 
     def initialize(self):
         self._rename_actions()
         self._merge_sequence_attributes_to_df()
+        self._get_sequence_statistics()
         self._find_min_max_date()
-        self._get_dates_trades_combination()
+        # self._get_dates_trades_combination()
 
     def set_quantile_thresholds(self, quantiles):
         assert set(quantiles.keys()) == {"hold", "buy", "sell"}
@@ -143,8 +157,8 @@ class Evaluate(EvaluateInit):
         if self._min_date is not None and self._max_date is not None:
             return
 
-        self._min_date = self._sequence_attributes_df["dates"].min()
-        self._max_date = self._sequence_attributes_df["dates"].max()
+        self._min_date = self._sequence_attributes_df["date"].min()
+        self._max_date = self._sequence_attributes_df["date"].max()
 
     def _get_dates_trades_combination(self):
         if self._dates_trades_combination is not None:
@@ -174,6 +188,8 @@ class Evaluate(EvaluateInit):
     def act(self):
         for day, trade_option in self._dates_trades_combination.items():
 
+            log.debug(f"Processing day: {day}")
+
             potential_buys = []
             sells = []
 
@@ -187,6 +203,8 @@ class Evaluate(EvaluateInit):
 
             self._handle_sells(sells)
             self._handle_buys(potential_buys)
+
+            log.debug(f"Inventory len: {len(self._inventory)}")
 
     def _handle_buys(self, potential_buys):
         Buy(portfolio=self, actions=potential_buys, live=self.live).execute()
@@ -206,7 +224,7 @@ class Evaluate(EvaluateInit):
         Sell(portfolio=self, actions=new_inventory, live=self.live, forced=True).execute()
 
     def save(self):
-        mlflow_api.log_file(self, "state.pkl")
+        log_file(self, "state.pkl")
         log.info("Successfully saved state.")
 
     def load(self, path):
@@ -259,14 +277,20 @@ if __name__ == "__main__":
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Evaluating")
 
-    ticker = mlflow_api.load_file("939ea6c487764712830cc118da02bba1", "eval.pkl", experiment="Tests")
-
     with mlflow.start_run():
+        ticker = load_file(run_id="1883d1e8d05d4a11abf63bb8c16fca17", experiment="Tests", fn="eval.pkl")
+
         combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 0.07}
 
         ep = Evaluate(ticker=ticker, **combination)
         ep.initialize()
-        ep.set_quantile_thresholds({'hold': None, 'buy': 0.95, 'sell': None})
-        ep.act()
-        ep.force_sell()
-        print(ep.get_result())
+
+        ep._sequence_attributes_df.to_csv("temp.csv", sep=";")
+        ep._sequence_statistics.to_csv("temp1.csv", sep=";")
+
+        # ep.set_quantile_thresholds({'hold': None, 'buy': 0.95, 'sell': None})
+        # ep.act()
+        # ep.force_sell()
+        # ep.log_results()
+        # ep.log_statistics()
+        # print(ep.get_result())
