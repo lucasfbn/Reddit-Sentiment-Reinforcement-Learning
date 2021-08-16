@@ -87,15 +87,7 @@ class EvaluateInit:
         log_file(self._sequence_statistics, "eval_probability_stats.csv")
         log_file(self.action_tracker.get_actions(), "actions.csv")
 
-        df = self.action_tracker.get_actions()
-        df = df[~(df["forced"] == True)]
-
-        df = df.describe(percentiles=[0.25, 0.5, 0.75, 0.8, 0.9, 0.95])
-        df["desc"] = df.index  # Need to reset later due to merge with overall results
-        cols = list(df.columns.values)
-        cols = cols[-1:] + cols[:-1]  # swap first and last col such that "desc" is the first col
-        df = df[cols]
-        df = df.reset_index(drop=True)
+        df = self.action_tracker.get_actions_stats()
         df[" "] = "|"
 
         results = pd.DataFrame([{"metric": key, "val": value} for key, value in self.get_result().items()])
