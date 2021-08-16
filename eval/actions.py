@@ -72,7 +72,13 @@ class Action:
 
     @staticmethod
     def get_actions_stats():
-        return Action.get_actions().describe(percentiles=[0.25, 0.5, 0.75, 0.8, 0.9, 0.95])
+        res = Action.get_actions().describe(percentiles=[0.25, 0.5, 0.75, 0.8, 0.9, 0.95])
+        Action.reset_actions()
+        return res
+
+    @staticmethod
+    def reset_actions():
+        Action._actions_lst = []
 
 
 class Buy(Action):
