@@ -11,18 +11,19 @@ from utils.util_funcs import log
 log.setLevel("DEBUG")
 
 
-@dataclass
 class Operation:
-    ticker: str
-    price: float
-    date: pd.Period
-    tradeable: bool
-    action: str
-    action_probas: dict
 
-    price_bought: float = None
-    quantity: int = None
-    total_buy_price: float = None
+    def __init__(self, ticker, price, date, tradeable, action, action_probas):
+        self.action_probas = action_probas
+        self.action = action
+        self.tradeable = tradeable
+        self.date = date
+        self.price = price
+        self.ticker = ticker
+
+        self.price_bought = None
+        self.quantity = None
+        self.total_buy_price = None
 
     def save_buy(self, price, quantity, total_buy_price):
         self.price_bought = price
@@ -295,7 +296,7 @@ if __name__ == "__main__":
     mlflow.set_experiment("Evaluating")
 
     with mlflow.start_run():
-        ticker = load_file(run_id="1883d1e8d05d4a11abf63bb8c16fca17", experiment="Tests", fn="eval.pkl")
+        ticker = load_file(run_id="3e846f81d4084179b1125a0609a181b5", experiment="Tests", fn="eval.pkl")
 
         combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 0.07}
 
