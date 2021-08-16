@@ -9,7 +9,6 @@ log.setLevel("INFO")
 
 class Action:
     action_name = None
-    _actions_lst = []
 
     def __init__(self, portfolio, actions, live, **kwargs):
         self.portfolio = portfolio
@@ -66,20 +65,6 @@ class Action:
         self.handle()
         # self.log()
 
-    @staticmethod
-    def get_actions():
-        return pd.DataFrame(Action._actions_lst)
-
-    @staticmethod
-    def get_actions_stats():
-        res = Action.get_actions().describe(percentiles=[0.25, 0.5, 0.75, 0.8, 0.9, 0.95])
-        Action.reset_actions()
-        return res
-
-    @staticmethod
-    def reset_actions():
-        Action._actions_lst = []
-
 
 class Buy(Action):
     action_name = "buy"
@@ -133,7 +118,7 @@ class Buy(Action):
             self.p.balance -= total_buy_price
             self.p._inventory.append(buy)
 
-            Action._actions_lst.append(
+            self.p.action_tracker.add(
                 dict(
                     date=str(buy.date),
                     action="buy",
@@ -199,7 +184,7 @@ class Sell(Action):
                     self.p.profit = self.p.profit + \
                                     (self.p.profit * (self.p.max_investment_per_trade * (profit_perc - 1)))
 
-                    Action._actions_lst.append(
+                    self.p.action_tracker.add(
                         dict(
                             date=str(position.date),
                             action="sell",
@@ -229,3 +214,18 @@ class Sell(Action):
                 updated_inventory.append(position)
 
         self.p._inventory = updated_inventory
+
+
+class ActionTracker:
+
+    def __init__(self):
+        self.action_lst = []
+
+    def add(self, action):
+        self.action_lst.append(action)
+
+    def get_actions(self):
+        return pd.DataFrame(self.action_lst)
+
+    def get_actions_stats(self):
+        return self.get_actions().describe(percentiles=[0.25, 0.5, 0.75, 0.8, 0.9, 0.95])

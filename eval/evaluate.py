@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import mlflow
 import pandas as pd
 
-from eval.actions import Buy, Sell, Action
+from eval.actions import Buy, Sell, ActionTracker
 from utils.mlflow_api import load_file, log_file
 from utils.util_funcs import log
 
@@ -59,6 +59,8 @@ class EvaluateInit:
         self._inventory = []
         self._extra_costs = 1 + self.slippage + self.order_fee
 
+        self.action_tracker = ActionTracker()
+
         self._min_date = None
         self._max_date = None
         self._dates_trades_combination = None
@@ -83,9 +85,9 @@ class EvaluateInit:
 
     def log_statistics(self):
         log_file(self._sequence_statistics, "eval_probability_stats.csv")
-        log_file(Action.get_actions(), "actions.csv")
+        log_file(self.action_tracker.get_actions(), "actions.csv")
 
-        df = Action.get_actions()
+        df = self.action_tracker.get_actions()
         df = df[~(df["forced"] == True)]
 
         df = df.describe(percentiles=[0.25, 0.5, 0.75, 0.8, 0.9, 0.95])
@@ -296,7 +298,7 @@ if __name__ == "__main__":
     mlflow.set_experiment("Evaluating")
 
     with mlflow.start_run():
-        ticker = load_file(run_id="3e846f81d4084179b1125a0609a181b5", experiment="Tests", fn="eval.pkl")
+        ticker = load_file(run_id="50b072089a914339a374fa744f94b9f3", experiment="N_Episodes_Impact_1", fn="eval.pkl")
 
         combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 0.07}
 
