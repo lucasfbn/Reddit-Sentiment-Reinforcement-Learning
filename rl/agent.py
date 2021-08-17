@@ -67,8 +67,8 @@ class RLAgent:
         environment = Environment.create(environment=self.environment)
 
         self.agent = Agent.create(
-            agent='ppo', environment=environment,
-            memory=55000, batch_size=32, tracking="all",
+            agent='ppo', environment=environment, batch_size=32, tracking="all",
+            # exploration=0.02
         )
 
         runner = Runner(agent=self.agent, environment=environment)
