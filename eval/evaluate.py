@@ -125,8 +125,9 @@ class Evaluate(EvaluateInit):
         self._sequence_attributes_df = pd.DataFrame(dicts)
 
     def _get_sequence_statistics(self):
-        self._sequence_statistics = self._sequence_attributes_df.describe(percentiles=[0.25, 0.5, 0.75,
-                                                                                       0.85, 0.9, 0.95])
+        df = self._sequence_attributes_df.describe(percentiles=[0.25, 0.5, 0.75, 0.85, 0.9, 0.95])
+        df["desc"] = df.index
+        self._sequence_statistics = df
 
     def initialize(self):
         self._rename_actions()
