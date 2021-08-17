@@ -11,14 +11,15 @@ from utils.util_funcs import log
 
 """
 Examines the impact of the number of episodes on the result.
+Issue: #82
 """
 
 log.setLevel("INFO")
 
 mlflow.set_tracking_uri(paths.mlflow_path)
-mlflow.set_experiment("N_Episodes_Impact")
+mlflow.set_experiment("N_Episodes_Impact_1")
 
-n_episodes = [1, 3, 5, 7, 10, 15, 20]
+n_episodes = [1, 2, 3, 5, 7, 10, 15, 20]
 
 for ne in n_episodes:
     log.info(f"Processing n_episodes: {ne}")
@@ -45,5 +46,7 @@ for ne in n_episodes:
         ep.force_sell()
         ep.log_results()
         ep.log_statistics()
+        
+        mlflow.log_param("Trained episodes", ne)
 
 os.system("shutdown /s /t 60")
