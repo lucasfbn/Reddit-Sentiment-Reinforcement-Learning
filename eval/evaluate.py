@@ -94,6 +94,8 @@ class EvaluateInit:
 
         eval_stats = df.join(results, how="outer")
         log_file(eval_stats, "eval_stats.csv")
+        
+        log_file(self._sequence_attributes_df, "sequence_df.csv")
 
 
 class Evaluate(EvaluateInit):
@@ -288,10 +290,10 @@ if __name__ == "__main__":
     import paths
 
     mlflow.set_tracking_uri(paths.mlflow_path)
-    mlflow.set_experiment("Evaluating")
+    mlflow.set_experiment("Tests")
 
     with mlflow.start_run():
-        ticker = load_file(run_id="50b072089a914339a374fa744f94b9f3", experiment="N_Episodes_Impact_1", fn="eval.pkl")
+        ticker = load_file(run_id="12829d4fd8fb408cbeee4d2e08f30c1f", experiment="N_Episodes_Impact_1", fn="eval.pkl")
 
         combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 0.07}
 
