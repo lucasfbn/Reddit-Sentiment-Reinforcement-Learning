@@ -11,74 +11,99 @@ import paths
 mlflow.set_tracking_uri(paths.mlflow_path)
 
 
-def _get_kind(fn):
-    kind = fn.split(".")[1]
-    assert kind in ["pkl", "json", "csv", "png"]
-    return kind
+class MlflowAPI:
+    valid_files_kinds = ["pkl", "json", "csv", "png"]
 
+    def __init__(self, run_id=None, experiment=None):
+        self.experiment = experiment
+        self.run_id = run_id
 
-def _artifact_path(artifact_uri):
-    return Path("C:/" + artifact_uri.split(":")[2])
+        self._active_run = self._get_active_run()
+        self._active_exp = self._get_active_experiment()
 
+        self._relevant_run_id = None
+        self._relevant_run_obj = None
+        self._relevant_exp = None
 
-def get_artifact_path(run_id=None):
-    run = mlflow.active_run() if run_id is None else mlflow.get_run(run_id)
-    return _artifact_path(run.info.artifact_uri)
+        self._get_relevant_run()
+        self._get_relevant_exp()
 
+    def _get_active_run(self):
+        return mlflow.active_run()
 
-def log_file(file, fn, sep=";"):
-    """
-    mlflow.set_tracking_uri(paths.mlflow_path)
-    mlflow.set_experiment("Testing")  #
-    mlflow.start_run()
+    def _get_active_experiment(self):
+        if self._active_run is not None:
+            return mlflow.get_experiment(self._active_run.info.experiment_id).name
+        return None
 
-    mlflow_log_file({"test": 1}, "test.json")
+    def _set_active_experiment(self, experiment):
+        mlflow.set_experiment(experiment)
+        self._active_exp = experiment
 
-    mlflow.end_run()
-    """
+    def _get_relevant_run(self):
+        self._relevant_run_id = self.run_id if self.run_id is not None else self._active_run
+        self._relevant_run_obj = mlflow.get_run(self.run_id) if self.run_id is not None else mlflow.active_run()
 
-    kind = _get_kind(fn)
+    def _get_relevant_exp(self):
+        self._relevant_exp = self.experiment if self.experiment is not None else self._active_exp
 
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        tmpdirname_path = Path(tmpdirname)
+    def get_artifact_path(self):
+        r = Path("C:/" + self._relevant_run_obj.info.artifact_uri.split(":")[2])
+        self._exit()
+        return r
+
+    def _get_file_kind(self, fn):
+        kind = fn.split(".")[1]
+        assert kind in self.valid_files_kinds
+        return kind
+
+    def _exit(self):
+        self._set_active_experiment(self._active_exp)
+
+    def log_file(self, file, fn):
+        kind = self._get_file_kind(fn)
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            tmpdirname_path = Path(tmpdirname)
+
+            if kind == "pkl":
+                with open(tmpdirname_path / fn, "wb") as f:
+                    pkl.dump(file, f)
+            elif kind == "json":
+                with open(tmpdirname_path / fn, "w+") as f:
+                    json.dump(file, f)
+            elif kind == "csv":
+                file.to_csv(tmpdirname_path / fn, sep=";", index=False)
+
+            mlflow.log_artifact((tmpdirname_path / fn).as_posix())
+
+        self._exit()
+
+    def load_file(self, fn):
+        self._set_active_experiment(self._relevant_exp)
+        artifact_path = self.get_artifact_path()
+
+        kind = self._get_file_kind(fn)
 
         if kind == "pkl":
-            with open(tmpdirname_path / fn, "wb") as f:
-                pkl.dump(file, f)
+            with open(artifact_path / fn, "rb") as f:
+                file = pkl.load(f)
         elif kind == "json":
-            with open(tmpdirname_path / fn, "w+") as f:
-                json.dump(file, f)
+            with open(artifact_path / fn) as f:
+                file = json.load(f)
         elif kind == "csv":
-            file.to_csv(tmpdirname_path / fn, sep=sep, index=False)
+            file = pd.read_csv(artifact_path / fn, sep=";")
+        else:
+            raise NotImplementedError
 
-        mlflow.log_artifact((tmpdirname_path / fn).as_posix())
+        self._exit()
+
+        return file
 
 
-def load_file(fn, run_id=None, experiment=None):
-    kind = _get_kind(fn)
+def log_file(file, fn):
+    MlflowAPI().log_file(file, fn)
 
-    active_run = mlflow.active_run()
 
-    if experiment is not None:
-        if active_run is not None:
-            active_experiment = mlflow.get_experiment(active_run.info.experiment_id).name
-        mlflow.set_experiment(experiment)
-
-    from_run = active_run if run_id is None else mlflow.get_run(run_id)
-    from_artifact_path = _artifact_path(from_run.info.artifact_uri)
-
-    if kind == "pkl":
-        with open(from_artifact_path / fn, "rb") as f:
-            file = pkl.load(f)
-    elif kind == "json":
-        with open(from_artifact_path / fn) as f:
-            file = json.load(f)
-    elif kind == "csv":
-        file = pd.read_csv(from_artifact_path / fn, sep=";")
-    else:
-        raise NotImplementedError
-
-    if experiment is not None and active_run is not None:
-        mlflow.set_experiment(active_experiment)
-
-    return file
+def load_file(fn, run_id=None, experiment_id=None):
+    return MlflowAPI(run_id=run_id, experiment=experiment_id).load_file(fn)
