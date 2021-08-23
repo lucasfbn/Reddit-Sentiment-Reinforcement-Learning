@@ -24,7 +24,7 @@ class RLAgent:
         self._agent_saved = False
 
     def load_agent(self, artifact_path):
-        self.agent = Agent.load(directory=str(artifact_path) + "/model", format='numpy', tracking="all")
+        self.agent = Agent.load(directory=str(artifact_path / "model"), format='numpy', tracking="all")
         self.artifact_path = self.artifact_path
 
     def save_agent(self):
@@ -66,10 +66,11 @@ class RLAgent:
         self.environment.data = self.ticker
         environment = Environment.create(environment=self.environment)
 
-        self.agent = Agent.create(
-            agent='ppo', environment=environment, batch_size=32, tracking="all",
-            # exploration=0.02
-        )
+        if self.agent is None:
+            self.agent = Agent.create(
+                agent='ppo', environment=environment, batch_size=32, tracking="all",
+                # exploration=0.02
+            )
 
         runner = Runner(agent=self.agent, environment=environment)
         runner.run(num_episodes=int(n_full_episodes * len(self.ticker)))
