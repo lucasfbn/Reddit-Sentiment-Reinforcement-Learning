@@ -1,14 +1,34 @@
 import mlflow
+import ray
 from tensorforce import Runner, Agent, Environment
-from tqdm import tqdm
 
 import paths
 from rl.env import EnvCNN
-from utils.mlflow_api import load_file, log_file
+from utils.mlflow_api import load_file, log_file, MlflowAPI
 from utils.util_funcs import log
 
 mlflow.set_tracking_uri(paths.mlflow_path)
 mlflow.set_experiment("Tests")
+
+
+@ray.remote
+def eval_single(agent_path, env, ticker):
+    rla = RLAgent(environment=EnvCNN, ticker=None)
+    rla.load_agent(agent_path)
+
+    agent = rla.agent
+
+    for sequence in env.get_sequences(ticker):
+        state = env._shape_state(sequence).df
+
+        action = agent.act(state, independent=True)
+
+        arr = agent.tracked_tensors()["agent/policy/action_distribution/probabilities"]
+        actions_proba = {"hold": arr[0], "buy": arr[1], "sell": arr[2]}
+
+        sequence.add_eval(action, actions_proba)
+
+    return ticker
 
 
 class RLAgent:
@@ -16,43 +36,33 @@ class RLAgent:
     def __init__(self, environment, ticker):
         self.ticker = ticker
 
-        self.artifact_path = None if mlflow.active_run() is None else "C:" + mlflow.get_artifact_uri().split(":")[2]
+        self.artifact_path = None if mlflow.active_run() is None else MlflowAPI().get_artifact_path()
 
         self.environment = environment
         self.agent = None
 
         self._agent_saved = False
+        self._agent_path = None
 
     def load_agent(self, artifact_path):
         self.agent = Agent.load(directory=str(artifact_path / "model"), format='numpy', tracking="all")
-        self.artifact_path = self.artifact_path
+        self._agent_path = artifact_path
+        self._agent_saved = True
 
     def save_agent(self):
         if self.artifact_path is not None:
-            path = self.artifact_path + "/model"
+            path = str(self.artifact_path / "model")
             self.agent.save(directory=path, format='numpy')
             self._agent_saved = True
 
-    def _eval(self):
+    def eval_agent(self):
         log.info("Evaluating...")
+        ray.init()
 
         env = self.environment()
 
-        for ticker in tqdm(self.ticker, "Processing ticker "):
-
-            for sequence in env.get_sequences(ticker):
-                state = env._shape_state(sequence).df
-
-                action = self.agent.act(state, independent=True)
-
-                arr = self.agent.tracked_tensors()["agent/policy/action_distribution/probabilities"]
-                actions_proba = {"hold": arr[0], "buy": arr[1], "sell": arr[2]}
-
-                sequence.add_eval(action, actions_proba)
-                # sequence.cleanup()
-
-    def eval_agent(self):
-        self._eval()
+        futures = [eval_single.remote(agent_path=self.artifact_path, env=env, ticker=t) for t in self.ticker]
+        self.ticker = ray.get(futures)
 
         if self.artifact_path is not None:
             log_file(self.ticker, f"eval.pkl")
@@ -88,8 +98,9 @@ if __name__ == '__main__':
     with mlflow.start_run():
         data = load_file(run_id="f4bdae299f694599ba91c7dd1f77c9b5", fn="ticker.pkl", experiment="Datasets")
         rla = RLAgent(environment=EnvCNN, ticker=data)
-        # rla.load_agent(
-        #     "C:/Users/lucas/OneDrive/Backup/Projects/Trendstuff/storage/mlflow/mlruns/5/56f707cead8140e782f712752ff21fad/artifacts")
-        rla.train(n_full_episodes=1)
+        rla.load_agent(MlflowAPI(run_id="230bb130c5314840b557e80d530d692c",
+                                 experiment="Exp: Retrain agent").get_artifact_path())
+        # rla.train(n_full_episodes=1)
         rla.eval_agent()
         rla.close()
+        mlflow.log_param("parallel", True)
