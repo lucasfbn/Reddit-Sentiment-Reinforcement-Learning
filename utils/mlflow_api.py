@@ -105,5 +105,5 @@ def log_file(file, fn):
     MlflowAPI().log_file(file, fn)
 
 
-def load_file(fn, run_id=None, experiment_id=None):
-    return MlflowAPI(run_id=run_id, experiment=experiment_id).load_file(fn)
+def load_file(fn, run_id=None, experiment=None):
+    return MlflowAPI(run_id=run_id, experiment=experiment).load_file(fn)
