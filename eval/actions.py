@@ -79,13 +79,12 @@ class Buy(Action):
     def handle(self):
         self.actions.sort(key=lambda x: x.price, reverse=False)
 
-        capital_per_trade = self.p.initial_balance * self.p.max_investment_per_trade
         i = 0
 
         for buy in self.actions:
 
             # Exit constraints should be above this statement
-            if i == self.p.max_trades_per_day:
+            if self.p.max_trades_per_day is not None and i == self.p.max_trades_per_day:
                 break
 
             if not self.callback(action=buy):
@@ -94,6 +93,12 @@ class Buy(Action):
                 i += 1
 
             price = buy.price * self.p.extra_costs
+
+            # In case we want to disable this setting, we allow for buying a single stock
+            if self.p.max_investment_per_trade is not None:
+                capital_per_trade = self.p.initial_balance * self.p.max_investment_per_trade
+            else:
+                capital_per_trade = price
 
             if self.p.partial_shares_possible:
                 buyable_stocks = capital_per_trade / price
