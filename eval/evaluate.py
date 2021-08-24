@@ -8,7 +8,7 @@ from eval.operation import Operation
 from utils.mlflow_api import load_file, log_file
 from utils.util_funcs import log
 
-log.setLevel("DEBUG")
+log.setLevel("INFO")
 
 
 class Evaluate:
@@ -47,11 +47,22 @@ class Evaluate:
         self._sequence_attributes_df = None
         self._sequence_statistics = None
 
+        self.training_emulator_active = False
+
+    def activate_training_emulator(self):
+        log.warning("Training emulator is active.")
+        self.training_emulator_active = True
+        self.max_investment_per_trade = None
+        self.max_price_per_stock = None
+        self.max_trades_per_day = None
+        self.set_thresholds({'hold': 0, 'buy': 0, 'sell': 0})
+
     def get_result(self):
         return {"initial_balance": self.initial_balance, "max_investment_per_trade": self.max_investment_per_trade,
                 "max_price_per_stock": self.max_price_per_stock, "max_trades_per_day": self.max_trades_per_day,
                 "slippage": self.slippage, "thresholds": self.thresholds, "order_fee": self.order_fee,
-                "balance": self.balance, "profit": self.profit, "len_inventory": len(self.inventory)}
+                "balance": self.balance, "profit": self.profit, "len_inventory": len(self.inventory),
+                "training_emulator_active": self.training_emulator_active}
 
     def log_results(self):
         mlflow.log_params(self.get_result())
@@ -264,16 +275,15 @@ if __name__ == "__main__":
     mlflow.set_experiment("Tests")
 
     with mlflow.start_run():
-        # ticker = load_file(run_id="12829d4fd8fb408cbeee4d2e08f30c1f", experiment="N_Episodes_Impact_1", fn="eval.pkl")
-        ticker = None
-        combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 0.07}
+        ticker = load_file(run_id="12829d4fd8fb408cbeee4d2e08f30c1f", experiment="N_Episodes_Impact_1", fn="eval.pkl")
+        combination = {'max_trades_per_day': None, 'max_price_per_stock': None, 'max_investment_per_trade': None}
 
-        ep = Evaluate(ticker=ticker, **combination)
-        print(ep.get_result())
-        # ep.initialize()
+        ep = Evaluate(ticker=ticker, **combination, initial_balance=10000)
+        ep.activate_training_emulator()
+        ep.initialize()
         # ep.set_quantile_thresholds({'hold': None, 'buy': 0.95, 'sell': None})
-        # ep.act()
-        # ep.force_sell()
-        # ep.log_results()
-        # ep.log_statistics()
-        # print(ep.get_result())
+        ep.act()
+        ep.force_sell()
+        ep.log_results()
+        ep.log_statistics()
+        print(ep.get_result())
