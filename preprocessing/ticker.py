@@ -11,3 +11,6 @@ class Ticker:
 
     def add_eval(self, actions):
         self.actions = actions
+
+    def __len__(self):
+        return len(self.sequences)
