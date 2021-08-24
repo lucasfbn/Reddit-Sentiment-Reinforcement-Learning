@@ -1,34 +1,14 @@
 import pickle as pkl
-from dataclasses import dataclass
 
 import mlflow
 import pandas as pd
 
 from eval.actions import Buy, Sell, ActionTracker
+from eval.operation import Operation
 from utils.mlflow_api import load_file, log_file
 from utils.util_funcs import log
 
 log.setLevel("DEBUG")
-
-
-class Operation:
-
-    def __init__(self, ticker, price, date, tradeable, action, action_probas):
-        self.action_probas = action_probas
-        self.action = action
-        self.tradeable = tradeable
-        self.date = date
-        self.price = price
-        self.ticker = ticker
-
-        self.price_bought = None
-        self.quantity = None
-        self.total_buy_price = None
-
-    def save_buy(self, price, quantity, total_buy_price):
-        self.price_bought = price
-        self.quantity = quantity
-        self.total_buy_price = total_buy_price
 
 
 class EvaluateInit:
