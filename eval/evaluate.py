@@ -42,8 +42,6 @@ class Evaluate:
 
         self.action_tracker = ActionTracker()
 
-        self._min_date = None
-        self._max_date = None
         self._dates_trades_combination = None
 
         self._sequence_attributes_df = None
