@@ -60,6 +60,7 @@ class Evaluate:
         log_file(self._sequence_statistics, "eval_probability_stats.csv")
         log_file(self.action_tracker.get_actions(), "actions.csv")
 
+        # Merge action stats with results
         df = self.action_tracker.get_actions_stats()
         df[" "] = "|"
 
@@ -70,13 +71,18 @@ class Evaluate:
 
         log_file(self._sequence_attributes_df, "sequence_df.csv")
 
+    def _get_sequence_statistics(self):
+        df = self._sequence_attributes_df.describe(percentiles=[0.25, 0.5, 0.75, 0.85, 0.9, 0.95])
+        df["desc"] = df.index
+        self._sequence_statistics = df
+
     def _rename_actions(self):
         map_ = {0: "hold", 1: "buy", 2: "sell"}
         for ticker in self.ticker:
             for sequence in ticker.sequences:
                 sequence.action = map_[sequence.action]
 
-    def _merge_sequence_attributes_to_df(self):
+    def _sequence_attributes_to_df(self):
         dicts = []
 
         for ticker in self.ticker:
@@ -96,14 +102,9 @@ class Evaluate:
 
         self._sequence_attributes_df = pd.DataFrame(dicts)
 
-    def _get_sequence_statistics(self):
-        df = self._sequence_attributes_df.describe(percentiles=[0.25, 0.5, 0.75, 0.85, 0.9, 0.95])
-        df["desc"] = df.index
-        self._sequence_statistics = df
-
     def initialize(self):
         self._rename_actions()
-        self._merge_sequence_attributes_to_df()
+        self._sequence_attributes_to_df()
         self._get_sequence_statistics()
         self._get_dates_trades_combination()
 

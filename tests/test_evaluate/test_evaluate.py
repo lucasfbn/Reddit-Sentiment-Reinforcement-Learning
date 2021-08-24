@@ -74,7 +74,7 @@ def test_rename_actions():
 
 def test_min_max_date():
     ev = Evaluate(ticker=copy.deepcopy(generate_ticker()))
-    ev._merge_sequence_attributes_to_df()
+    ev._sequence_attributes_to_df()
     ev._find_min_max_date()
 
     min_, max_ = ev._min_date, ev._max_date
@@ -83,7 +83,7 @@ def test_min_max_date():
 
 def test_merge_sequence_attributes_to_df():
     ev = Evaluate(ticker=copy.deepcopy(generate_ticker()))
-    ev._merge_sequence_attributes_to_df()
+    ev._sequence_attributes_to_df()
 
     result = ev._sequence_attributes_df
     expected = pd.DataFrame({'hold': [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3],
@@ -101,7 +101,7 @@ def test_merge_sequence_attributes_to_df():
 def test_set_quantile_thresholds():
     ev = Evaluate(ticker=copy.deepcopy(generate_ticker()))
     ev._rename_actions()
-    ev._merge_sequence_attributes_to_df()
+    ev._sequence_attributes_to_df()
 
     quantiles = {"hold": 0.5, "buy": 0.5}
 
@@ -117,7 +117,7 @@ def test_set_quantile_thresholds():
 def test_get_dates_trades_combination():
     ev = Evaluate(ticker=generate_ticker())
     ev._rename_actions()
-    ev._merge_sequence_attributes_to_df()
+    ev._sequence_attributes_to_df()
     ev._find_min_max_date()
     ev._get_dates_trades_combination()
 
