@@ -208,4 +208,33 @@ def test_cnn_states():
     env = EnvCNN()
     assert env.states() == {'shape': (1, 3, 2), 'type': 'float'}
 
+
 def test_exclude_non_tradeable_sequences():
+    t2.sequences[2].tradeable = False
+
+    EnvCNN.data = data
+    EnvCNN.shuffle_sequences = False
+
+    env = EnvCNN()
+
+    expected_states = [
+        np.array([[1, 2, 3], [10, 11, 12]], dtype=np.float32).T,
+        np.array([[2, 3, 4], [11, 12, 13]], dtype=np.float32).T,
+        np.array([[3, 4, 5], [12, 13, 14]], dtype=np.float32).T,
+        np.array([[81, 82, 83], [810, 811, 812]], dtype=np.float32).T,
+        np.array([[82, 83, 84], [811, 812, 813]], dtype=np.float32).T,
+    ]
+
+    i = 0
+    for _ in range(2):
+        state = env.reset()
+        terminal = False
+
+        while not terminal:
+            assert_array_equal(state, expected_states[i].reshape(1, 3, 2))
+            actions = random.randint(0, 2)
+            state, terminal, reward = env.execute(actions=actions)
+
+            i += 1
+
+    assert i == len(expected_states)

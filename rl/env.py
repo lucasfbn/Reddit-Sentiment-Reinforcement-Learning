@@ -11,6 +11,7 @@ from utils.util_funcs import log
 class Env(Environment):
     data = None
     shuffle_sequences = True
+    exclude_non_tradeable_sequences = True
 
     def __init__(self):
         super().__init__()
@@ -116,6 +117,11 @@ class Env(Environment):
     def _assign_new_sequences(self):
         self._current_sequences = self._current_ticker.sequences
 
+    def _exclude_non_tradeable_sequences(self):
+        if self.exclude_non_tradeable_sequences:
+            new_sequences = [seq for seq in self._current_sequences if seq.tradeable]
+            self._current_sequences = new_sequences
+
     def _assign_new_states(self):
         if self.shuffle_sequences:
             shuffle(self._current_sequences)
@@ -126,6 +132,7 @@ class Env(Environment):
 
         self._assign_new_ticker()
         self._assign_new_sequences()
+        self._exclude_non_tradeable_sequences()
         self._assign_new_states()
 
         self._handle_counter()
