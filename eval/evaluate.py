@@ -48,16 +48,10 @@ class Evaluate:
         self._sequence_statistics = None
 
     def get_result(self):
-        return {"initial_balance": self.initial_balance,
-                "max_investment_per_trade": self.max_investment_per_trade,
-                "max_price_per_stock": self.max_price_per_stock,
-                "max_trades_per_day": self.max_trades_per_day,
-                "slippage": self.slippage,
-                "thresholds": self.thresholds,
-                "order_fee": self.order_fee,
-                "balance": self.balance,
-                "profit": self.profit,
-                "len_inventory": len(self.inventory)}
+        return {"initial_balance": self.initial_balance, "max_investment_per_trade": self.max_investment_per_trade,
+                "max_price_per_stock": self.max_price_per_stock, "max_trades_per_day": self.max_trades_per_day,
+                "slippage": self.slippage, "thresholds": self.thresholds, "order_fee": self.order_fee,
+                "balance": self.balance, "profit": self.profit, "len_inventory": len(self.inventory)}
 
     def log_results(self):
         mlflow.log_params(self.get_result())
@@ -269,15 +263,16 @@ if __name__ == "__main__":
     mlflow.set_experiment("Tests")
 
     with mlflow.start_run():
-        ticker = load_file(run_id="12829d4fd8fb408cbeee4d2e08f30c1f", experiment="N_Episodes_Impact_1", fn="eval.pkl")
-
+        # ticker = load_file(run_id="12829d4fd8fb408cbeee4d2e08f30c1f", experiment="N_Episodes_Impact_1", fn="eval.pkl")
+        ticker = None
         combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 0.07}
 
         ep = Evaluate(ticker=ticker, **combination)
-        ep.initialize()
-        ep.set_quantile_thresholds({'hold': None, 'buy': 0.95, 'sell': None})
-        ep.act()
-        ep.force_sell()
-        ep.log_results()
-        ep.log_statistics()
         print(ep.get_result())
+        # ep.initialize()
+        # ep.set_quantile_thresholds({'hold': None, 'buy': 0.95, 'sell': None})
+        # ep.act()
+        # ep.force_sell()
+        # ep.log_results()
+        # ep.log_statistics()
+        # print(ep.get_result())
