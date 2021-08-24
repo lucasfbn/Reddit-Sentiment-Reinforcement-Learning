@@ -11,7 +11,7 @@ from utils.util_funcs import log
 log.setLevel("DEBUG")
 
 
-class EvaluateInit:
+class Evaluate:
 
     def __init__(self, ticker,
                  initial_balance=1000,
@@ -74,11 +74,8 @@ class EvaluateInit:
 
         eval_stats = df.join(results, how="outer")
         log_file(eval_stats, "eval_stats.csv")
-        
+
         log_file(self._sequence_attributes_df, "sequence_df.csv")
-
-
-class Evaluate(EvaluateInit):
 
     def _rename_actions(self):
         map_ = {0: "hold", 1: "buy", 2: "sell"}
