@@ -55,15 +55,10 @@ class Action:
                 return True
             return False
 
-    def log(self):
-        mlflow.log_metric("balance", self.p.balance)
-        mlflow.log_metric("Inventory Length", len(self.p.inventory))
-
     def execute(self):
         if not self.constraints():
             return
         self.handle()
-        # self.log()
 
 
 class Buy(Action):
