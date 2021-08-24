@@ -34,11 +34,11 @@ class Evaluate:
         self.ticker = ticker
 
         self.balance = self.initial_balance
+        self.inventory = []
         self.profit = 1
 
         self.thresholds = {}
-        self.inventory = []
-        self._extra_costs = 1 + self.slippage + self.order_fee
+        self.extra_costs = 1 + self.slippage + self.order_fee
 
         self.action_tracker = ActionTracker()
 

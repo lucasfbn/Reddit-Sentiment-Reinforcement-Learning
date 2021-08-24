@@ -98,7 +98,7 @@ class Buy(Action):
             else:
                 i += 1
 
-            price = buy.price * self.p._extra_costs
+            price = buy.price * self.p.extra_costs
 
             if self.p.partial_shares_possible:
                 buyable_stocks = capital_per_trade / price
