@@ -13,7 +13,8 @@ log.setLevel("DEBUG")
 
 class Evaluate:
 
-    def __init__(self, ticker,
+    def __init__(self,
+                 ticker,
                  initial_balance=1000,
                  max_investment_per_trade=0.07,
                  max_price_per_stock=10,
@@ -36,7 +37,7 @@ class Evaluate:
         self.profit = 1
 
         self.thresholds = {}
-        self._inventory = []
+        self.inventory = []
         self._extra_costs = 1 + self.slippage + self.order_fee
 
         self.action_tracker = ActionTracker()
@@ -58,7 +59,7 @@ class Evaluate:
                 "order_fee": self.order_fee,
                 "balance": self.balance,
                 "profit": self.profit,
-                "len_inventory": len(self._inventory)}
+                "len_inventory": len(self.inventory)}
 
     def log_results(self):
         mlflow.log_params(self.get_result())
@@ -196,7 +197,7 @@ class Evaluate:
             self._handle_sells(sells)
             self._handle_buys(potential_buys)
 
-            log.debug(f"Inventory len: {len(self._inventory)}")
+            log.debug(f"Inventory len: {len(self.inventory)}")
 
     def _handle_buys(self, potential_buys):
         Buy(portfolio=self, actions=potential_buys, live=self.live).execute()
@@ -208,7 +209,7 @@ class Evaluate:
         log.warn("FORCING SELL OF REMAINING INVENTORY.")
 
         new_inventory = []
-        for position in self._inventory:
+        for position in self.inventory:
             if not any(new_position.ticker == position.ticker for new_position in new_inventory):
                 position.tradeable = True
                 new_inventory.append(position)
@@ -222,7 +223,7 @@ class Evaluate:
     def load(self, path):
         with open(path, "rb") as f:
             state = pkl.load(f)
-        self._inventory = state._inventory
+        self.inventory = state.inventory
         self.balance = state.balance
         self.profit = state.profit
 
