@@ -57,7 +57,7 @@ class Action:
 
     def log(self):
         mlflow.log_metric("balance", self.p.balance)
-        mlflow.log_metric("Inventory Length", len(self.p._inventory))
+        mlflow.log_metric("Inventory Length", len(self.p.inventory))
 
     def execute(self):
         if not self.constraints():
@@ -116,7 +116,7 @@ class Buy(Action):
 
             old_depot = self.p.balance
             self.p.balance -= total_buy_price
-            self.p._inventory.append(buy)
+            self.p.inventory.append(buy)
 
             self.p.action_tracker.add(
                 dict(
@@ -153,7 +153,7 @@ class Sell(Action):
     def handle(self):
 
         updated_inventory = []
-        for position in self.p._inventory:
+        for position in self.p.inventory:
 
             delete = False
 
@@ -213,7 +213,7 @@ class Sell(Action):
             if not delete:
                 updated_inventory.append(position)
 
-        self.p._inventory = updated_inventory
+        self.p.inventory = updated_inventory
 
 
 class ActionTracker:
