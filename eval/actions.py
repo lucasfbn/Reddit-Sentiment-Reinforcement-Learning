@@ -108,7 +108,7 @@ class Buy(Action):
             quantity = buyable_stocks
             total_buy_price = buyable_stocks * price
 
-            if self.p.balance - total_buy_price <= 0:
+            if not self.p.training_emulator_active and self.p.balance - total_buy_price <= 0:
                 log.debug("Attempted BUY but balance is below or even to zero.")
                 return
 
@@ -181,8 +181,9 @@ class Sell(Action):
 
                     old_depot = self.p.balance
                     self.p.balance += current_price * position.quantity
-                    self.p.profit = self.p.profit + \
-                                    (self.p.profit * (self.p.max_investment_per_trade * (profit_perc - 1)))
+                    self.p.profit = -1
+                    # self.p.profit = self.p.profit + \
+                    #                 (self.p.profit * (self.p.max_investment_per_trade * (profit_perc - 1)))
 
                     self.p.action_tracker.add(
                         dict(
