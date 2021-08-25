@@ -35,6 +35,18 @@ class Env(Environment):
         self._even_reward_counter = 0
         self._pos_reward_counter = 0
 
+        self._exclude_non_tradeable_sequences()
+
+    def _exclude_non_tradeable_sequences(self):
+        if Env.data is not None and self.exclude_non_tradeable_sequences:
+            new_ticker = []
+            for t in self._episode_data:
+                new_sequences = [seq for seq in t.sequences if seq.tradeable is True]
+                if len(new_sequences) != 0:
+                    t.sequences = new_sequences
+                    new_ticker.append(t)
+            self._episode_data = new_ticker
+
     def _shape_state(self, state):
         raise NotImplemented
 
@@ -117,11 +129,6 @@ class Env(Environment):
     def _assign_new_sequences(self):
         self._current_sequences = self._current_ticker.sequences
 
-    def _exclude_non_tradeable_sequences(self):
-        if self.exclude_non_tradeable_sequences:
-            new_sequences = [seq for seq in self._current_sequences if seq.tradeable]
-            self._current_sequences = new_sequences
-
     def _assign_new_states(self):
         if self.shuffle_sequences:
             shuffle(self._current_sequences)
@@ -132,7 +139,6 @@ class Env(Environment):
 
         self._assign_new_ticker()
         self._assign_new_sequences()
-        self._exclude_non_tradeable_sequences()
         self._assign_new_states()
 
         self._handle_counter()
