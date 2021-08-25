@@ -127,7 +127,8 @@ class Buy(Action):
                     quantity=buy.quantity,
                     total=buy.total_buy_price,
                     old_balance=old_depot,
-                    new_balance=self.p.balance
+                    new_balance=self.p.balance,
+                    forced=False
                 )
             )
 
