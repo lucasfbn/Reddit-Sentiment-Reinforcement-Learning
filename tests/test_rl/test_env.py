@@ -7,7 +7,12 @@ from numpy.testing import assert_array_equal
 
 from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
+from rl.env import Env
 from rl.env import EnvCNN, EnvNN
+
+ticker = [Ticker(_, None) for _ in range(5)]
+for tck in ticker:
+    tck.sequences = [tck.name for _ in range(5)]
 
 t1 = Ticker(None, None)
 t2 = Ticker(None, None)
@@ -50,9 +55,7 @@ data = [t1, t2]
 
 
 def test_basic_env_cnn_run():
-    EnvCNN.data = data
-    EnvCNN.shuffle_sequences = False
-    env = EnvCNN()
+    env = EnvCNN(ticker=data)
 
     expected_states = [
         np.array([[1, 2, 3], [10, 11, 12]], dtype=np.float32).T,
@@ -79,9 +82,7 @@ def test_basic_env_cnn_run():
 
 
 def test_basic_env_nn_run():
-    EnvNN.data = data
-    EnvNN.shuffle_sequences = False
-    env = EnvNN()
+    env = EnvNN(data)
 
     expected_states = [
         np.array([[1, 2, 3, 10, 11, 12]], dtype=np.float32),
@@ -108,11 +109,11 @@ def test_basic_env_nn_run():
 
 
 def test_reward():
-    EnvCNN.data = data
-    EnvCNN.shuffle_sequences = False
-    env = EnvCNN()
+    env = EnvCNN(data)
 
-    expected_rewards = [0, 0, 3, 0, 0, 1]
+    expected_rewards = [-data[0].sequences[0].price * env.TRANSACTION_COSTS_PERC,
+                        -data[0].sequences[1].price * env.TRANSACTION_COSTS_PERC,
+                        3, 0, -data[1].sequences[1].price * env.TRANSACTION_COSTS_PERC, 1]
     actions = [1, 1, 2, 0, 1, 2]
     i = 0
     for _ in range(2):
@@ -129,8 +130,7 @@ def test_w_real_data_cnn():
     with open("ticker.pkl", "rb") as f:
         data = pkl.load(f)
 
-    EnvCNN.data = data
-    env = EnvCNN()
+    env = EnvCNN(data)
 
     for _ in range(100):
         states = env.reset()
@@ -145,8 +145,7 @@ def test_w_real_data_nn():
     with open("ticker.pkl", "rb") as f:
         data = pkl.load(f)
 
-    EnvNN.data = data
-    env = EnvNN()
+    env = EnvNN(data)
 
     for _ in range(100):
         states = env.reset()
@@ -161,9 +160,7 @@ def test_cnn_loop():
     """
     Should loop through the whole data twice
     """
-    EnvCNN.data = data
-    EnvCNN.shuffle_sequences = False
-    env = EnvCNN()
+    env = EnvCNN(data)
 
     expected_states = [
         np.array([[1, 2, 3], [10, 11, 12]], dtype=np.float32).T,
@@ -191,50 +188,64 @@ def test_cnn_loop():
 
 
 def test_max_episode_timesteps():
-    EnvNN.data = data
-    env = EnvNN()
-
+    env = EnvNN(data)
     assert env.max_episode_timesteps() == 3
 
 
 def test_nn_states():
-    EnvNN.data = data
-    env = EnvNN()
+    env = EnvNN(data)
     assert env.states() == {'shape': (6,), 'type': 'float'}
 
 
 def test_cnn_states():
-    EnvCNN.data = data
-    env = EnvCNN()
+    env = EnvCNN(data)
     assert env.states() == {'shape': (1, 3, 2), 'type': 'float'}
 
 
-def test_exclude_non_tradeable_sequences():
-    t2.sequences[2].tradeable = False
+# def test_exclude_non_tradeable_sequences():
+#     t2.sequences[2].tradeable = False
+#
+#     EnvCNN.data = data
+#     EnvCNN.shuffle_sequences = False
+#
+#     env = EnvCNN()
+#
+#     expected_states = [
+#         np.array([[1, 2, 3], [10, 11, 12]], dtype=np.float32).T,
+#         np.array([[2, 3, 4], [11, 12, 13]], dtype=np.float32).T,
+#         np.array([[3, 4, 5], [12, 13, 14]], dtype=np.float32).T,
+#         np.array([[81, 82, 83], [810, 811, 812]], dtype=np.float32).T,
+#         np.array([[82, 83, 84], [811, 812, 813]], dtype=np.float32).T,
+#     ]
+#
+#     i = 0
+#     for _ in range(2):
+#         state = env.reset()
+#         terminal = False
+#
+#         while not terminal:
+#             assert_array_equal(state, expected_states[i].reshape(1, 3, 2))
+#             actions = random.randint(0, 2)
+#             state, terminal, reward = env.execute(actions=actions)
+#
+#             i += 1
+#
+#     assert i == len(expected_states)
 
-    EnvCNN.data = data
-    EnvCNN.shuffle_sequences = False
 
-    env = EnvCNN()
+def test_next_ticker():
+    e = Env(ticker=ticker)
 
-    expected_states = [
-        np.array([[1, 2, 3], [10, 11, 12]], dtype=np.float32).T,
-        np.array([[2, 3, 4], [11, 12, 13]], dtype=np.float32).T,
-        np.array([[3, 4, 5], [12, 13, 14]], dtype=np.float32).T,
-        np.array([[81, 82, 83], [810, 811, 812]], dtype=np.float32).T,
-        np.array([[82, 83, 84], [811, 812, 813]], dtype=np.float32).T,
-    ]
+    result_curr_ticker = []
+    result_curr_seq = []
+    expected_curr_ticker = [0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1]
 
-    i = 0
-    for _ in range(2):
-        state = env.reset()
-        terminal = False
+    for i in range(12):
+        e.next_ticker()
+        result_curr_ticker.append(e.curr_ticker)
+        result_curr_seq.append(e.curr_sequences[0])
 
-        while not terminal:
-            assert_array_equal(state, expected_states[i].reshape(1, 3, 2))
-            actions = random.randint(0, 2)
-            state, terminal, reward = env.execute(actions=actions)
+    result_curr_ticker = [tck.name for tck in result_curr_ticker]
 
-            i += 1
-
-    assert i == len(expected_states)
+    assert result_curr_ticker == expected_curr_ticker
+    assert result_curr_seq == expected_curr_ticker
