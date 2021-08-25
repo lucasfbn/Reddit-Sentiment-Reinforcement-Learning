@@ -47,6 +47,7 @@ class Env(Environment):
                     new_ticker.append(t)
             self._episode_data = new_ticker
 
+    @staticmethod
     def _shape_state(self, state):
         raise NotImplemented
 
