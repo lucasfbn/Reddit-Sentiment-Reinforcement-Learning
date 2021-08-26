@@ -36,8 +36,6 @@ class RLAgent:
     def __init__(self, environment, ticker):
         self.ticker = ticker
 
-        self.artifact_path = None if mlflow.active_run() is None else MlflowAPI().get_artifact_path()
-
         self.environment = environment
         self.agent = None
 
@@ -50,23 +48,21 @@ class RLAgent:
         self._agent_saved = True
 
     def save_agent(self):
-        if self.artifact_path is not None:
-            path = str(self.artifact_path / "model")
-            self.agent.save(directory=path, format='numpy')
-            self._agent_saved = True
+        path = str(MlflowAPI().get_artifact_path() / "model")
+        self.agent.save(directory=path, format='numpy')
+        self._agent_saved = True
 
     def eval_agent(self):
         log.info("Evaluating...")
         ray.init(ignore_reinit_error=True)
 
         env = self.environment
+        agent_path = MlflowAPI().get_artifact_path() if self._agent_path is None else self._agent_path
 
-        futures = [eval_single.remote(agent_path=self.artifact_path if self._agent_path is None else self._agent_path,
-                                      env=env, ticker=t) for t in self.ticker]
+        futures = [eval_single.remote(agent_path=agent_path, env=env, ticker=t) for t in self.ticker]
         evaluated_ticker = ray.get(futures)
 
-        if self.artifact_path is not None:
-            log_file(evaluated_ticker, f"eval.pkl")
+        log_file(evaluated_ticker, f"eval.pkl")
 
         if not self._agent_saved:
             self.save_agent()
