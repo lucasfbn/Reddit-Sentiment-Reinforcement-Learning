@@ -7,9 +7,6 @@ from rl.env import EnvCNN
 from utils.mlflow_api import load_file, log_file, MlflowAPI
 from utils.util_funcs import log
 
-mlflow.set_tracking_uri(paths.mlflow_path)
-mlflow.set_experiment("Tests")
-
 
 @ray.remote
 def eval_single(agent_path, env, ticker):
@@ -18,8 +15,8 @@ def eval_single(agent_path, env, ticker):
 
     agent = rla.agent
 
-    for sequence in env.get_sequences(ticker):
-        state = env._shape_state(sequence).df
+    for sequence in ticker.sequences:
+        state = env.shape_state(sequence).df
 
         action = agent.act(state, independent=True)
 
@@ -27,6 +24,8 @@ def eval_single(agent_path, env, ticker):
         actions_proba = {"hold": arr[0], "buy": arr[1], "sell": arr[2]}
 
         sequence.add_eval(action, actions_proba)
+
+    rla.agent.close()
 
     return ticker
 
@@ -57,24 +56,24 @@ class RLAgent:
 
     def eval_agent(self):
         log.info("Evaluating...")
-        ray.init()
+        ray.init(ignore_reinit_error=True)
 
-        env = self.environment()
+        env = self.environment
 
-        futures = [eval_single.remote(agent_path=self.artifact_path, env=env, ticker=t) for t in self.ticker]
-        self.ticker = ray.get(futures)
+        futures = [eval_single.remote(agent_path=self.artifact_path if self._agent_path is None else self._agent_path,
+                                      env=env, ticker=t) for t in self.ticker]
+        evaluated_ticker = ray.get(futures)
 
         if self.artifact_path is not None:
-            log_file(self.ticker, f"eval.pkl")
+            log_file(evaluated_ticker, f"eval.pkl")
 
         if not self._agent_saved:
             self.save_agent()
 
-        return self.ticker
+        return evaluated_ticker
 
     def train(self, n_full_episodes):
-        self.environment.data = self.ticker
-        environment = Environment.create(environment=self.environment)
+        environment = Environment.create(environment=self.environment, ticker=self.ticker)
 
         if self.agent is None:
             self.agent = Agent.create(
@@ -82,8 +81,13 @@ class RLAgent:
                 # exploration=0.02
             )
 
+        def log_callback(runner_, _):
+            env = runner_.environments[0]
+            env.log()
+
         runner = Runner(agent=self.agent, environment=environment)
-        runner.run(num_episodes=int(n_full_episodes * len(self.ticker)))
+        runner.run(num_episodes=int(n_full_episodes * len(self.ticker)), callback=log_callback,
+                   callback_episode_frequency=len(self.ticker))
         runner.close()
 
         self.save_agent()
@@ -95,12 +99,15 @@ class RLAgent:
 
 
 if __name__ == '__main__':
+    mlflow.set_tracking_uri(paths.mlflow_path)
+    mlflow.set_experiment("Tests")
+
     with mlflow.start_run():
         data = load_file(run_id="f4bdae299f694599ba91c7dd1f77c9b5", fn="ticker.pkl", experiment="Datasets")
         rla = RLAgent(environment=EnvCNN, ticker=data)
-        rla.load_agent(MlflowAPI(run_id="230bb130c5314840b557e80d530d692c",
-                                 experiment="Exp: Retrain agent").get_artifact_path())
-        # rla.train(n_full_episodes=1)
-        rla.eval_agent()
+        # rla.load_agent(MlflowAPI(run_id="230bb130c5314840b557e80d530d692c",
+        #                          experiment="Exp: Retrain agent").get_artifact_path())
+        rla.train(n_full_episodes=10)
+        # rla.eval_agent()
         rla.close()
         mlflow.log_param("parallel", True)
