@@ -38,7 +38,7 @@ class Env(Environment):
     ENABLE_TRANSACTION_COSTS = True
     TRANSACTION_COSTS_PERC = 0.01
 
-    ENABLE_NEG_BUY_REWARD = True
+    ENABLE_NEG_BUY_REWARD = False
 
     def __init__(self, ticker):
         super().__init__()
