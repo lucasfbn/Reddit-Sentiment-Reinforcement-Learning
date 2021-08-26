@@ -36,9 +36,8 @@ class MlflowAPI:
             return mlflow.get_experiment(self._active_run.info.experiment_id).name
         return None
 
-    def _set_active_experiment(self, experiment):
+    def _set_experiment(self, experiment):
         mlflow.set_experiment(experiment)
-        self._active_exp = experiment
 
     def _get_relevant_run(self):
         self._relevant_run_id = self.run_id if self.run_id is not None else self._active_run
@@ -58,7 +57,7 @@ class MlflowAPI:
         return kind
 
     def _exit(self):
-        self._set_active_experiment(self._active_exp)
+        self._set_experiment(self._active_exp)
 
     def log_file(self, file, fn):
         kind = self._get_file_kind(fn)
@@ -80,7 +79,7 @@ class MlflowAPI:
         self._exit()
 
     def load_file(self, fn):
-        self._set_active_experiment(self._relevant_exp)
+        self._set_experiment(self._relevant_exp)
         artifact_path = self.get_artifact_path()
 
         kind = self._get_file_kind(fn)
