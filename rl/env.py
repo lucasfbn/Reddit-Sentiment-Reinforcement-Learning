@@ -53,8 +53,8 @@ class Env(Environment):
         self.curr_inventory = []
         self.curr_sequence = None
 
-        self._episode_end = False
-        self._episode_count = 0
+        self.episode_end = False
+        self.episode_count = 0
 
     @staticmethod
     def shape_state(state):
@@ -75,7 +75,7 @@ class Env(Environment):
 
     def next_sequence(self):
         if len(self.curr_sequences) == 0:
-            self._episode_end = True
+            self.episode_end = True
             return None
         else:
             next_sequence = self.curr_sequences.popleft()
@@ -148,11 +148,11 @@ class Env(Environment):
         self.curr_env_counter.add_reward(reward)
 
         next_state = self.next_sequence()
-        return next_state, self._episode_end, reward
+        return next_state, self.episode_end, reward
 
     def reset(self):
-        self._episode_end = False
-        self._episode_count += 1
+        self.episode_end = False
+        self.episode_count += 1
 
         self.curr_inventory = []
         self.next_ticker()
@@ -160,7 +160,7 @@ class Env(Environment):
         return state
 
     def log(self):
-        self.curr_env_counter.log(step=self._episode_count)
+        self.curr_env_counter.log(step=self.episode_count)
         self.curr_env_counter = EnvCounter()
 
     def actions(self):
