@@ -64,8 +64,25 @@ class Evaluate:
                 "balance": self.balance, "profit": self.profit, "len_inventory": len(self.inventory),
                 "training_emulator_active": self.training_emulator_active}
 
+    def get_params(self):
+        return {"initial_balance": self.initial_balance, "max_investment_per_trade": self.max_investment_per_trade,
+                "max_price_per_stock": self.max_price_per_stock, "max_trades_per_day": self.max_trades_per_day,
+                "slippage": self.slippage, "thresholds": self.thresholds, "order_fee": self.order_fee,
+                "profit": self.profit, "len_inventory": len(self.inventory), "training_emulator_active":
+                    self.training_emulator_active}
+
+    def get_metrics(self):
+        return {"balance": self.balance}
+
+    def log_params(self):
+        mlflow.log_params(self.get_params())
+
+    def log_metrics(self):
+        mlflow.log_metrics(self.get_metrics())
+
     def log_results(self):
-        mlflow.log_params(self.get_result())
+        self.log_params()
+        self.log_metrics()
 
     def log_statistics(self):
         log_file(self._sequence_statistics, "eval_probability_stats.csv")
