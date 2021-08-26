@@ -35,7 +35,10 @@ class EnvCounter:
 
 
 class Env(Environment):
+    ENABLE_TRANSACTION_COSTS = True
     TRANSACTION_COSTS_PERC = 0.01
+
+    ENABLE_NEG_BUY_REWARD = True
 
     def __init__(self, ticker):
         super().__init__()
@@ -89,33 +92,58 @@ class Env(Environment):
 
         return margin
 
+    def hold(self, reward, price):
+        return reward
+
+    def buy(self, reward, price):
+        self.curr_inventory.append(price)
+
+        if self.ENABLE_NEG_BUY_REWARD:
+            reward -= price
+
+        if self.ENABLE_TRANSACTION_COSTS:
+            reward -= price * self.TRANSACTION_COSTS_PERC
+
+        log.debug(f"BUY. Stock: {self.curr_ticker.name}. Relativ price: {self.curr_sequence.price}"
+                  f"Abs price: {self.curr_sequence.price_raw}")
+
+        return reward
+
+    def sell(self, reward, price):
+
+        if len(self.curr_inventory) > 0:
+
+            margin = self.calculate_margin(price)
+
+            if self.ENABLE_TRANSACTION_COSTS:
+                margin += margin * self.TRANSACTION_COSTS_PERC
+
+            reward += margin
+
+            self.curr_inventory = []
+
+            log.debug(f"SOLD: Stock: {self.curr_ticker.name}. Relativ price: {self.curr_sequence.price}"
+                      f"Abs price: {self.curr_sequence.price_raw}. Profit/Loss: {margin}")
+        else:
+            log.debug(f"Attempted sell, but inventory is empty.")
+
+        return reward
+
     def execute(self, actions):
         reward = 0
         price = self.curr_sequence.price
 
+        # Hold
+        if actions == 0:
+            reward = self.hold(reward, price)
+
         # Buy
-        if actions == 1:
-            self.curr_inventory.append(price)
-
-            reward -= price * self.TRANSACTION_COSTS_PERC
-
-            log.debug(f"BUY. Stock: {self.curr_ticker.name}. Relativ price: {self.curr_sequence.price}"
-                      f"Abs price: {self.curr_sequence.price_raw}")
+        elif actions == 1:
+            reward = self.buy(reward, price)
 
         # Sell
         elif actions == 2:
-
-            if len(self.curr_inventory) > 0:
-
-                margin = self.calculate_margin(price)
-                reward += margin
-
-                self.curr_inventory = []
-
-                log.debug(f"SOLD: Stock: {self.curr_ticker.name}. Relativ price: {self.curr_sequence.price}"
-                          f"Abs price: {self.curr_sequence.price_raw}. Profit/Loss: {margin}")
-            else:
-                log.debug(f"Attempted sell, but inventory is empty.")
+            reward = self.sell(reward, price)
 
         self.curr_env_counter.add_reward(reward)
 
@@ -123,9 +151,6 @@ class Env(Environment):
         return next_state, self._episode_end, reward
 
     def reset(self):
-        self.curr_env_counter.log(step=self._episode_count)
-        self.curr_env_counter = EnvCounter()
-
         self._episode_end = False
         self._episode_count += 1
 
@@ -133,6 +158,10 @@ class Env(Environment):
         self.next_ticker()
         state = self.next_sequence()
         return state
+
+    def log(self):
+        self.curr_env_counter.log(step=self._episode_count)
+        self.curr_env_counter = EnvCounter()
 
     def actions(self):
         return dict(type="int", num_values=3)
