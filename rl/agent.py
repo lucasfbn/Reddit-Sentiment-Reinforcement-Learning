@@ -4,6 +4,7 @@ from tensorforce import Runner, Agent, Environment
 
 import paths
 from rl.env import EnvCNN
+from rl.pre_env import PreEnv
 from utils.mlflow_api import load_file, log_file, MlflowAPI
 from utils.util_funcs import log
 
@@ -73,7 +74,11 @@ class RLAgent:
         return evaluated_ticker
 
     def train(self, n_full_episodes):
-        environment = Environment.create(environment=self.environment, ticker=self.ticker)
+        pre_env = PreEnv(self.ticker)
+        pre_env.exclude_non_tradeable_sequences()
+        ticker = pre_env.get_updated_ticker()
+
+        environment = Environment.create(environment=self.environment, ticker=ticker)
 
         if self.agent is None:
             self.agent = Agent.create(
@@ -86,8 +91,8 @@ class RLAgent:
             env.log()
 
         runner = Runner(agent=self.agent, environment=environment)
-        runner.run(num_episodes=int(n_full_episodes * len(self.ticker)), callback=log_callback,
-                   callback_episode_frequency=len(self.ticker))
+        runner.run(num_episodes=int(n_full_episodes * len(ticker)), callback=log_callback,
+                   callback_episode_frequency=len(ticker))
         runner.close()
 
         self.save_agent()
