@@ -8,7 +8,7 @@ from eval.operation import Operation
 from utils.mlflow_api import load_file, log_file
 from utils.util_funcs import log
 
-log.setLevel("INFO")
+log.setLevel("DEBUG")
 
 
 class Evaluate:
@@ -77,8 +77,8 @@ class Evaluate:
     def log_params(self):
         mlflow.log_params(self.get_params())
 
-    def log_metrics(self):
-        mlflow.log_metrics(self.get_metrics())
+    def log_metrics(self, step=None):
+        mlflow.log_metrics(self.get_metrics(), step=step)
 
     def log_results(self):
         self.log_params()
@@ -227,7 +227,7 @@ class Evaluate:
         Sell(portfolio=self, actions=sells, live=self.live).execute()
 
     def force_sell(self):
-        log.warn("FORCING SELL OF REMAINING INVENTORY.")
+        log.warning("FORCING SELL OF REMAINING INVENTORY.")
 
         new_inventory = []
         for position in self.inventory:
@@ -292,15 +292,15 @@ if __name__ == "__main__":
     mlflow.set_experiment("Tests")
 
     with mlflow.start_run():
-        ticker = load_file(run_id="12829d4fd8fb408cbeee4d2e08f30c1f", experiment="N_Episodes_Impact_1", fn="eval.pkl")
-        combination = {'max_trades_per_day': None, 'max_price_per_stock': None, 'max_investment_per_trade': None}
+        ticker = load_file(run_id="f5a1aa7d8a974f25af44d0487fecedd8", experiment="Tests", fn="eval.pkl")
+        combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 0.07}
 
-        ep = Evaluate(ticker=ticker, **combination, initial_balance=10000)
-        ep.activate_training_emulator()
+        ep = Evaluate(ticker=ticker, **combination, initial_balance=1000)
+        ep.set_thresholds({'hold': 0, 'buy': 0, 'sell': 0})
         ep.initialize()
         # ep.set_quantile_thresholds({'hold': None, 'buy': 0.95, 'sell': None})
         ep.act()
         ep.force_sell()
-        ep.log_results()
-        ep.log_statistics()
-        print(ep.get_result())
+        # ep.log_results()
+        # ep.log_statistics()
+        # print(ep.get_result())
