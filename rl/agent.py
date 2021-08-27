@@ -113,7 +113,7 @@ class RLAgent:
 
             evaluated = self.eval_agent()
 
-            combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 70,
+            combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 0.07,
                            "initial_balance": 1000}
 
             ep = Evaluate(ticker=evaluated, **combination)
@@ -158,7 +158,7 @@ if __name__ == '__main__':
         rla = RLAgent(environment=EnvCNN, ticker=data)
         rla.run_pre_env()
         rla.initialize()
-        rla.train_custom_loop(n_full_episodes=3)
+        rla.train_custom_loop(n_full_episodes=20)
         # rla.load_agent(MlflowAPI(run_id="230bb130c5314840b557e80d530d692c",
         #                          experiment="Exp: Retrain agent").get_artifact_path())
         rla.close()
