@@ -36,7 +36,9 @@ class EnvCounter:
 
 class Env(Environment):
     ENABLE_TRANSACTION_COSTS = True
-    TRANSACTION_COSTS_PERC = 0.01
+
+    TRANSACTION_FEE_ASK = 0.005  # Buy
+    TRANSACTION_FEE_BID = 0.01  # Sell
 
     ENABLE_NEG_BUY_REWARD = False
 
@@ -102,7 +104,7 @@ class Env(Environment):
             reward -= price
 
         if self.ENABLE_TRANSACTION_COSTS:
-            reward -= price * self.TRANSACTION_COSTS_PERC
+            reward -= price * self.TRANSACTION_FEE_ASK
 
         log.debug(f"BUY. Stock: {self.curr_ticker.name}. Relativ price: {self.curr_sequence.price}"
                   f"Abs price: {self.curr_sequence.price_raw}")
@@ -116,7 +118,7 @@ class Env(Environment):
             margin = self.calculate_margin(price)
 
             if self.ENABLE_TRANSACTION_COSTS:
-                margin += margin * self.TRANSACTION_COSTS_PERC
+                margin -= margin * self.TRANSACTION_FEE_BID
 
             reward += margin
 
