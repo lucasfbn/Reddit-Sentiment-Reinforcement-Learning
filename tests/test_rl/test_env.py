@@ -10,6 +10,12 @@ from preprocessing.tasks import Ticker
 from rl.env import Env
 from rl.env import EnvCNN, EnvNN
 
+
+class MockObj(object):
+    def __init__(self, **kwargs):  # constructor turns keyword args into attributes
+        self.__dict__.update(kwargs)
+
+
 ticker = [Ticker(_, None) for _ in range(5)]
 for tck in ticker:
     tck.sequences = [tck.name for _ in range(5)]
@@ -124,6 +130,34 @@ def test_reward():
             state, terminal, reward = env.execute(actions=actions[i])
             assert reward == expected_rewards[i]
             i += 1
+
+
+def test_buy():
+    env = EnvCNN(data)
+    env.curr_inventory = [1, 2, 3]
+    env.curr_ticker = Ticker("Test", None)
+    env.curr_sequence = MockObj(price=-1, price_raw=-1)
+    price = 4
+    reward = 0
+
+    resulting_reward = env.buy(reward, price)
+    assert resulting_reward == price * env.TRANSACTION_FEE_ASK * -1
+
+
+def test_sell():
+    env = EnvCNN(data)
+    env.curr_inventory = [1, 2, 3]
+    env.curr_ticker = Ticker("Test", None)
+    env.curr_sequence = MockObj(price=-1, price_raw=-1)
+    price = 4
+    reward = 0
+
+    expected_margin = 0
+    for inv in env.curr_inventory:
+        expected_margin += price - inv
+
+    resulting_reward = env.sell(reward, price)
+    assert resulting_reward == expected_margin - expected_margin * env.TRANSACTION_FEE_BID
 
 
 def test_w_real_data_cnn():
