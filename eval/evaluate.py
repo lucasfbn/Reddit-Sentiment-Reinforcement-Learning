@@ -176,6 +176,7 @@ class Evaluate:
         dates = dates.T.to_dict("records")[0]
 
         # Group by date, convert grp rows to Operations and add them to the dates dict
+        df = df.sort_values(by=["date"])
         grps = df.groupby(["date"])
 
         for name, grp in grps:
@@ -292,7 +293,7 @@ if __name__ == "__main__":
     mlflow.set_experiment("Tests")
 
     with mlflow.start_run():
-        ticker = load_file(run_id="f5a1aa7d8a974f25af44d0487fecedd8", experiment="Tests", fn="eval.pkl")
+        ticker = load_file(run_id="016eb4ced3474c26abb37f0490b46647", experiment="Tests", fn="eval.pkl")
         combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 0.07}
 
         ep = Evaluate(ticker=ticker, **combination, initial_balance=1000)
@@ -301,6 +302,6 @@ if __name__ == "__main__":
         # ep.set_quantile_thresholds({'hold': None, 'buy': 0.95, 'sell': None})
         ep.act()
         ep.force_sell()
-        # ep.log_results()
-        # ep.log_statistics()
+        ep.log_results()
+        ep.log_statistics()
         # print(ep.get_result())
