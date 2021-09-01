@@ -3,7 +3,8 @@ import pandas as pd
 
 class Sequence:
 
-    def __init__(self, price, available, tradeable, date, sentiment_data_available, df, price_raw, flat=None, arr=None):
+    def __init__(self, price, available, tradeable, date, sentiment_data_available, df, price_raw, flat=None, arr=None,
+                 ticker_name=None):
         self.df = df
         self.tradeable = tradeable
         self.available = available
@@ -14,6 +15,8 @@ class Sequence:
 
         self.flat = flat
         self.arr = arr
+
+        self.ticker_name = ticker_name
 
         # Used later on during evaluation
         self.action = None
