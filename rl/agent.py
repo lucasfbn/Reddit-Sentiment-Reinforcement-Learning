@@ -80,7 +80,7 @@ class RLAgent:
         pre_env.exclude_non_tradeable_sequences()
         self.ticker = pre_env.get_updated_ticker()
 
-    def create_env(self):
+    def create_env(self, max_episode_timesteps=None):
         self.env_wrapped = Environment.create(environment=self.env_raw, ticker=self.ticker,
                                               max_episode_timesteps=1159)
         return self.env_wrapped
@@ -158,22 +158,20 @@ class RLAgent:
         def log_callback(env):
             env.log()
 
-        total_episodes = 1
         rw_env = RealWorldEnv(self.ticker)
         rw_env.initialize()
-        print(len(rw_env.sequences_daywise))
+        total_days = len(rw_env.sequences_daywise)
 
-        for i in tqdm(range(int(n_full_episodes))):
+        for i in range(int(n_full_episodes)):
+
+            print(f"Episode: {i}")
 
             states = rw_env.reset()
             rw_env_terminal = False
 
-            k = 0
-
-            while not rw_env_terminal:
-
-                print(k)
-                k += 1
+            # Doesn't matter whether we use the terminal routine or a for loop
+            tqdm_iter = tqdm(range(total_days))
+            for d in tqdm_iter:
 
                 # Get actions
                 for state in states:
@@ -185,6 +183,8 @@ class RLAgent:
 
                 # Execute actions
                 new_states, rw_env_terminal, reward = rw_env.execute(states)
+
+                tqdm_iter.set_postfix_str(f"Reward: {reward}", refresh=True)
 
                 # Act/observe rewards
                 terminal = False
@@ -201,15 +201,8 @@ class RLAgent:
 
                 states = new_states
 
-            # if i % len(self.ticker) == 0:
-            #     total_episodes += 1
-            #
-            # # On the end of every "full" episode (e.g. one iteration through the ticker)
-            # if i != 0 and i % len(self.ticker) == 0:
-            #     log_callback(self.env_wrapped)
-            #
-            # if i != 0 and i % len(self.ticker) == 0 and total_episodes % 10 == 0:
-            #     self._evaluate_callback()
+                if d == len(rw_env.sequences_daywise):
+                    assert rw_env_terminal
 
     def close(self):
         self.agent.close()
