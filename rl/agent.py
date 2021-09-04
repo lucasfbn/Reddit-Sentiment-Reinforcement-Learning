@@ -7,10 +7,11 @@ import paths
 from eval.evaluate import Evaluate
 from rl.env import EnvCNN
 from rl.pre_env import PreEnv
+from rl.complex_env.real_world_env import RealWorldEnv
 from utils.mlflow_api import load_file, log_file, MlflowAPI
 from utils.util_funcs import log
 
-log.setLevel("DEBUG")
+log.setLevel("INFO")
 
 
 @ray.remote
@@ -80,7 +81,8 @@ class RLAgent:
         self.ticker = pre_env.get_updated_ticker()
 
     def create_env(self):
-        self.env_wrapped = Environment.create(environment=self.env_raw, ticker=self.ticker)
+        self.env_wrapped = Environment.create(environment=self.env_raw, ticker=self.ticker,
+                                              max_episode_timesteps=1159)
         return self.env_wrapped
 
     def create_agent(self):
@@ -130,6 +132,8 @@ class RLAgent:
         def log_callback(env):
             env.log()
 
+        total_episodes = 1
+
         for i in tqdm(range(int(n_full_episodes * len(self.ticker)))):
 
             states = self.env_wrapped.reset()
@@ -139,10 +143,73 @@ class RLAgent:
                 states, terminal, reward = self.env_wrapped.execute(actions=actions)
                 self.agent.observe(terminal=terminal, reward=reward)
 
+            if i % len(self.ticker) == 0:
+                total_episodes += 1
+
             # On the end of every "full" episode (e.g. one iteration through the ticker)
             if i != 0 and i % len(self.ticker) == 0:
                 log_callback(self.env_wrapped)
+
+            if i != 0 and i % len(self.ticker) == 0 and total_episodes % 10 == 0:
                 self._evaluate_callback()
+
+    def train_complex(self, n_full_episodes):
+
+        def log_callback(env):
+            env.log()
+
+        total_episodes = 1
+        rw_env = RealWorldEnv(self.ticker)
+        rw_env.initialize()
+        print(len(rw_env.sequences_daywise))
+
+        for i in tqdm(range(int(n_full_episodes))):
+
+            states = rw_env.reset()
+            rw_env_terminal = False
+
+            k = 0
+
+            while not rw_env_terminal:
+
+                print(k)
+                k += 1
+
+                # Get actions
+                for state in states:
+                    state_values = EnvCNN.shape_state(state)
+                    state_values = state.df
+
+                    action = self.agent.act(states=state_values, independent=True)
+                    state.action = action
+
+                # Execute actions
+                new_states, rw_env_terminal, reward = rw_env.execute(states)
+
+                # Act/observe rewards
+                terminal = False
+
+                for j, state in enumerate(states):
+                    state_values = EnvCNN.shape_state(state)
+                    state_values = state.df
+
+                    action = self.agent.act(states=state_values)
+
+                    if j == len(states) - 1:
+                        terminal = True
+                    self.agent.observe(terminal=terminal, reward=reward)
+
+                states = new_states
+
+            # if i % len(self.ticker) == 0:
+            #     total_episodes += 1
+            #
+            # # On the end of every "full" episode (e.g. one iteration through the ticker)
+            # if i != 0 and i % len(self.ticker) == 0:
+            #     log_callback(self.env_wrapped)
+            #
+            # if i != 0 and i % len(self.ticker) == 0 and total_episodes % 10 == 0:
+            #     self._evaluate_callback()
 
     def close(self):
         self.agent.close()
@@ -158,7 +225,11 @@ if __name__ == '__main__':
         rla = RLAgent(environment=EnvCNN, ticker=data)
         rla.run_pre_env()
         rla.initialize()
-        rla.train_custom_loop(n_full_episodes=20)
+        rla.train_complex(n_full_episodes=1)
         # rla.load_agent(MlflowAPI(run_id="230bb130c5314840b557e80d530d692c",
         #                          experiment="Exp: Retrain agent").get_artifact_path())
         rla.close()
+
+        # import os
+        #
+        # os.system("shutdown /s /t 60")

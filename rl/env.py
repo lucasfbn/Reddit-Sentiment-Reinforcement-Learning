@@ -168,8 +168,8 @@ class Env(Environment):
     def actions(self):
         return dict(type="int", num_values=3)
 
-    def max_episode_timesteps(self):
-        return max(len(tck) for tck in self.ticker)
+    # def max_episode_timesteps(self):
+    #     return max(len(tck) for tck in self.ticker)
 
 
 class EnvNN(Env):
