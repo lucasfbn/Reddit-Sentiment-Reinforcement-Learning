@@ -3,10 +3,6 @@ from utils.mlflow_api import load_file, log_file, MlflowAPI
 from tqdm import tqdm
 
 
-def log_callback(env):
-    env.log()
-
-
 class AgentWrapper:
 
     def __init__(self, env):
@@ -50,6 +46,10 @@ class AgentWrapper:
 
     def in_episode_end_callback(self):
         pass
+
+    @staticmethod
+    def log_callback(env):
+        env.log()
 
 
 class AgentRunner(AgentWrapper):
