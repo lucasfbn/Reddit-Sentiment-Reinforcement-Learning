@@ -27,6 +27,9 @@ class AgentWrapper:
         path = str(MlflowAPI().get_artifact_path() / "model")
         self.agent.save(directory=path, format='numpy')
 
+    def close(self):
+        self.agent.close()
+
     def train(self, episodes, episode_progress_indicator, episode_interval=None):
         raise NotImplementedError
 
@@ -90,7 +93,7 @@ class AgentActExperienceUpdate(AgentWrapper):
         env = self.env.tf_env
 
         for ep in range(episodes):
-            
+
             self.episode_start_callback()
 
             for _ in tqdm(range(episode_progress_indicator), desc=f"Episode {ep}"):

@@ -12,3 +12,6 @@ class EnvironmentWrapper:
 
     def create(self, **kwargs):
         self.tf_env = Environment.create(environment=self.env, ticker=self.data, **kwargs)
+
+    def close(self):
+        self.tf_env.close()
