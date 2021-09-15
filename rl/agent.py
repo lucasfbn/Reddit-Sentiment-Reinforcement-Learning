@@ -5,9 +5,9 @@ from tqdm import tqdm
 
 import paths
 from eval.evaluate import Evaluate
-from rl.env import EnvCNN
-from rl.pre_env import PreEnv
-from rl.complex_env.real_world_env import RealWorldEnv
+from rl.envs.env import EnvCNN
+from rl.envs.pre_env import PreEnv
+from rl.envs.complex_env.real_world_env import RealWorldEnv
 from utils.mlflow_api import load_file, log_file, MlflowAPI
 from utils.util_funcs import log
 
