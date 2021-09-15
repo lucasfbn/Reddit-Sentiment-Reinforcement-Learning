@@ -155,6 +155,8 @@ class RLAgent:
 
     def train_complex(self, n_full_episodes):
 
+        # NEXT: CHECK REWARD AND ALL ENVS
+
         def log_callback(env):
             env.log()
 
