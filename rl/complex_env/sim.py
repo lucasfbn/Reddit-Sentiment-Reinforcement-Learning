@@ -55,3 +55,25 @@ class Sim:
                 raise ValueError("Invalid action.")
 
         return total_reward
+
+
+class MockObj(object):
+    def __init__(self, **kwargs):  # constructor turns keyword args into attributes
+        self.__dict__.update(kwargs)
+
+
+day_0 = [
+    MockObj(ticker_name="00", price_raw=10, action=1),
+    MockObj(ticker_name="01", price_raw=10, action=1),
+    MockObj(ticker_name="02", price_raw=10, action=1)
+]
+
+day_1 = [
+    MockObj(ticker_name="00", price_raw=10, action=2),
+    MockObj(ticker_name="01", price_raw=10, action=2),
+    MockObj(ticker_name="02", price_raw=10, action=2)
+]
+
+sim = Sim()
+print(sim.process_sequences(day_0))
+print(sim.process_sequences(day_1))
