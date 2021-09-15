@@ -3,6 +3,10 @@ from utils.mlflow_api import load_file, log_file, MlflowAPI
 from tqdm import tqdm
 
 
+def log_callback(env):
+    env.log()
+
+
 class AgentWrapper:
 
     def __init__(self, env):
@@ -59,15 +63,11 @@ class AgentActObserve(AgentWrapper):
 
         env = self.env.tf_env
 
-        total_episodes = 1
-
         for ep in range(episodes):
-
-            print(f"Episode: {ep}")
 
             self.episode_start_callback()
 
-            for _ in tqdm(range(episode_progress_indicator)):
+            for _ in tqdm(range(episode_progress_indicator), desc=f"Episode {ep}"):
 
                 states = env.reset()
                 terminal = False
@@ -90,11 +90,10 @@ class AgentActExperienceUpdate(AgentWrapper):
         env = self.env.tf_env
 
         for ep in range(episodes):
-            print(f"Episode: {ep}")
-
+            
             self.episode_start_callback()
 
-            for _ in tqdm(range(episode_progress_indicator)):
+            for _ in tqdm(range(episode_progress_indicator), desc=f"Episode {ep}"):
                 self.in_episode_start_callback()
 
                 internals = self.agent.initial_internals()
