@@ -7,8 +7,8 @@ from numpy.testing import assert_array_equal
 
 from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
-from rl.env import Env
-from rl.env import EnvCNN, EnvNN
+from rl.envs.env import Env
+from rl.envs.env import EnvCNN, EnvNN
 
 
 class MockObj(object):

@@ -6,7 +6,7 @@ import paths
 from eval.evaluate import EvalLive
 from preprocessing.pipeline import pipeline as preprocessing_pipeline
 from rl.agent import RLAgent
-from rl.env import EnvCNN
+from rl.envs.env import EnvCNN
 from sentiment_analysis.pipeline import pipeline as sentiment_analysis_pipeline
 from utils.mlflow_api import load_file, get_artifact_path
 from utils.util_funcs import log

@@ -3,7 +3,7 @@ import pandas as pd
 
 import paths
 from utils.mlflow_api import load_file
-from rl.complex_env.sim import Sim
+from rl.envs.complex_env.sim import Sim
 
 
 class RealWorldEnv:
