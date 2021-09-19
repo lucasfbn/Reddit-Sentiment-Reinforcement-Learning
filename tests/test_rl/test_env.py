@@ -9,12 +9,7 @@ from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
 from rl.envs.env import Env
 from rl.envs.env import EnvCNN, EnvNN
-
-
-class MockObj(object):
-    def __init__(self, **kwargs):  # constructor turns keyword args into attributes
-        self.__dict__.update(kwargs)
-
+from tests.utils import MockObj
 
 ticker = [Ticker(_, None) for _ in range(5)]
 for tck in ticker:
@@ -116,10 +111,14 @@ def test_basic_env_nn_run():
 
 def test_reward():
     env = EnvCNN(data)
+    env.ENABLE_TRANSACTION_COSTS = True
 
-    expected_rewards = [-data[0].sequences[0].price * env.TRANSACTION_COSTS_PERC,
-                        -data[0].sequences[1].price * env.TRANSACTION_COSTS_PERC,
-                        3, 0, -data[1].sequences[1].price * env.TRANSACTION_COSTS_PERC, 1]
+    expected_rewards = [-data[0].sequences[0].price * env.TRANSACTION_FEE_ASK,
+                        -data[0].sequences[1].price * env.TRANSACTION_FEE_ASK,
+                        3 - (3 * env.TRANSACTION_FEE_BID),
+                        0, -data[1].sequences[1].price * env.TRANSACTION_FEE_ASK,
+                        1 - (1 * env.TRANSACTION_FEE_BID)]
+
     actions = [1, 1, 2, 0, 1, 2]
     i = 0
     for _ in range(2):
@@ -140,8 +139,13 @@ def test_buy():
     price = 4
     reward = 0
 
+    env.ENABLE_TRANSACTION_COSTS = True
     resulting_reward = env.buy(reward, price)
     assert resulting_reward == price * env.TRANSACTION_FEE_ASK * -1
+
+    env.ENABLE_TRANSACTION_COSTS = False
+    resulting_reward = env.buy(reward, price)
+    assert resulting_reward == 0
 
 
 def test_sell():
@@ -156,8 +160,24 @@ def test_sell():
     for inv in env.curr_inventory:
         expected_margin += price - inv
 
+    env.ENABLE_TRANSACTION_COSTS = True
     resulting_reward = env.sell(reward, price)
     assert resulting_reward == expected_margin - expected_margin * env.TRANSACTION_FEE_BID
+
+    env = EnvCNN(data)
+    env.curr_inventory = [1, 2, 3]
+    env.curr_ticker = Ticker("Test", None)
+    env.curr_sequence = MockObj(price=-1, price_raw=-1)
+    price = 4
+    reward = 0
+
+    expected_margin = 0
+    for inv in env.curr_inventory:
+        expected_margin += price - inv
+
+    env.ENABLE_TRANSACTION_COSTS = False
+    resulting_reward = env.sell(reward, price)
+    assert resulting_reward == expected_margin
 
 
 def test_w_real_data_cnn():
@@ -221,11 +241,6 @@ def test_cnn_loop():
             i = 0
 
 
-def test_max_episode_timesteps():
-    env = EnvNN(data)
-    assert env.max_episode_timesteps() == 3
-
-
 def test_nn_states():
     env = EnvNN(data)
     assert env.states() == {'shape': (6,), 'type': 'float'}
@@ -234,37 +249,6 @@ def test_nn_states():
 def test_cnn_states():
     env = EnvCNN(data)
     assert env.states() == {'shape': (1, 3, 2), 'type': 'float'}
-
-
-# def test_exclude_non_tradeable_sequences():
-#     t2.sequences[2].tradeable = False
-#
-#     EnvCNN.data = data
-#     EnvCNN.shuffle_sequences = False
-#
-#     env = EnvCNN()
-#
-#     expected_states = [
-#         np.array([[1, 2, 3], [10, 11, 12]], dtype=np.float32).T,
-#         np.array([[2, 3, 4], [11, 12, 13]], dtype=np.float32).T,
-#         np.array([[3, 4, 5], [12, 13, 14]], dtype=np.float32).T,
-#         np.array([[81, 82, 83], [810, 811, 812]], dtype=np.float32).T,
-#         np.array([[82, 83, 84], [811, 812, 813]], dtype=np.float32).T,
-#     ]
-#
-#     i = 0
-#     for _ in range(2):
-#         state = env.reset()
-#         terminal = False
-#
-#         while not terminal:
-#             assert_array_equal(state, expected_states[i].reshape(1, 3, 2))
-#             actions = random.randint(0, 2)
-#             state, terminal, reward = env.execute(actions=actions)
-#
-#             i += 1
-#
-#     assert i == len(expected_states)
 
 
 def test_next_ticker():
