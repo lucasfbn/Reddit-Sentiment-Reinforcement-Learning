@@ -54,9 +54,20 @@ class AgentWrapper:
 
 class AgentRunner(AgentWrapper):
 
+    def runner_callback(self, runner_, _):
+        self.log_callback(runner_.environments[0])
+
     def train(self, episodes, episode_progress_indicator, episode_interval=None):
+        episodes *= episode_progress_indicator
+
+        def _runner_callback(runner_, _):
+            self.runner_callback(runner_, _)
+            return True
+
         runner = Runner(agent=self.agent, environment=self.env.tf_env)
-        runner.run(num_episodes=episodes, callback=self.in_episode_callback)
+        runner.run(num_episodes=episodes, callback=_runner_callback,
+                   callback_episode_frequency=episode_progress_indicator)
+
         runner.close()
 
 
