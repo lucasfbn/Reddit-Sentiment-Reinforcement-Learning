@@ -10,8 +10,9 @@ class EnvironmentWrapper:
 
         self.tf_env = None
 
-    def create(self, **kwargs):
-        self.tf_env = Environment.create(environment=self.env, ticker=self.data, **kwargs)
+    def create(self, max_episode_timesteps, **kwargs):
+        self.tf_env = Environment.create(environment=self.env, ticker=self.data,
+                                         max_episode_timesteps=max_episode_timesteps, **kwargs)
 
     def close(self):
         self.tf_env.close()
