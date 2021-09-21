@@ -35,7 +35,7 @@ class EnvCounter:
 
 
 class Env(Environment):
-    ENABLE_TRANSACTION_COSTS = True
+    ENABLE_TRANSACTION_COSTS = False
 
     TRANSACTION_FEE_ASK = 0.005  # Buy
     TRANSACTION_FEE_BID = 0.01  # Sell
@@ -78,7 +78,8 @@ class Env(Environment):
     def next_sequence(self):
         if len(self.curr_sequences) == 0:
             self.episode_end = True
-            return None
+            current_state = self.curr_sequence.df
+            return current_state
         else:
             next_sequence = self.curr_sequences.popleft()
             next_sequence = self.shape_state(next_sequence)
@@ -146,6 +147,9 @@ class Env(Environment):
         # Sell
         elif actions == 2:
             reward = self.sell(reward, price)
+
+        else:
+            raise ValueError("Invalid action.")
 
         self.curr_env_counter.add_reward(reward)
 
