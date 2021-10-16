@@ -31,7 +31,8 @@ params = {
     "sequence_to_be_generated": "arr",
     "main_date_col_param": main_date_col,
     "start_end_columns": ["start", "end"],
-    "adj_close_column_plus_merged": ["Adj_Close", "_merge"]
+    "adj_close_column_plus_merged": ["Adj_Close", "_merge"],
+    "min_sequence_len": 3
 }
 
 
@@ -89,7 +90,7 @@ def pipeline(**kwargs):
                      columns_to_be_excluded_from_sequences=params["columns_to_be_excluded_from_sequences"],
                      price_column="price_scaled",
                      which=params["sequence_to_be_generated"]).run()
-    ticker = seq_map(mark_empty_sequences, ticker).run()
+    ticker = seq_map(mark_short_sequences, ticker, min_sequence_len=params["min_sequence_len"]).run()
     ticker = remove_excluded_ticker(ticker).run()
 
     log_file(ticker, "ticker.pkl")

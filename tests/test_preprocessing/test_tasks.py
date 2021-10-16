@@ -443,3 +443,17 @@ def test_mark_sentiment_data_available_column():
     result = mark_sentiment_data_available_days(ticker, sentiment_data_columns=["dummy"]).run()
     assert_series_equal(result.df["sentiment_data_available"], pd.Series([False, False, True, True, False, False]),
                         check_names=False, check_dtype=False)
+
+
+def test_mark_short_sequences():
+    ticker = Ticker(None, None)
+    ticker.sequences = [1, 2, 3]
+
+    result = mark_short_sequences(ticker, 3).run()
+    assert result.exclude is True
+
+    ticker = Ticker(None, None)
+    ticker.sequences = [1, 2, 3]
+
+    result = mark_short_sequences(ticker, 2).run()
+    assert result.exclude is False
