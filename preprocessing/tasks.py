@@ -620,12 +620,12 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
 
 
 @task
-def mark_empty_sequences(ticker: Ticker):
+def mark_short_sequences(ticker: Ticker, min_sequence_len: int):
     """
-    Marks the sequences which are empty due to entries not being tradeable or available or being too short.
+    Marks the sequences which are empty or to short due to entries not being tradeable or available.
     """
 
-    if not ticker.sequences:
+    if len(ticker.sequences) <= min_sequence_len:
         ticker.exclude = True
 
     return ticker
