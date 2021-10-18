@@ -1,5 +1,7 @@
 import mlflow
 
+from utils.logger import setup_logger
+
 from sentiment_analysis.tasks import *
 from utils.mlflow_api import log_file
 from utils.pipeline_utils import seq_map
@@ -64,6 +66,7 @@ def pipeline(**kwargs):
 
 def main():
     with mlflow.start_run():
+        setup_logger("DEBUG")
         pipeline(start=datetime(year=2021, month=3, day=2), end=datetime(year=2021, month=8, day=13))
 
 
