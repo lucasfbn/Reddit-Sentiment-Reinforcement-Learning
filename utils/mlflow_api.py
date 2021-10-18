@@ -28,6 +28,11 @@ class MlflowAPI:
         self._get_relevant_run()
         self._get_relevant_exp()
 
+    def has_active_run(self):
+        if self._get_active_run() is None:
+            return False
+        return True
+
     def _get_active_run(self):
         return mlflow.active_run()
 
