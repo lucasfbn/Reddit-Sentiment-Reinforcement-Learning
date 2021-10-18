@@ -6,9 +6,7 @@ from timeit import default_timer as timer
 import ray
 from tqdm import tqdm
 
-logging.basicConfig(level=logging.INFO,
-                    format="%(levelname)s %(asctime)s - %(message)s")
-log = logging.getLogger()
+logger = logging.getLogger("root")
 
 
 @ray.remote
@@ -28,12 +26,12 @@ class TaskLogger:
         self._end = None
 
     def start(self):
-        logging.info(f"Starting: {self.func_name}")
+        logger.info(f"Starting: {self.func_name}")
         self._start = timer()
 
     def stop(self, additional=""):
         self._end = timer()
-        logging.info(f"Finished: {self.func_name}. "
+        logger.info(f"Finished: {self.func_name}. "
                      f"Time elapsed: {str(timedelta(seconds=self._end - self._start)).split('.')[0]}. "
                      f"{additional}")
 
