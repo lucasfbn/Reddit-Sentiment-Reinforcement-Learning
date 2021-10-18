@@ -7,7 +7,7 @@ format_ = "%(levelname)s %(asctime)s - %(message)s"
 
 def setup_logger(level):
     if not MlflowAPI().has_active_run():
-        return
+        return base_logger(level)
 
     # Create new logger
     formatter = logging.Formatter(format_)
