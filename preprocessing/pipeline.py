@@ -5,6 +5,7 @@ from preprocessing.tasks import *
 from utils.mlflow_api import load_file, log_file
 from utils.pipeline_utils import initialize, par_map, seq_map
 from utils.util_funcs import update_check_key
+from utils.logger import setup_logger
 
 mlflow.set_tracking_uri(paths.mlflow_path)
 mlflow.set_experiment("Datasets")
@@ -32,7 +33,7 @@ params = {
     "main_date_col_param": main_date_col,
     "start_end_columns": ["start", "end"],
     "adj_close_column_plus_merged": ["Adj_Close", "_merge"],
-    "min_sequence_len": 3
+    "min_sequence_len": 2
 }
 
 
@@ -103,6 +104,7 @@ def pipeline(**kwargs):
 def main():
     with mlflow.start_run():
         df = load_file(run_id="dec6cb437cbc455fa871d1ac5b9300c8", fn="report.csv", experiment="Sentiment")
+        setup_logger("DEBUG")
         pipeline(input_df=df)
 
 
