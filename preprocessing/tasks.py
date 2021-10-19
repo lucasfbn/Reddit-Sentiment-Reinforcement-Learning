@@ -622,10 +622,15 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
 @task
 def mark_short_sequences(ticker: Ticker, min_sequence_len: int):
     """
-    Marks the sequences which are empty or to short due to entries not being tradeable or available.
+    Marks the following ticker:
+        - Empty sequences (due to number of entries < min_sequence_len)
+        - Only one sequence (due to number of entries = min_sequence_len), as this is not trainable (no action leads
+          to a reward)
+        - Only two sequences, as this won't work since the second sequence will already terminate the "epoch" and its
+          reward will, therefore, not be counted
     """
 
-    if len(ticker.sequences) < min_sequence_len:
+    if len(ticker.sequences) <= min_sequence_len:
         ticker.exclude = True
 
     return ticker
