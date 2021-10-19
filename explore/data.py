@@ -1,16 +1,11 @@
-import pickle as pkl
+import mlflow
+
 import paths
-import pandas as pd
+from utils.mlflow_api import load_file
 
-# p = r"C:\Users\lucas\OneDrive\Backup\Projects\Trendstuff\storage\data\sentiment\01-11-21 - 30-11-21_0_MANUAL\gc_dump.csv"
-# df = pd.read_csv(p, sep=";")
-#
-with open(paths.datasets_data_path / "_1" / "timeseries.pkl", "rb") as f:
-    data1 = pkl.load(f)
+mlflow.set_tracking_uri(paths.mlflow_path)
+mlflow.set_experiment("Tests")
 
+data = load_file(run_id="247244f584294534a0d758ba65ef1749", fn="ticker.pkl", experiment="Datasets")
 
-l = 0
-for d in data1:
-    l += len(d["data"])
-
-print(l)
+print()
