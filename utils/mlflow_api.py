@@ -37,12 +37,13 @@ class MlflowAPI:
         return mlflow.active_run()
 
     def _get_active_experiment(self):
-        if self._active_run is not None:
+        if self.has_active_run():
             return mlflow.get_experiment(self._active_run.info.experiment_id).name
         return None
 
     def _set_experiment(self, experiment):
-        mlflow.set_experiment(experiment)
+        if experiment is not None:
+            mlflow.set_experiment(experiment)
 
     def _get_relevant_run(self):
         self._relevant_run_id = self.run_id if self.run_id is not None else self._active_run
