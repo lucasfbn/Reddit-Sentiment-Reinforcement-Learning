@@ -8,13 +8,8 @@ from preprocessing.pipeline import pipeline as preprocessing_pipeline
 from rl.agent import RLAgent
 from rl.envs.env import EnvCNN
 from sentiment_analysis.pipeline import pipeline as sentiment_analysis_pipeline
-from utils.mlflow_api import load_file, get_artifact_path
-from utils.util_funcs import log
-
-log.setLevel("INFO")
-
-mlflow.set_tracking_uri(paths.mlflow_path)
-mlflow.set_experiment("Live")
+from utils.mlflow_api import load_file
+from utils.logger import setup_logger
 
 
 class LivePipeline:
@@ -35,9 +30,9 @@ class LivePipeline:
 
     def run_sentiment_analysis(self):
         now = datetime.now()
-        self.sentiment_analysis_result = sentiment_analysis_pipeline(start=datetime(year=2021, month=3, day=1),
-                                                                     end=datetime(hour=17, minute=0, day=now.day,
-                                                                                  month=now.month, year=now.year))
+        self.sentiment_analysis_result = sentiment_analysis_pipeline(start=datetime(year=2021, month=3, day=2),
+                                                                     end=datetime(hour=0, minute=0, day=13,
+                                                                                  month=8, year=2021))
 
     def run_preprocessing(self):
         self.ticker = preprocessing_pipeline(input_df=load_file("report.csv"),
@@ -72,15 +67,19 @@ class LivePipeline:
         self.evaluation.save()
 
     def run(self):
-        # self.run_sentiment_analysis()
-        # self.run_preprocessing()
-        self.train()
-        self.evaluate()
-        self.trade()
+        self.run_sentiment_analysis()
+        self.run_preprocessing()
+        # self.train()
+        # self.evaluate()
+        # self.trade()
 
 
 if __name__ == "__main__":
-    with mlflow.start_run(run_id="32b8ae74f0c143349cb7777fd2c1dcb5"):
+    mlflow.set_tracking_uri(paths.mlflow_path)
+    mlflow.set_experiment("Live")
+
+    with mlflow.start_run():
+        log = setup_logger(level="DEBUG")
         live = LivePipeline()
         # live.ticker = load_file(run_id="662f377d540e42f68f2df688c24a060c", fn="ticker.pkl", experiment="Live")
         # live.evaluated = load_file("eval.pkl")
