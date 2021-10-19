@@ -1,6 +1,9 @@
+import mlflow
 from tensorforce import Runner, Agent, Environment
 from utils.mlflow_api import load_file, log_file, MlflowAPI
 from tqdm import tqdm
+from rl.wrapper.predict import predict_wrapper
+from eval.evaluate import Evaluate
 
 
 class AgentWrapper:
@@ -9,9 +12,11 @@ class AgentWrapper:
         self.agent = None
         self.env = env
 
+        self._saved = False
+
     def create(self, **kwargs):
         self.agent = Agent.create(
-            agent='ppo', environment=self.env.tf_env, batch_size=32, tracking="all",
+            agent='ppo', environment=self.env.tf_env, batch_size=32, tracking="all", memory="minimum",
             # exploration=0.02,
             **kwargs
         )
@@ -22,12 +27,20 @@ class AgentWrapper:
     def save(self):
         path = str(MlflowAPI().get_artifact_path() / "model")
         self.agent.save(directory=path, format='numpy')
+        self._saved = True
 
     def close(self):
         self.agent.close()
 
     def train(self, episodes, episode_progress_indicator, episode_interval=None):
         raise NotImplementedError
+
+    def predict(self):
+        agent_path = MlflowAPI().get_artifact_path() / "model"
+        if not self._saved:
+            self.save()
+        pred = predict_wrapper(agent_path=agent_path, env=self.env.env, x=self.env.data)
+        return pred
 
     def episode_start_callback(self):
         pass
@@ -50,6 +63,19 @@ class AgentWrapper:
     @staticmethod
     def log_callback(env):
         env.log()
+
+    def eval_callback(self):
+        pred = self.predict()
+
+        with mlflow.start_run(nested=True):
+            ep = Evaluate(ticker=pred)
+            ep.set_thresholds({'hold': 0, 'buy': 0, 'sell': 0})
+            ep.initialize()
+            ep.act()
+            ep.force_sell()
+            ep.log_params()
+            ep.log_metrics()
+            ep.log_statistics()
 
 
 class AgentRunner(AgentWrapper):
@@ -107,26 +133,38 @@ class AgentActExperienceUpdate(AgentWrapper):
 
             self.episode_start_callback()
 
+            internals = self.agent.initial_internals()
+            episode_states = list()
+            episode_internals = list()
+            episode_actions = list()
+            episode_terminal = list()
+            episode_reward = list()
+
             for _ in tqdm(range(episode_progress_indicator), desc=f"Episode {ep}"):
                 self.in_episode_start_callback()
 
-                internals = self.agent.initial_internals()
-                episode_states = list()
-                episode_internals = list()
-                episode_actions = list()
-                episode_terminal = list()
-                episode_reward = list()
+                states = env.reset()
+                terminal = False
+
+                while not terminal:
+                    episode_states.append(states)
+                    episode_internals.append(internals)
+                    actions, internals = self.agent.act(states=states, internals=internals, independent=True)
+                    episode_actions.append(actions)
+                    states, terminal, reward = env.execute(actions=actions)
+                    episode_terminal.append(terminal)
+                    episode_reward.append(reward)
 
                 self.in_episode_callback()
 
-                self.agent.experience(
-                    states=episode_states, internals=episode_internals, actions=episode_actions,
-                    terminal=episode_terminal, reward=episode_reward
-                )
+            self.agent.experience(
+                states=episode_states, internals=episode_internals, actions=episode_actions,
+                terminal=episode_terminal, reward=episode_reward
+            )
 
-                self.agent.update()
+            self.agent.update()
 
-                self.in_episode_end_callback()
+            self.in_episode_end_callback()
 
             self.episode_end_callback()
 
