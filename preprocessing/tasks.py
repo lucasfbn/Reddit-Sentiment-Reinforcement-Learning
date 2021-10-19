@@ -625,7 +625,7 @@ def mark_short_sequences(ticker: Ticker, min_sequence_len: int):
     Marks the sequences which are empty or to short due to entries not being tradeable or available.
     """
 
-    if len(ticker.sequences) <= min_sequence_len:
+    if len(ticker.sequences) < min_sequence_len:
         ticker.exclude = True
 
     return ticker
