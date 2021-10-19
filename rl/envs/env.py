@@ -4,7 +4,7 @@ import mlflow
 import numpy as np
 from tensorforce import Environment
 
-from utils.util_funcs import log
+from rl.envs.simple_trading import SimpleTradingEnv
 
 
 class EnvCounter:
@@ -35,12 +35,6 @@ class EnvCounter:
 
 
 class Env(Environment):
-    ENABLE_TRANSACTION_COSTS = False
-
-    TRANSACTION_FEE_ASK = 0.005  # Buy
-    TRANSACTION_FEE_BID = 0.01  # Sell
-
-    ENABLE_NEG_BUY_REWARD = False
 
     def __init__(self, ticker):
         super().__init__()
@@ -52,7 +46,7 @@ class Env(Environment):
         self.curr_ticker = None
         self.curr_env_counter = EnvCounter()
         self.curr_sequences = None
-        self.curr_inventory = []
+        self.curr_simple_trading_env = SimpleTradingEnv("init")
         self.curr_sequence = None
 
         self.episode_end = False
@@ -87,49 +81,16 @@ class Env(Environment):
             self.curr_sequence = next_sequence
             return next_state
 
-    def calculate_margin(self, current_price):
-        margin = 0
-
-        for buy_price in self.curr_inventory:
-            margin += current_price - buy_price
-
-        return margin
-
     def hold(self, reward, price):
+        reward = self.curr_simple_trading_env.hold(reward, price)
         return reward
 
     def buy(self, reward, price):
-        self.curr_inventory.append(price)
-
-        if self.ENABLE_NEG_BUY_REWARD:
-            reward -= price
-
-        if self.ENABLE_TRANSACTION_COSTS:
-            reward -= price * self.TRANSACTION_FEE_ASK
-
-        log.debug(f"BUY. Stock: {self.curr_ticker.name}. Relativ price: {self.curr_sequence.price}"
-                  f"Abs price: {self.curr_sequence.price_raw}")
-
+        reward = self.curr_simple_trading_env.buy(reward, price)
         return reward
 
     def sell(self, reward, price):
-
-        if len(self.curr_inventory) > 0:
-
-            margin = self.calculate_margin(price)
-
-            if self.ENABLE_TRANSACTION_COSTS:
-                margin -= margin * self.TRANSACTION_FEE_BID
-
-            reward += margin
-
-            self.curr_inventory = []
-
-            log.debug(f"SOLD: Stock: {self.curr_ticker.name}. Relativ price: {self.curr_sequence.price}"
-                      f"Abs price: {self.curr_sequence.price_raw}. Profit/Loss: {margin}")
-        else:
-            log.debug(f"Attempted sell, but inventory is empty.")
-
+        reward = self.curr_simple_trading_env.sell(reward, price)
         return reward
 
     def execute(self, actions):
@@ -160,9 +121,9 @@ class Env(Environment):
         self.episode_end = False
         self.episode_count += 1
 
-        self.curr_inventory = []
         self.next_ticker()
         state = self.next_sequence()
+        self.curr_simple_trading_env = SimpleTradingEnv(ticker_name=self.curr_ticker.name)
         return state
 
     def log(self):
