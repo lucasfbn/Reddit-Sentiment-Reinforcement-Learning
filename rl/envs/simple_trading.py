@@ -1,10 +1,10 @@
-from utils.logger import base_logger
+import logging
 
-logger = base_logger()
+logger = logging.getLogger()
 
 
 class SimpleTradingEnv:
-    ENABLE_TRANSACTION_COSTS = True
+    ENABLE_TRANSACTION_COSTS = False
 
     TRANSACTION_FEE_ASK = 0.005  # Buy
     TRANSACTION_FEE_BID = 0.01  # Sell
