@@ -12,8 +12,6 @@ class AgentWrapper:
         self.agent = None
         self.env = env
 
-        self._saved = False
-
     def create(self, **kwargs):
         self.agent = Agent.create(
             agent='ppo', environment=self.env.tf_env, batch_size=32, tracking="all", memory="minimum",
@@ -27,7 +25,7 @@ class AgentWrapper:
     def save(self):
         path = str(MlflowAPI().get_artifact_path() / "model")
         self.agent.save(directory=path, format='numpy')
-        self._saved = True
+        return path
 
     def close(self):
         self.agent.close()
@@ -36,9 +34,7 @@ class AgentWrapper:
         raise NotImplementedError
 
     def predict(self):
-        agent_path = MlflowAPI().get_artifact_path() / "model"
-        if not self._saved:
-            self.save()
+        agent_path = self.save()
         pred = predict_wrapper(agent_path=agent_path, env=self.env.env, x=self.env.data)
         return pred
 
