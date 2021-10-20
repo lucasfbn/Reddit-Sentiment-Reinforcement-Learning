@@ -13,8 +13,6 @@ class AgentWrapper:
         self.agent = None
         self.env = env
 
-        self.pred = None
-
     def create(self, **kwargs):
         self.agent = Agent.create(
             agent='ppo', environment=self.env.tf_env, batch_size=32, tracking="all", memory="minimum",
@@ -59,16 +57,13 @@ class AgentWrapper:
     def in_episode_end_callback(self):
         pass
 
-    def _pred_callback(self):
-        self.pred = self.predict()
-
     @staticmethod
     def log_callback(env):
         env.log()
 
-    def eval_callback(self):
+    def eval_callback(self, pred):
         with mlflow.start_run(nested=True):
-            ep = Evaluate(ticker=self.pred)
+            ep = Evaluate(ticker=pred)
             ep.set_thresholds({'hold': 0, 'buy': 0, 'sell': 0})
             ep.initialize()
             ep.act()
@@ -77,8 +72,8 @@ class AgentWrapper:
             ep.log_metrics()
             ep.log_statistics()
 
-    def report_callback(self, episode):
-        report.make_pdf(data=self.pred, path=MlflowAPI().get_artifact_path(), fn=f"{str(episode)}_report.pdf")
+    def report_callback(self, episode, pred):
+        report.make_pdf(data=pred, path=MlflowAPI().get_artifact_path(), fn=f"{str(episode)}_report.pdf")
 
 
 class AgentRunner(AgentWrapper):
