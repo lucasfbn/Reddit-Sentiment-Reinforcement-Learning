@@ -2,6 +2,7 @@ import logging
 
 from utils.mlflow_api import MlflowAPI
 
+DEFAULT_LEVEL = "DEBUG"
 format_ = "%(levelname)s %(asctime)s - %(message)s"
 
 
@@ -30,7 +31,7 @@ def setup_logger(level):
     return log
 
 
-def base_logger(level):
+def base_logger(level=DEFAULT_LEVEL):
     logging.basicConfig(format=format_)
     log = logging.getLogger("root")
     log.setLevel(level)

@@ -10,9 +10,11 @@ from utils.logger import setup_logger
 
 class CustomAgent(AgentActObserve):
 
-    def episode_end_callback(self):
+    def episode_end_callback(self, episode):
         self.log_callback(self.env.tf_env)
-        self.eval_callback()
+        pred = self.predict()
+        self.report_callback(episode, pred)
+        del pred
 
 
 if __name__ == '__main__':
@@ -27,10 +29,10 @@ if __name__ == '__main__':
         env.create(max_episode_timesteps=max(len(tck) for tck in env.data))
 
         agent = CustomAgent(env)
-        # agent.create()
-        agent.load(MlflowAPI(run_id="c3aaa7c52b3f41afb256c4c3ad4376f4").get_artifact_path())
+        agent.create()
+        # agent.load(MlflowAPI(run_id="c3aaa7c52b3f41afb256c4c3ad4376f4").get_artifact_path())
+        agent.train(episodes=20, episode_progress_indicator=env.len_data)
+        agent.save()
 
-        # agent.train(episodes=6, episode_progress_indicator=env.len_data)
-        # agent.save()
-        pred = agent.predict()
-        log_file(pred, "pred.pkl")
+        # pred = agent.predict()
+        # log_file(pred, "pred.pkl")

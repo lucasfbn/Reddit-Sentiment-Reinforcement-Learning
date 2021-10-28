@@ -7,8 +7,7 @@ from numpy.testing import assert_array_equal
 
 from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
-from rl.envs.env import Env
-from rl.envs.env import EnvCNN, EnvNN
+from rl.envs.env import Env, EnvCNN, EnvNN, SimpleTradingEnv
 from tests.utils import MockObj
 
 ticker = [Ticker(_, None) for _ in range(5)]
@@ -111,13 +110,14 @@ def test_basic_env_nn_run():
 
 def test_reward():
     env = EnvCNN(data)
-    env.ENABLE_TRANSACTION_COSTS = True
+    ste = SimpleTradingEnv
+    ste.ENABLE_TRANSACTION_COSTS = True
 
-    expected_rewards = [-data[0].sequences[0].price * env.TRANSACTION_FEE_ASK,
-                        -data[0].sequences[1].price * env.TRANSACTION_FEE_ASK,
-                        3 - (3 * env.TRANSACTION_FEE_BID),
-                        0, -data[1].sequences[1].price * env.TRANSACTION_FEE_ASK,
-                        1 - (1 * env.TRANSACTION_FEE_BID)]
+    expected_rewards = [-data[0].sequences[0].price * ste.TRANSACTION_FEE_ASK,
+                        -data[0].sequences[1].price * ste.TRANSACTION_FEE_ASK,
+                        3 - (3 * ste.TRANSACTION_FEE_BID),
+                        0, -data[1].sequences[1].price * ste.TRANSACTION_FEE_ASK,
+                        1 - (1 * ste.TRANSACTION_FEE_BID)]
 
     actions = [1, 1, 2, 0, 1, 2]
     i = 0
@@ -132,6 +132,7 @@ def test_reward():
 
 
 def test_buy():
+    ste = SimpleTradingEnv
     env = EnvCNN(data)
     env.curr_inventory = [1, 2, 3]
     env.curr_ticker = Ticker("Test", None)
@@ -139,43 +140,44 @@ def test_buy():
     price = 4
     reward = 0
 
-    env.ENABLE_TRANSACTION_COSTS = True
+    ste.ENABLE_TRANSACTION_COSTS = True
     resulting_reward = env.buy(reward, price)
-    assert resulting_reward == price * env.TRANSACTION_FEE_ASK * -1
+    assert resulting_reward == price * ste.TRANSACTION_FEE_ASK * -1
 
-    env.ENABLE_TRANSACTION_COSTS = False
+    ste.ENABLE_TRANSACTION_COSTS = False
     resulting_reward = env.buy(reward, price)
     assert resulting_reward == 0
 
 
 def test_sell():
+    ste = SimpleTradingEnv
     env = EnvCNN(data)
-    env.curr_inventory = [1, 2, 3]
+    env.curr_simple_trading_env.inventory = [1, 2, 3]
     env.curr_ticker = Ticker("Test", None)
     env.curr_sequence = MockObj(price=-1, price_raw=-1)
     price = 4
     reward = 0
 
     expected_margin = 0
-    for inv in env.curr_inventory:
+    for inv in env.curr_simple_trading_env.inventory:
         expected_margin += price - inv
 
-    env.ENABLE_TRANSACTION_COSTS = True
+    ste.ENABLE_TRANSACTION_COSTS = True
     resulting_reward = env.sell(reward, price)
-    assert resulting_reward == expected_margin - expected_margin * env.TRANSACTION_FEE_BID
+    assert resulting_reward == expected_margin - expected_margin * ste.TRANSACTION_FEE_BID
 
     env = EnvCNN(data)
-    env.curr_inventory = [1, 2, 3]
+    env.curr_simple_trading_env.inventory = [1, 2, 3]
     env.curr_ticker = Ticker("Test", None)
     env.curr_sequence = MockObj(price=-1, price_raw=-1)
     price = 4
     reward = 0
 
     expected_margin = 0
-    for inv in env.curr_inventory:
+    for inv in env.curr_simple_trading_env.inventory:
         expected_margin += price - inv
 
-    env.ENABLE_TRANSACTION_COSTS = False
+    ste.ENABLE_TRANSACTION_COSTS = False
     resulting_reward = env.sell(reward, price)
     assert resulting_reward == expected_margin
 
