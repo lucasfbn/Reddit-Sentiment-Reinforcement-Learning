@@ -15,7 +15,8 @@ def run(obj, *args, **kwargs):
 
 
 def initialize(**kwargs):
-    ray.init(ignore_reinit_error=True, **kwargs)
+    if not ray.is_initialized():
+        ray.init(**kwargs)
 
 
 class TaskLogger:
