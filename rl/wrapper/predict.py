@@ -3,7 +3,7 @@ from tensorforce import Agent
 
 
 @ray.remote
-def _predict_single(agent_path, env, x):
+def _predict_single(agent_path, env, x, get_probas):
     agent = Agent.load(directory=agent_path, format='numpy', tracking="all")
 
     for sequence in x.sequences:
@@ -11,8 +11,10 @@ def _predict_single(agent_path, env, x):
 
         action = agent.act(state, independent=True)
 
-        arr = agent.tracked_tensors()["agent/policy/action_distribution/probabilities"]
-        actions_proba = {"hold": arr[0], "buy": arr[1], "sell": arr[2]}
+        actions_proba = {"hold": None, "buy": None, "sell": None}
+        if get_probas:
+            arr = agent.tracked_tensors()["agent/policy/action_distribution/probabilities"]
+            actions_proba = {"hold": arr[0], "buy": arr[1], "sell": arr[2]}
 
         sequence.add_eval(action, actions_proba)
 
@@ -21,10 +23,10 @@ def _predict_single(agent_path, env, x):
     return x
 
 
-def predict_wrapper(agent_path, env, x):
+def predict_wrapper(agent_path, env, x, get_probas):
     if not ray.is_initialized():
         ray.init()
 
-    futures = [_predict_single.remote(agent_path=agent_path, env=env, x=x_) for x_ in x]
+    futures = [_predict_single.remote(agent_path=agent_path, env=env, x=x_, get_probas=get_probas) for x_ in x]
     predicted = ray.get(futures)
     return predicted
