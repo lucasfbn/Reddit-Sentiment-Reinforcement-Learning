@@ -101,7 +101,8 @@ def make_pdf(data, path, fn="report.pdf"):
         gc.collect()
 
     # Multiprocess above-mentioned task
-    par_map(make_imgs_, data).run()
+    temp = par_map(make_imgs_, data).run()
+    del temp
 
     # Make pdf from imgs
     def make_pdf_():
