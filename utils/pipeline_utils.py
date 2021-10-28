@@ -14,8 +14,9 @@ def run(obj, *args, **kwargs):
     return obj.run_map(*args, **kwargs)
 
 
-def initialize():
-    ray.init()
+def initialize(**kwargs):
+    if not ray.is_initialized():
+        ray.init(**kwargs)
 
 
 class TaskLogger:
@@ -32,8 +33,8 @@ class TaskLogger:
     def stop(self, additional=""):
         self._end = timer()
         logger.info(f"Finished: {self.func_name}. "
-                     f"Time elapsed: {str(timedelta(seconds=self._end - self._start)).split('.')[0]}. "
-                     f"{additional}")
+                    f"Time elapsed: {str(timedelta(seconds=self._end - self._start)).split('.')[0]}. "
+                    f"{additional}")
 
 
 class Task:

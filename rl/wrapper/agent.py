@@ -4,6 +4,7 @@ from utils.mlflow_api import load_file, log_file, MlflowAPI
 from tqdm import tqdm
 from rl.wrapper.predict import predict_wrapper
 from eval.evaluate import Evaluate
+from rl.report import report
 
 
 class AgentWrapper:
@@ -38,10 +39,10 @@ class AgentWrapper:
         pred = predict_wrapper(agent_path=agent_path, env=self.env.env, x=self.env.data)
         return pred
 
-    def episode_start_callback(self):
+    def episode_start_callback(self, episode):
         pass
 
-    def episode_end_callback(self):
+    def episode_end_callback(self, episode):
         pass
 
     def episode_end_interval_callback(self):
@@ -60,9 +61,7 @@ class AgentWrapper:
     def log_callback(env):
         env.log()
 
-    def eval_callback(self):
-        pred = self.predict()
-
+    def eval_callback(self, pred):
         with mlflow.start_run(nested=True):
             ep = Evaluate(ticker=pred)
             ep.set_thresholds({'hold': 0, 'buy': 0, 'sell': 0})
@@ -72,6 +71,9 @@ class AgentWrapper:
             ep.log_params()
             ep.log_metrics()
             ep.log_statistics()
+
+    def report_callback(self, episode, pred):
+        report.make_pdf(data=pred, path=MlflowAPI().get_artifact_path(), fn=f"{str(episode)}_report.pdf")
 
 
 class AgentRunner(AgentWrapper):
@@ -101,7 +103,7 @@ class AgentActObserve(AgentWrapper):
 
         for ep in range(episodes):
 
-            self.episode_start_callback()
+            self.episode_start_callback(ep)
 
             for _ in tqdm(range(episode_progress_indicator), desc=f"Episode {ep}"):
 
@@ -113,7 +115,7 @@ class AgentActObserve(AgentWrapper):
                     states, terminal, reward = env.execute(actions=actions)
                     self.agent.observe(terminal=terminal, reward=reward)
 
-            self.episode_end_callback()
+            self.episode_end_callback(ep)
 
             if episode_interval is not None and ep % episode_interval == 0:
                 self.episode_end_interval_callback()
@@ -127,7 +129,7 @@ class AgentActExperienceUpdate(AgentWrapper):
 
         for ep in range(episodes):
 
-            self.episode_start_callback()
+            self.episode_start_callback(ep)
 
             internals = self.agent.initial_internals()
             episode_states = list()
@@ -162,7 +164,7 @@ class AgentActExperienceUpdate(AgentWrapper):
 
             self.in_episode_end_callback()
 
-            self.episode_end_callback()
+            self.episode_end_callback(ep)
 
             if episode_interval is not None and ep % episode_interval == 0:
                 self.episode_end_interval_callback()
