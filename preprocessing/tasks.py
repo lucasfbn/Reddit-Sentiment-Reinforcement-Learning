@@ -570,17 +570,17 @@ def copy_unscaled_price(ticker: Ticker):
 
 
 @task
-def scale_price_data(ticker: Ticker, columns_to_be_scaled: list, drop_unscaled_cols: bool) -> Tuple[Ticker, list]:
+def scale_price_data(ticker: Ticker, cols_to_be_scaled: list, drop_unscaled_cols: bool) -> Tuple[Ticker, list]:
     """
     Scales the price data (or any other arbitrage list of columns).
 
     Args:
         ticker:
-        columns_to_be_scaled: Column names of the price data
+        cols_to_be_scaled: Columns to be scaled
         drop_unscaled_cols: Whether to drop the unscaled columns after scaling or not
     """
-    ticker.df = scale(ticker.df, cols_to_be_scaled=columns_to_be_scaled)
-    ticker.df, scaled_columns = handle_scaled_columns(ticker.df, columns_to_be_scaled, drop_unscaled_cols)
+    ticker.df = scale(ticker.df, cols_to_be_scaled=cols_to_be_scaled)
+    ticker.df, scaled_columns = handle_scaled_columns(ticker.df, cols_to_be_scaled, drop_unscaled_cols)
     return ticker, scaled_columns
 
 
