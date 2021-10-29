@@ -34,7 +34,9 @@ if __name__ == '__main__':
                                ENABLE_NEG_BUY_REWARD=SimpleTradingEnv.ENABLE_NEG_BUY_REWARD,
                                ENABLE_POS_SELL_REWARD=SimpleTradingEnv.ENABLE_POS_SELL_REWARD,
                                TRANSACTION_FEE_BID=SimpleTradingEnv.TRANSACTION_FEE_BID,
-                               TRANSACTION_FEE_ASK=SimpleTradingEnv.TRANSACTION_FEE_ASK))
+                               TRANSACTION_FEE_ASK=SimpleTradingEnv.TRANSACTION_FEE_ASK,
+                               commit="c220a555ca1c6fa4496030c2016b9cbe9e11f391",
+                               dataset_id="5f83fb769d0f4440ab0d13d14fc27e5e"))
 
         env = EnvironmentWrapper(EnvCNN, data)
         env.create(max_episode_timesteps=max(len(tck) for tck in env.data))
