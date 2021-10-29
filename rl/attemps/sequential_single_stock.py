@@ -13,14 +13,15 @@ class CustomAgent(AgentActObserve):
 
     def episode_end_callback(self, episode):
         self.log_callback(self.env.tf_env)
-        pred = self.predict(get_probabilities=False)
-        self.report_callback(episode, pred)
-        del pred
+
+        if episode % 2 == 0:
+            pred = self.predict(get_probabilities=False)
+            self.report_callback(episode, pred)
 
 
 if __name__ == '__main__':
     mlflow.set_tracking_uri(paths.mlflow_path)
-    mlflow.set_experiment("Tests")
+    mlflow.set_experiment("Optimize_Env")
 
     with mlflow.start_run():
         setup_logger("INFO")
@@ -35,7 +36,7 @@ if __name__ == '__main__':
                                ENABLE_POS_SELL_REWARD=SimpleTradingEnv.ENABLE_POS_SELL_REWARD,
                                TRANSACTION_FEE_BID=SimpleTradingEnv.TRANSACTION_FEE_BID,
                                TRANSACTION_FEE_ASK=SimpleTradingEnv.TRANSACTION_FEE_ASK,
-                               commit="c220a555ca1c6fa4496030c2016b9cbe9e11f391",
+                               commit="42668ce97e2f0fa3d2c12ff845ff12823a7cc69f",
                                dataset_id="5f83fb769d0f4440ab0d13d14fc27e5e"))
 
         env = EnvironmentWrapper(EnvCNN, data)
@@ -44,7 +45,7 @@ if __name__ == '__main__':
         agent = CustomAgent(env)
         agent.create()
         # agent.load(MlflowAPI(run_id="c3aaa7c52b3f41afb256c4c3ad4376f4").get_artifact_path())
-        agent.train(episodes=25, episode_progress_indicator=env.len_data)
+        agent.train(episodes=40, episode_progress_indicator=env.len_data)
         agent.save()
 
         # pred = agent.predict()
