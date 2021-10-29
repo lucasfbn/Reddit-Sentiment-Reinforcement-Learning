@@ -2,13 +2,10 @@ import mlflow
 
 import paths
 from preprocessing.tasks import *
-from utils.mlflow_api import load_file, log_file
+from utils.mlflow_api import load_file, log_file, init_mlflow
 from utils.pipeline_utils import initialize, par_map, seq_map
 from utils.util_funcs import update_check_key
 from utils.logger import setup_logger
-
-mlflow.set_tracking_uri(paths.mlflow_path)
-mlflow.set_experiment("Datasets")
 
 initialize()
 
@@ -19,6 +16,7 @@ params = {
     "sentiment_data_columns": ["num_comments", "score", "pos", "neu", "neg", "compound",
                                "num_posts"],
     "price_data_columns": ["Open", "High", "Low", "Close", "Volume"],
+    "additional_metric_columns": [],
     "price_column": "Close",
     "drop_unscaled_cols": True,
     "ticker_min_len": 6,
@@ -53,7 +51,7 @@ def pipeline(**kwargs):
     ticker = remove_excluded_ticker(ticker).run()
     ticker = seq_map(sort_ticker_df_chronologically, ticker, by=params["main_date_col_param"]).run()
     ticker = seq_map(mark_trainable_days, ticker, ticker_min_len=params["ticker_min_len"]).run()
-    ticker = par_map(add_price_data, ticker,  # TODO Put to par in final
+    ticker = par_map(add_price_data, ticker,
                      price_data_start_offset=params["price_data_start_offset"],
                      enable_live_behaviour=params["enable_live_behaviour"]).run()
     clean_price_data_cache().run()
@@ -74,16 +72,20 @@ def pipeline(**kwargs):
     ticker = seq_map(mark_ipo_ticker, ticker).run()
     ticker = remove_excluded_ticker(ticker).run()
     ticker = seq_map(fill_missing_sentiment_data, ticker, sentiment_data_columns=params["sentiment_data_columns"]).run()
-    ticker = seq_map(add_metric_rel_price_change, ticker).run()
+
+    ticker = seq_map(add_metric_rel_price_change, ticker, metric_name="price_rel_change").run()
+    params["additional_metric_columns"].append("price_rel_change")
+
     _ = log_file(ticker, "ticker.pkl")
     seq_map(assert_no_nan, ticker).run()
     ticker = seq_map(copy_unscaled_price, ticker).run()
 
+    cols_to_be_scaled = params["price_data_columns"] + params["additional_metric_columns"]
     # map(list, ...) splits the list of tuples to two lists, see tests of pipeline_utils
     ticker, price_data_columns = map(list, zip(*seq_map(scale_price_data, ticker,
-                                                        price_data_columns=params["price_data_columns"],
+                                                        cols_to_be_scaled=cols_to_be_scaled,
                                                         drop_unscaled_cols=params["drop_unscaled_cols"]).run()))
-    params["price_data_columns"] = price_data_columns[0]
+    # params["price_data_columns"] = price_data_columns[0]
 
     ticker = par_map(make_sequences, ticker,
                      sequence_length=params["sequence_length"],
@@ -102,6 +104,7 @@ def pipeline(**kwargs):
 
 
 def main():
+    init_mlflow("Datasets")
     with mlflow.start_run():
         df = load_file(run_id="dec6cb437cbc455fa871d1ac5b9300c8", fn="report.csv", experiment="Sentiment")
         setup_logger("DEBUG")
