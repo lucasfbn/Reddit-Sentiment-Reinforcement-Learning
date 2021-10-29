@@ -26,7 +26,7 @@ params = {
     "sequence_length": 7,
     "columns_to_be_excluded_from_sequences": ["available", "tradeable", main_date_col,
                                               "sentiment_data_available", "price_raw", "Open_scaled",
-                                              "High_scaled", "Low_scaled", "Volume_scaled"],
+                                              "High_scaled", "Low_scaled"],
     "sequence_to_be_generated": "arr",
     "main_date_col_param": main_date_col,
     "start_end_columns": ["start", "end"],
