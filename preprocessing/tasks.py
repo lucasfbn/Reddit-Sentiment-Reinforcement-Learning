@@ -512,7 +512,7 @@ def assert_no_nan(ticker: Ticker):
 
 
 @task
-def add_metric_rel_price_change(ticker: Ticker) -> Ticker:
+def add_metric_rel_price_change(ticker: Ticker, metric_name: str) -> Ticker:
     """
     Adds metric: relative price change in relation to prior day
     Formula:
@@ -522,6 +522,7 @@ def add_metric_rel_price_change(ticker: Ticker) -> Ticker:
 
     Args:
         ticker:
+        metric_name: Name of metric
 
     Returns:
 
@@ -536,7 +537,7 @@ def add_metric_rel_price_change(ticker: Ticker) -> Ticker:
         else:
             rel_change.append((prices[i] - prices[i - 1]) / (prices[i - 1]))
 
-    ticker.df["price_rel_change"] = rel_change
+    ticker.df[metric_name] = rel_change
     return ticker
 
 
@@ -569,18 +570,18 @@ def copy_unscaled_price(ticker: Ticker):
 
 
 @task
-def scale_price_data(ticker: Ticker, price_data_columns: list, drop_unscaled_cols: bool) -> Tuple[Ticker, list]:
+def scale_price_data(ticker: Ticker, columns_to_be_scaled: list, drop_unscaled_cols: bool) -> Tuple[Ticker, list]:
     """
     Scales the price data (or any other arbitrage list of columns).
 
     Args:
         ticker:
-        price_data_columns: Column names of the price data
+        columns_to_be_scaled: Column names of the price data
         drop_unscaled_cols: Whether to drop the unscaled columns after scaling or not
     """
-    ticker.df = scale(ticker.df, cols_to_be_scaled=price_data_columns)
-    ticker.df, price_data_columns = handle_scaled_columns(ticker.df, price_data_columns, drop_unscaled_cols)
-    return ticker, price_data_columns
+    ticker.df = scale(ticker.df, cols_to_be_scaled=columns_to_be_scaled)
+    ticker.df, scaled_columns = handle_scaled_columns(ticker.df, columns_to_be_scaled, drop_unscaled_cols)
+    return ticker, scaled_columns
 
 
 @task
