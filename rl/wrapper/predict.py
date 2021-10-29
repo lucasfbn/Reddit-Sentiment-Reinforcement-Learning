@@ -29,4 +29,6 @@ def predict_wrapper(agent_path, env, x, get_probas):
 
     futures = [_predict_single.remote(agent_path=agent_path, env=env, x=x_, get_probas=get_probas) for x_ in x]
     predicted = ray.get(futures)
+
+    ray.shutdown()
     return predicted
