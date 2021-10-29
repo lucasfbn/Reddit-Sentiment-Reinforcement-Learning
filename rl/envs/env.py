@@ -81,33 +81,32 @@ class Env(Environment):
             self.curr_sequence = next_sequence
             return next_state
 
-    def hold(self, reward, price):
-        reward = self.curr_simple_trading_env.hold(reward, price)
+    def hold(self, price):
+        reward = self.curr_simple_trading_env.hold(price)
         return reward
 
-    def buy(self, reward, price):
-        reward = self.curr_simple_trading_env.buy(reward, price)
+    def buy(self, price):
+        reward = self.curr_simple_trading_env.buy(price)
         return reward
 
-    def sell(self, reward, price):
-        reward = self.curr_simple_trading_env.sell(reward, price)
+    def sell(self, price):
+        reward = self.curr_simple_trading_env.sell(price)
         return reward
 
     def execute(self, actions):
-        reward = 0
         price = self.curr_sequence.price
 
         # Hold
         if actions == 0:
-            reward = self.hold(reward, price)
+            reward = self.hold(price)
 
         # Buy
         elif actions == 1:
-            reward = self.buy(reward, price)
+            reward = self.buy(price)
 
         # Sell
         elif actions == 2:
-            reward = self.sell(reward, price)
+            reward = self.sell(price)
 
         else:
             raise ValueError("Invalid action.")
