@@ -35,9 +35,9 @@ class AgentWrapper:
     def train(self, episodes, episode_progress_indicator, episode_interval=None):
         raise NotImplementedError
 
-    def predict(self):
+    def predict(self, get_probabilities):
         agent_path = self.save()
-        pred = predict_wrapper(agent_path=agent_path, env=self.env.env, x=self.env.data)
+        pred = predict_wrapper(agent_path=agent_path, env=self.env.env, x=self.env.data, get_probas=get_probabilities)
         return pred
 
     def episode_start_callback(self, episode):
