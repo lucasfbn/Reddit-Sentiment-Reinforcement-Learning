@@ -14,7 +14,6 @@ class SimpleTradingEnv:
     def __init__(self, ticker_name):
         self.ticker_name = ticker_name
         self.inventory = []
-        self.profit = 1
 
     def calculate_margin(self, current_price):
         margin = 0
@@ -57,7 +56,6 @@ class SimpleTradingEnv:
             reward += margin
 
             self.inventory = []
-            self.profit += margin
 
             logger.debug(f"SELL. Stock: {self.ticker_name}. Relative price: {price}. Margin: {margin}")
         else:
