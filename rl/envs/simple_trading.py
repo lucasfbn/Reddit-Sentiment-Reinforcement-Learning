@@ -4,12 +4,12 @@ logger = logging.getLogger()
 
 
 class SimpleTradingEnv:
-    ENABLE_TRANSACTION_COSTS = False
-
     TRANSACTION_FEE_ASK = 0.005  # Buy
     TRANSACTION_FEE_BID = 0.01  # Sell
 
+    ENABLE_TRANSACTION_COSTS = False
     ENABLE_NEG_BUY_REWARD = False
+    ENABLE_POS_SELL_REWARD = False
 
     def __init__(self, ticker_name):
         self.ticker_name = ticker_name
@@ -46,6 +46,9 @@ class SimpleTradingEnv:
 
             if self.ENABLE_TRANSACTION_COSTS:
                 margin -= margin * self.TRANSACTION_FEE_BID
+
+            if self.ENABLE_POS_SELL_REWARD:
+                reward = price
 
             reward += margin
 
