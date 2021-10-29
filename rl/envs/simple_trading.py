@@ -49,10 +49,10 @@ class SimpleTradingEnv:
             margin = self.calculate_margin(price)
 
             if self.ENABLE_TRANSACTION_COSTS:
-                margin -= margin * self.TRANSACTION_FEE_BID
+                reward -= price * self.TRANSACTION_FEE_BID
 
             if self.ENABLE_POS_SELL_REWARD:
-                reward = price
+                reward += price
 
             reward += margin
 

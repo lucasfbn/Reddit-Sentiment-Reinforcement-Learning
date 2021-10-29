@@ -115,9 +115,9 @@ def test_reward():
 
     expected_rewards = [-data[0].sequences[0].price * ste.TRANSACTION_FEE_ASK,
                         -data[0].sequences[1].price * ste.TRANSACTION_FEE_ASK,
-                        3 - (3 * ste.TRANSACTION_FEE_BID),
+                        3 - (data[0].sequences[2].price * ste.TRANSACTION_FEE_BID),
                         0, -data[1].sequences[1].price * ste.TRANSACTION_FEE_ASK,
-                        1 - (1 * ste.TRANSACTION_FEE_BID)]
+                        1 - (data[1].sequences[2].price * ste.TRANSACTION_FEE_BID)]
 
     actions = [1, 1, 2, 0, 1, 2]
     i = 0
@@ -141,11 +141,11 @@ def test_buy():
     reward = 0
 
     ste.ENABLE_TRANSACTION_COSTS = True
-    resulting_reward = env.buy(reward, price)
+    resulting_reward = env.buy(price)
     assert resulting_reward == price * ste.TRANSACTION_FEE_ASK * -1
 
     ste.ENABLE_TRANSACTION_COSTS = False
-    resulting_reward = env.buy(reward, price)
+    resulting_reward = env.buy(price)
     assert resulting_reward == 0
 
 
@@ -163,8 +163,8 @@ def test_sell():
         expected_margin += price - inv
 
     ste.ENABLE_TRANSACTION_COSTS = True
-    resulting_reward = env.sell(reward, price)
-    assert resulting_reward == expected_margin - expected_margin * ste.TRANSACTION_FEE_BID
+    resulting_reward = env.sell(price)
+    assert resulting_reward == expected_margin - price * ste.TRANSACTION_FEE_BID
 
     env = EnvCNN(data)
     env.curr_simple_trading_env.inventory = [1, 2, 3]
@@ -178,12 +178,12 @@ def test_sell():
         expected_margin += price - inv
 
     ste.ENABLE_TRANSACTION_COSTS = False
-    resulting_reward = env.sell(reward, price)
+    resulting_reward = env.sell(price)
     assert resulting_reward == expected_margin
 
 
 def test_w_real_data_cnn():
-    with open("./test_envs/ticker.pkl", "rb") as f:
+    with open("./ticker.pkl", "rb") as f:
         data = pkl.load(f)
 
     env = EnvCNN(data)
@@ -198,7 +198,7 @@ def test_w_real_data_cnn():
 
 
 def test_w_real_data_nn():
-    with open("./test_envs/ticker.pkl", "rb") as f:
+    with open("./ticker.pkl", "rb") as f:
         data = pkl.load(f)
 
     env = EnvNN(data)
