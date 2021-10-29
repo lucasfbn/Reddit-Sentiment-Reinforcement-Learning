@@ -24,10 +24,12 @@ class SimpleTradingEnv:
 
         return margin
 
-    def hold(self, reward, price):
+    def hold(self, price):
+        reward = 0
         return reward
 
-    def buy(self, reward, price):
+    def buy(self, price):
+        reward = 0
         self.inventory.append(price)
 
         if self.ENABLE_NEG_BUY_REWARD:
@@ -39,7 +41,9 @@ class SimpleTradingEnv:
         logger.debug(f"BUY. Stock: {self.ticker_name}. Relative price: {price}")
         return reward
 
-    def sell(self, reward, price):
+    def sell(self, price):
+        reward = 0
+
         if len(self.inventory) > 0:
 
             margin = self.calculate_margin(price)
