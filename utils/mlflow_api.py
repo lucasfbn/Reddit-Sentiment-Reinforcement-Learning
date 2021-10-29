@@ -8,7 +8,10 @@ import pandas as pd
 
 import paths
 
-mlflow.set_tracking_uri(paths.mlflow_path)
+
+def init_mlflow(experiment):
+    mlflow.set_tracking_uri(paths.mlflow_path)
+    mlflow.set_experiment(experiment)
 
 
 class MlflowAPI:
