@@ -24,8 +24,7 @@ def _predict_single(agent_path, env, x, get_probas):
 
 
 def predict_wrapper(agent_path, env, x, get_probas):
-    if not ray.is_initialized():
-        ray.init()
+    ray.init()
 
     futures = [_predict_single.remote(agent_path=agent_path, env=env, x=x_, get_probas=get_probas) for x_ in x]
     predicted = ray.get(futures)
