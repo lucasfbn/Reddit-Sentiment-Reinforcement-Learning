@@ -1,7 +1,7 @@
-from rl.envs.simple_trading import SimpleTradingEnv
+from rl.envs.simple_trading import SimpleTradingEnvEvaluation
 
 
-class SimpleTradingEnvEvaluation:
+class EvalPrediction:
 
     def __init__(self, ticker):
         self.ticker_name = ticker.name
@@ -18,14 +18,7 @@ class SimpleTradingEnvEvaluation:
             seq.action = map_[seq.action]
 
     def run_env(self):
-        ste = SimpleTradingEnv(self.ticker_name)
-
-        # Realistic mode
-        ste.ENABLE_TRANSACTION_COSTS = True
-        ste.TRANSACTION_FEE_ASK = 0.05
-        ste.TRANSACTION_FEE_BID = 0.01
-        ste.ENABLE_NEG_BUY_REWARD = True
-        ste.ENABLE_POS_SELL_REWARD = True
+        ste = SimpleTradingEnvEvaluation(self.ticker_name)
 
         # Tracker
         N_holds = 0
@@ -113,7 +106,7 @@ class AccumulatedSimpleTradingEnvEvaluation:
 
     def run_evaluation(self):
         for ticker in self.pred_ticker:
-            stee = SimpleTradingEnvEvaluation(ticker)
+            stee = EvalPrediction(ticker)
             stee.run_env()
             stee.get_pred_history()
             self.run_stats.append(stee.to_dict())
