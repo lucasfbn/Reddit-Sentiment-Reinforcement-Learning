@@ -4,7 +4,7 @@ import mlflow
 import numpy as np
 from tensorforce import Environment
 
-from rl.envs.simple_trading import SimpleTradingEnv
+from rl.envs.simple_trading import SimpleTradingEnvTraining
 
 
 class EnvCounter:
@@ -46,7 +46,7 @@ class Env(Environment):
         self.curr_ticker = None
         self.curr_env_counter = EnvCounter()
         self.curr_sequences = None
-        self.curr_simple_trading_env = SimpleTradingEnv("init")
+        self.curr_simple_trading_env = SimpleTradingEnvTraining("init")
         self.curr_sequence = None
 
         self.episode_end = False
@@ -122,7 +122,7 @@ class Env(Environment):
 
         self.next_ticker()
         state = self.next_sequence()
-        self.curr_simple_trading_env = SimpleTradingEnv(ticker_name=self.curr_ticker.name)
+        self.curr_simple_trading_env = SimpleTradingEnvTraining(ticker_name=self.curr_ticker.name)
         return state
 
     def log(self):
