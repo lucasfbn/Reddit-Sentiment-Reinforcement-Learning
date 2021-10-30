@@ -15,6 +15,8 @@ def init_mlflow(experiment):
 
 
 class MlflowAPI:
+
+    DRIVE = "C"
     valid_files_kinds = ["pkl", "json", "csv", "png"]
 
     def __init__(self, run_id=None, experiment=None):
@@ -56,7 +58,7 @@ class MlflowAPI:
         self._relevant_exp = self.experiment if self.experiment is not None else self._active_exp
 
     def get_artifact_path(self):
-        r = Path("C:/" + self._relevant_run_obj.info.artifact_uri.split(":")[2])
+        r = Path(f"{self.DRIVE}:/" + self._relevant_run_obj.info.artifact_uri.split(":")[2])
         self._exit()
         return r
 
