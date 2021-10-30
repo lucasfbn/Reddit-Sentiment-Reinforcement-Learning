@@ -3,7 +3,7 @@ import mlflow
 import paths
 from preprocessing.tasks import *
 from utils.mlflow_api import load_file, log_file, init_mlflow
-from utils.pipeline_utils import initialize, par_map, seq_map
+from utils.pipeline_utils import initialize, par_map, seq_map, seq_map_tuple_return
 from utils.util_funcs import update_check_key
 from utils.logger import setup_logger
 
@@ -81,10 +81,10 @@ def pipeline(**kwargs):
     ticker = seq_map(copy_unscaled_price, ticker).run()
 
     cols_to_be_scaled = params["price_data_columns"] + params["additional_metric_columns"]
-    # map(list, ...) splits the list of tuples to two lists, see tests of pipeline_utils
-    ticker, price_data_columns = map(list, zip(*seq_map(scale_price_data, ticker,
-                                                        cols_to_be_scaled=cols_to_be_scaled,
-                                                        drop_unscaled_cols=params["drop_unscaled_cols"]).run()))
+
+    ticker, price_data_columns = seq_map_tuple_return(scale_price_data, ticker,
+                                                      cols_to_be_scaled=cols_to_be_scaled,
+                                                      drop_unscaled_cols=params["drop_unscaled_cols"])
     # params["price_data_columns"] = price_data_columns[0]
 
     ticker = par_map(make_sequences, ticker,
@@ -104,7 +104,7 @@ def pipeline(**kwargs):
 
 
 def main():
-    init_mlflow("Datasets")
+    init_mlflow("Tests")
     with mlflow.start_run():
         df = load_file(run_id="dec6cb437cbc455fa871d1ac5b9300c8", fn="report.csv", experiment="Sentiment")
         setup_logger("DEBUG")
