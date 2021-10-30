@@ -81,7 +81,7 @@ def drop_columns(df: pd.DataFrame, columns_to_be_dropped: list):
     return df.drop(columns=columns_to_be_dropped)
 
 
-def handle_scaled_columns(df: pd.DataFrame, unscaled_cols: list, drop_unscaled_cols: bool) -> Tuple[pd.DataFrame, list]:
+def _handle_scaled_columns(df: pd.DataFrame, unscaled_cols: list, drop_unscaled_cols: bool) -> Tuple[pd.DataFrame, list]:
     """
     Handles columns after scaling. If drop_unscaled_cols is True, the unscaled columns will be dropped from the df and
     only the scaled columns will be returned as the new columns. Otherwise the scaled columns will be added to the
@@ -125,16 +125,16 @@ def scale_sentiment_data_daywise(df: pd.DataFrame, sentiment_data_cols: list,
     scaled = []
 
     for date, date_df in dates:
-        date_df = scale(date_df, sentiment_data_cols)
+        date_df = _scale(date_df, sentiment_data_cols)
         scaled.append(date_df)
 
     new_df = pd.concat(scaled)
 
-    new_df, sentiment_data_cols = handle_scaled_columns(new_df, sentiment_data_cols, drop_unscaled_cols)
+    new_df, sentiment_data_cols = _handle_scaled_columns(new_df, sentiment_data_cols, drop_unscaled_cols)
     return new_df, sentiment_data_cols
 
 
-def scale(df: pd.DataFrame, cols_to_be_scaled: list):
+def _scale(df: pd.DataFrame, cols_to_be_scaled: list):
     scaler = MinMaxScaler()
     df[[col + "_scaled" for col in cols_to_be_scaled]] = scaler.fit_transform(df[cols_to_be_scaled])
     return df
@@ -579,8 +579,8 @@ def scale_price_data(ticker: Ticker, cols_to_be_scaled: list, drop_unscaled_cols
         cols_to_be_scaled: Columns to be scaled
         drop_unscaled_cols: Whether to drop the unscaled columns after scaling or not
     """
-    ticker.df = scale(ticker.df, cols_to_be_scaled=cols_to_be_scaled)
-    ticker.df, scaled_columns = handle_scaled_columns(ticker.df, cols_to_be_scaled, drop_unscaled_cols)
+    ticker.df = _scale(ticker.df, cols_to_be_scaled=cols_to_be_scaled)
+    ticker.df, scaled_columns = _handle_scaled_columns(ticker.df, cols_to_be_scaled, drop_unscaled_cols)
     return ticker, scaled_columns
 
 
