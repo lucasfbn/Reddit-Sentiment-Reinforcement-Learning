@@ -15,6 +15,15 @@ class SimpleTradingEnv:
         self.ticker_name = ticker_name
         self.inventory = []
 
+    def hold_callback(self, reward, price):
+        return reward
+
+    def sell_callback(self, reward, price):
+        return reward
+
+    def buy_callback(self, reward, price):
+        return reward
+
     def calculate_margin(self, current_price):
         margin = 0
 
@@ -25,6 +34,9 @@ class SimpleTradingEnv:
 
     def hold(self, price):
         reward = 0
+
+        reward = self.hold_callback(reward, price)
+
         return reward
 
     def buy(self, price):
@@ -61,4 +73,19 @@ class SimpleTradingEnv:
         else:
             logger.debug(f"ATTEMPTED SELL. Stock: {self.ticker_name}. Inventory is empty.")
 
+        return reward
+
+
+class SimpleTradingEnvTraining(SimpleTradingEnv):
+    HOLD_REWARD_MULTIPLIER = 0.1
+
+    def hold_callback(self, reward, price):
+        margin = self.calculate_margin(price)
+        reward += margin * self.HOLD_REWARD_MULTIPLIER
+        return reward
+
+    def sell_callback(self, reward, price):
+        return reward
+
+    def buy_callback(self, reward, price):
         return reward
