@@ -1,8 +1,7 @@
 import mlflow
 
-import paths
 from rl.envs.env import EnvCNN
-from rl.envs.simple_trading import SimpleTradingEnv, SimpleTradingEnvTraining
+from rl.envs.simple_trading import SimpleTradingEnvTraining
 from rl.wrapper.agent import AgentActObserve
 from rl.wrapper.environment import EnvironmentWrapper
 from utils.logger import setup_logger
