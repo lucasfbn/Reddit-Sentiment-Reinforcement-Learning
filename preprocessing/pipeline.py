@@ -82,7 +82,7 @@ def pipeline(**kwargs):
 
     cols_to_be_scaled = params["price_data_columns"] + params["additional_metric_columns"]
 
-    ticker, price_data_columns = seq_map_tuple_return(scale_price_data, ticker,
+    ticker, price_data_columns = seq_map_tuple_return(scale, ticker,
                                                       cols_to_be_scaled=cols_to_be_scaled,
                                                       drop_unscaled_cols=params["drop_unscaled_cols"])
     # params["price_data_columns"] = price_data_columns[0]
