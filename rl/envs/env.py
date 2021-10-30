@@ -140,7 +140,7 @@ class EnvNN(Env):
 
     def states(self):
         shape = self.ticker[0].sequences[0].flat.shape
-        return dict(type="float", shape=(shape[1],))
+        return dict(type="float", shape=(shape[1],), min_value=0.0, max_value=1.0)
 
     @staticmethod
     def shape_state(state):
@@ -153,7 +153,7 @@ class EnvCNN(Env):
 
     def states(self):
         shape = self.ticker[0].sequences[0].arr.shape
-        return dict(type="float", shape=(1, shape[0], shape[1]))
+        return dict(type="float", shape=(1, shape[0], shape[1]), min_value=0.0, max_value=1.0)
 
     @staticmethod
     def shape_state(state):
