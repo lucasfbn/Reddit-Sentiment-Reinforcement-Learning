@@ -9,7 +9,10 @@ base_path = Path(__file__).parent
 tests_path = base_path / "tests"
 storage_path = base_path / "storage"
 data_path = storage_path / "data"
-mlflow_path = f"file:///{(storage_path / 'mlflow' / 'mlruns').as_posix()}"
+
+mlflow_dir = Path("C:/project_data/Trendstuff/mlflow")
+mlflow_path = f"file:///{(mlflow_dir / 'mlruns').as_posix()}"
+
 artifact_path = lambda artifact_uri: Path("C:" + artifact_uri.split(":")[2])
 
 price_data_cache = storage_path / "price_data_cache.sqlite"
