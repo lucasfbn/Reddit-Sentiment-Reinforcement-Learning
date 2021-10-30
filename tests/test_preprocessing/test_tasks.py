@@ -352,7 +352,7 @@ def test_scale_price_data():
     ticker = Ticker(None, df)
 
     # Without dropping
-    result = scale_price_data(ticker, price_data_columns=["price"], drop_unscaled_cols=False).run()
+    result = scale(ticker, price_data_columns=["price"], drop_unscaled_cols=False).run()
 
     expected = pd.DataFrame({"price": [1, 2, 3, 4, 5, 10],
                              "price_scaled": [0.00000, 0.11111, 0.22222, 0.333333, 0.444444, 1.00000]})
@@ -361,7 +361,7 @@ def test_scale_price_data():
     assert result[1] == ["price", "price_scaled"]
 
     # With dropping
-    result = scale_price_data(ticker, price_data_columns=["price"], drop_unscaled_cols=True).run()
+    result = scale(ticker, price_data_columns=["price"], drop_unscaled_cols=True).run()
 
     expected = pd.DataFrame({"price_scaled": [0.00000, 0.11111, 0.22222, 0.333333, 0.444444, 1.00000]})
 
