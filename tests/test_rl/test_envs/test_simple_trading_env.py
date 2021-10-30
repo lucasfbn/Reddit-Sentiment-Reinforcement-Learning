@@ -1,4 +1,4 @@
-from rl.envs.simple_trading import SimpleTradingEnv
+from rl.envs.simple_trading import SimpleTradingEnv, SimpleTradingEnvTraining
 
 
 #######################################################
@@ -117,3 +117,13 @@ def test_pos_sell_reward_plus_transaction_fee():
     _ = ste.buy(10)
     reward = ste.sell(15)
     assert reward == 20 - (15 * 0.005)
+
+
+def test_training():
+    env = SimpleTradingEnvTraining("test")
+    env = set_all_false(env)
+
+    env.HOLD_REWARD_MULTIPLIER = 0.05
+    env.buy(10)
+    reward = env.hold(15)
+    assert reward == 5 * env.HOLD_REWARD_MULTIPLIER
