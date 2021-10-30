@@ -82,10 +82,26 @@ def pipeline(**kwargs):
 
     cols_to_be_scaled = params["price_data_columns"] + params["additional_metric_columns"]
 
-    ticker, price_data_columns = seq_map_tuple_return(scale, ticker,
-                                                      cols_to_be_scaled=cols_to_be_scaled,
-                                                      drop_unscaled_cols=params["drop_unscaled_cols"])
-    # params["price_data_columns"] = price_data_columns[0]
+    # Several different lists of columns scaled separately so we can keep track of the changes made to each individual
+    # list of column names
+
+    # Scale price data
+    ticker, new_price_data_columns = seq_map_tuple_return(scale, ticker,
+                                                          cols_to_be_scaled=params["price_data_columns"],
+                                                          drop_unscaled_cols=params["drop_unscaled_cols"])
+    params["price_data_columns"] = new_price_data_columns[0]  # Because new_price_data_columns is a list
+
+    # Scale additional metrics
+    ticker, new_additional_metric_columns = seq_map_tuple_return(scale, ticker,
+                                                                 cols_to_be_scaled=params["additional_metric_columns"],
+                                                                 drop_unscaled_cols=params["drop_unscaled_cols"])
+    params["additional_metric_columns"] = new_additional_metric_columns[0]
+
+    # Scale sentiment data
+    ticker, new_sentiment_data_columns = seq_map_tuple_return(scale, ticker,
+                                                              cols_to_be_scaled=params["sentiment_data_columns"],
+                                                              drop_unscaled_cols=params["drop_unscaled_cols"])
+    params["sentiment_data_columns"] = new_sentiment_data_columns[0]
 
     ticker = par_map(make_sequences, ticker,
                      sequence_length=params["sequence_length"],
