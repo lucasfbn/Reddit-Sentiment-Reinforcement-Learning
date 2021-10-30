@@ -76,6 +76,15 @@ class SimpleTradingEnv:
         return reward
 
 
+class SimpleTradingEnvEvaluation(SimpleTradingEnv):
+    TRANSACTION_FEE_ASK = 0.005  # Buy
+    TRANSACTION_FEE_BID = 0.01  # Sell
+
+    ENABLE_TRANSACTION_COSTS = True
+    ENABLE_NEG_BUY_REWARD = True
+    ENABLE_POS_SELL_REWARD = True
+
+
 class SimpleTradingEnvTraining(SimpleTradingEnv):
     HOLD_REWARD_MULTIPLIER = 0.1
 
