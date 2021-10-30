@@ -93,6 +93,22 @@ def seq_map(func, iterable, **kwargs):
     return Map(partial(seq_map_, func, iterable, **kwargs), func)
 
 
+def seq_map_tuple_return(func, iterable, **kwargs):
+    """
+    Used for funcs that return several values (or a tuple of values). Note that any return
+    value is a list. There is no need to call run().
+
+    Args:
+        func:
+        iterable:
+        **kwargs:
+
+    Returns:
+
+    """
+    return map(list, zip(*seq_map(func, iterable, **kwargs).run()))
+
+
 def par_map_(func, iterable, **kwargs):
     """
     Lot of overhead because of multiprocessing. Should only be used for processing intensive tasks.
