@@ -7,7 +7,8 @@ from numpy.testing import assert_array_equal
 
 from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
-from rl.envs.env import Env, EnvCNN, EnvNN, SimpleTradingEnv
+from rl.envs.env import Env, EnvCNN, EnvNN
+from rl.envs.simple_trading import SimpleTradingEnv
 from tests.utils import MockObj
 
 ticker = [Ticker(_, None) for _ in range(5)]
@@ -245,12 +246,12 @@ def test_cnn_loop():
 
 def test_nn_states():
     env = EnvNN(data)
-    assert env.states() == {'shape': (6,), 'type': 'float'}
+    assert env.states() == {'max_value': 1.0, 'min_value': 0.0, 'shape': (6,), 'type': 'float'}
 
 
 def test_cnn_states():
     env = EnvCNN(data)
-    assert env.states() == {'shape': (1, 3, 2), 'type': 'float'}
+    assert env.states() == {'max_value': 1.0, 'min_value': 0.0, 'shape': (1, 3, 2), 'type': 'float'}
 
 
 def test_next_ticker():
