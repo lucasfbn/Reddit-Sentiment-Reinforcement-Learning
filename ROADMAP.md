@@ -1,4 +1,4 @@
-## Find optimal parameters for preprocessing, #106
+## Find optimal parameters for preprocessing, [#106](https://github.com/lucasfbn/Trendstuff/issues/106)
 
 - Objectives
 
