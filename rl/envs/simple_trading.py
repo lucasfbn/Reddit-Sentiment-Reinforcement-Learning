@@ -86,9 +86,13 @@ class SimpleTradingEnvEvaluation(SimpleTradingEnv):
 
 
 class SimpleTradingEnvTraining(SimpleTradingEnv):
+    PARTIAL_HOLD_REWARD = False
     HOLD_REWARD_MULTIPLIER = 0.1
 
     def hold_callback(self, reward, price):
+        if not self.PARTIAL_HOLD_REWARD:
+            return reward
+
         margin = self.calculate_margin(price)
         reward += margin * self.HOLD_REWARD_MULTIPLIER
         return reward
