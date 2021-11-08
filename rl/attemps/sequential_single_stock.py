@@ -23,12 +23,12 @@ if __name__ == '__main__':
 
     with mlflow.start_run():
         setup_logger("INFO")
-        data = load_file(run_id="af2509ce45f946d3960142b0bacbc0e4", fn="ticker.pkl", experiment="Datasets")
+        data = load_file(run_id="5896df8aa22c41a3ade34d747bc9ed9a", fn="ticker.pkl", experiment="Datasets")
 
         SimpleTradingEnvTraining.ENABLE_TRANSACTION_COSTS = True
         SimpleTradingEnvTraining.ENABLE_NEG_BUY_REWARD = True
         SimpleTradingEnvTraining.ENABLE_POS_SELL_REWARD = True
-        SimpleTradingEnvTraining.HOLD_REWARD_MULTIPLIER = 0.25
+        SimpleTradingEnvTraining.PARTIAL_HOLD_REWARD = 0.25
 
         mlflow.log_params(dict(ENABLE_TRANSACTION_COSTS=SimpleTradingEnvTraining.ENABLE_TRANSACTION_COSTS,
                                ENABLE_NEG_BUY_REWARD=SimpleTradingEnvTraining.ENABLE_NEG_BUY_REWARD,
@@ -36,7 +36,8 @@ if __name__ == '__main__':
                                TRANSACTION_FEE_BID=SimpleTradingEnvTraining.TRANSACTION_FEE_BID,
                                TRANSACTION_FEE_ASK=SimpleTradingEnvTraining.TRANSACTION_FEE_ASK,
                                HOLD_REWARD_MULTIPLIER=SimpleTradingEnvTraining.HOLD_REWARD_MULTIPLIER,
-                               dataset_id="af2509ce45f946d3960142b0bacbc0e4"))
+                               PARTIAL_HOLD_REWARD=SimpleTradingEnvTraining.PARTIAL_HOLD_REWARD,
+                               dataset_id="5896df8aa22c41a3ade34d747bc9ed9a"))
 
         env = EnvironmentWrapper(EnvCNN, data)
         env.create(max_episode_timesteps=max(len(tck) for tck in env.data))
