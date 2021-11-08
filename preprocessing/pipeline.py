@@ -18,7 +18,7 @@ params = {
     "price_data_columns": ["Open", "High", "Low", "Close", "Volume"],
     "additional_metric_columns": [],
     "price_column": "Close",
-    "drop_unscaled_cols": False,
+    "drop_unscaled_cols": True,
     "ticker_min_len": 2,
     "enable_live_behaviour": False,
     "include_available_days_only": True,
@@ -117,7 +117,7 @@ def pipeline(**kwargs):
 
 
 def main():
-    init_mlflow("Experimental_Datasets")
+    init_mlflow("Datasets")
     with mlflow.start_run():
         df = load_file(run_id="dec6cb437cbc455fa871d1ac5b9300c8", fn="report.csv", experiment="Sentiment")
         setup_logger("DEBUG")
