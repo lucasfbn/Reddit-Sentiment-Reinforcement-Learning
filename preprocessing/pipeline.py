@@ -13,7 +13,6 @@ params = {
     "input_df": None,
     "start_hour": 21,
     "start_min": 0,
-    "scale_sentiment_data_daywise": False,
     "sentiment_data_columns": ["num_comments", "score", "pos", "neu", "neg", "compound",
                                "num_posts"],
     "price_data_columns": ["Open", "High", "Low", "Close", "Volume"],
@@ -43,9 +42,6 @@ def pipeline(**kwargs):
     df = shift_time(df, params["start_hour"], params["start_min"]).run()
     df = drop_columns(df, params["start_end_columns"]).run()
 
-    if params["scale_sentiment_data_daywise"]:
-        df, params["sentiment_data_columns"] = scale_sentiment_data_daywise(df, params["sentiment_data_columns"],
-                                                                            params["drop_unscaled_cols"]).run()
     ticker = grp_by_ticker(df).run()
     ticker = seq_map(aggregate_daywise, ticker).run()
     ticker = seq_map(drop_ticker_with_too_few_data, ticker, ticker_min_len=params["ticker_min_len"]).run()
