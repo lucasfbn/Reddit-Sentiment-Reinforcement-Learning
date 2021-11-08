@@ -81,7 +81,8 @@ def drop_columns(df: pd.DataFrame, columns_to_be_dropped: list):
     return df.drop(columns=columns_to_be_dropped)
 
 
-def _handle_scaled_columns(df: pd.DataFrame, unscaled_cols: list, drop_unscaled_cols: bool) -> Tuple[pd.DataFrame, list]:
+def _handle_scaled_columns(df: pd.DataFrame, unscaled_cols: list, drop_unscaled_cols: bool) -> Tuple[
+    pd.DataFrame, list]:
     """
     Handles columns after scaling. If drop_unscaled_cols is True, the unscaled columns will be dropped from the df and
     only the scaled columns will be returned as the new columns. Otherwise the scaled columns will be added to the
@@ -102,36 +103,6 @@ def _handle_scaled_columns(df: pd.DataFrame, unscaled_cols: list, drop_unscaled_
         new_cols = unscaled_cols + scaled_cols
 
     return df, new_cols
-
-
-@task
-def scale_sentiment_data_daywise(df: pd.DataFrame, sentiment_data_cols: list,
-                                 drop_unscaled_cols: bool) -> Tuple[pd.DataFrame, list]:
-    """
-    Scales all columns, which are in cols_to_be_scaled daywise. Therefore, group for the (shifted)
-    date prior to scaling.
-
-    Args:
-        df:
-        sentiment_data_cols: List of columns that shall not be scaled
-        drop_unscaled_cols: Whether to drop the raw columns after scaling or not
-
-    Returns:
-        The scaled df and the new sentiment data column when drop_unscaled_cols was True. Else the old sentiment data
-        columns + the new scaled columns will be returned.
-    """
-    dates = df.groupby([main_date_col])
-
-    scaled = []
-
-    for date, date_df in dates:
-        date_df = _scale(date_df, sentiment_data_cols)
-        scaled.append(date_df)
-
-    new_df = pd.concat(scaled)
-
-    new_df, sentiment_data_cols = _handle_scaled_columns(new_df, sentiment_data_cols, drop_unscaled_cols)
-    return new_df, sentiment_data_cols
 
 
 def _scale(df: pd.DataFrame, cols_to_be_scaled: list):

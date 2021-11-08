@@ -30,40 +30,6 @@ def test_shift_time():
     assert_frame_equal(result, expected)
 
 
-def test_scale_sentiment_data_daywise():
-    df = pd.DataFrame([
-        {date_day_shifted_col: Period('2021-05-21', 'D'), 'to_be_scaled': 0, "exclude": 999},
-        {date_day_shifted_col: Period('2021-05-21', 'D'), 'to_be_scaled': 1, "exclude": 777},
-        {date_day_shifted_col: Period('2021-05-21', 'D'), 'to_be_scaled': 2, "exclude": 888}
-    ])
-
-    # Scale without dropping cols afterwards
-    result = scale_sentiment_data_daywise(df, sentiment_data_cols=["to_be_scaled"], drop_unscaled_cols=False).run()
-    expected = pd.DataFrame([
-        {date_day_shifted_col: Period('2021-05-21', 'D'), 'to_be_scaled': 0, "exclude": 999,
-         "to_be_scaled_scaled": 0.00000},
-        {date_day_shifted_col: Period('2021-05-21', 'D'), 'to_be_scaled': 1, "exclude": 777,
-         "to_be_scaled_scaled": 0.50000},
-        {date_day_shifted_col: Period('2021-05-21', 'D'), 'to_be_scaled': 2, "exclude": 888,
-         "to_be_scaled_scaled": 1.00000}
-    ])
-    assert_frame_equal(result[0], expected)
-    assert result[1] == ["to_be_scaled", "to_be_scaled_scaled"]
-
-    # Scale with dropping cols afterwards
-    result = scale_sentiment_data_daywise(df, sentiment_data_cols=["to_be_scaled"], drop_unscaled_cols=True).run()
-    expected = pd.DataFrame([
-        {date_day_shifted_col: Period('2021-05-21', 'D'), "exclude": 999,
-         "to_be_scaled_scaled": 0.00000},
-        {date_day_shifted_col: Period('2021-05-21', 'D'), "exclude": 777,
-         "to_be_scaled_scaled": 0.50000},
-        {date_day_shifted_col: Period('2021-05-21', 'D'), "exclude": 888,
-         "to_be_scaled_scaled": 1.00000}
-    ])
-    assert_frame_equal(result[0], expected)
-    assert result[1] == ["to_be_scaled_scaled"]
-
-
 def test_grp_by_ticker():
     df = pd.DataFrame([{'ticker': "GME", date_shifted_col: Timestamp('2021-05-21 00:00:00'), "dummy_value": 1},
                        {'ticker': "GME", date_shifted_col: Timestamp('2021-05-20 00:00:00'), "dummy_value": 1},
