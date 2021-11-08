@@ -179,9 +179,16 @@ class SequenceGenerator:
         self._make_sequence()
         return self._sequences
 
+    @staticmethod
+    def _reset_columns(df):
+        df.columns = pd.RangeIndex(df.columns.size)
+        return df
+
     def add_array_sequences(self):
         for seq in self._sequences:
             seq.arr = seq.df.copy()
+            seq.arr = seq.arr.transpose()
+            seq.arr = self._reset_columns(seq.arr)
         return self._sequences
 
     def get_sequences(self):
