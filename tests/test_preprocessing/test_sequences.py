@@ -126,15 +126,15 @@ def test_arr_sequence():
     result = seq.add_array_sequences()
 
     expected = [
-        pd.DataFrame({"dummy": [1, 2, 3]}),
-        pd.DataFrame({"dummy": [2, 3, 4]}),
-        pd.DataFrame({"dummy": [3, 4, 5]}),
-        pd.DataFrame({"dummy": [4, 5, 6]}),
-        pd.DataFrame({"dummy": [5, 6, 7]}),
+        pd.DataFrame({"dummy": [1, 2, 3]}).transpose(),
+        pd.DataFrame({"dummy": [2, 3, 4]}).transpose(),
+        pd.DataFrame({"dummy": [3, 4, 5]}).transpose(),
+        pd.DataFrame({"dummy": [4, 5, 6]}).transpose(),
+        pd.DataFrame({"dummy": [5, 6, 7]}).transpose(),
     ]
 
     for r, e in zip(result, expected):
-        assert_frame_equal(r.arr.reset_index(drop=True), e)
+        assert_frame_equal(r.arr.reset_index(drop=True), e.reset_index(drop=True))
 
 
 def test_sequence_len_too_long():
