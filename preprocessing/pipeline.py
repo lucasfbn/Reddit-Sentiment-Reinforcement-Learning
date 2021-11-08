@@ -13,13 +13,14 @@ params = {
     "input_df": None,
     "start_hour": 21,
     "start_min": 0,
+    "scale_sentiment_data_daywise": False,
     "sentiment_data_columns": ["num_comments", "score", "pos", "neu", "neg", "compound",
                                "num_posts"],
     "price_data_columns": ["Open", "High", "Low", "Close", "Volume"],
     "additional_metric_columns": [],
     "price_column": "Close",
-    "drop_unscaled_cols": True,
-    "ticker_min_len": 6,
+    "drop_unscaled_cols": False,
+    "ticker_min_len": 2,
     "price_data_start_offset": 10,
     "enable_live_behaviour": False,
     "include_available_days_only": True,
@@ -43,8 +44,9 @@ def pipeline(**kwargs):
     df = shift_time(df, params["start_hour"], params["start_min"]).run()
     df = drop_columns(df, params["start_end_columns"]).run()
 
-    df, params["sentiment_data_columns"] = scale_sentiment_data_daywise(df, params["sentiment_data_columns"],
-                                                                        params["drop_unscaled_cols"]).run()
+    if params["scale_sentiment_data_daywise"]:
+        df, params["sentiment_data_columns"] = scale_sentiment_data_daywise(df, params["sentiment_data_columns"],
+                                                                            params["drop_unscaled_cols"]).run()
     ticker = grp_by_ticker(df).run()
     ticker = seq_map(aggregate_daywise, ticker).run()
     ticker = seq_map(drop_ticker_with_too_few_data, ticker, ticker_min_len=params["ticker_min_len"]).run()
@@ -120,7 +122,7 @@ def pipeline(**kwargs):
 
 
 def main():
-    init_mlflow("Tests")
+    init_mlflow("Experimental_Datasets")
     with mlflow.start_run():
         df = load_file(run_id="dec6cb437cbc455fa871d1ac5b9300c8", fn="report.csv", experiment="Sentiment")
         setup_logger("DEBUG")
