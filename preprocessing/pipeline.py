@@ -21,10 +21,9 @@ params = {
     "price_column": "Close",
     "drop_unscaled_cols": False,
     "ticker_min_len": 2,
-    "price_data_start_offset": 10,
     "enable_live_behaviour": False,
     "include_available_days_only": True,
-    "sequence_length": 7,
+    "sequence_length": 14,
     "columns_to_be_excluded_from_sequences": ["available", "tradeable", main_date_col,
                                               "sentiment_data_available", "price_raw", "Open_scaled",
                                               "High_scaled", "Low_scaled"],
@@ -54,7 +53,7 @@ def pipeline(**kwargs):
     ticker = seq_map(sort_ticker_df_chronologically, ticker, by=params["main_date_col_param"]).run()
     ticker = seq_map(mark_trainable_days, ticker, ticker_min_len=params["ticker_min_len"]).run()
     ticker = par_map(add_price_data, ticker,
-                     price_data_start_offset=params["price_data_start_offset"],
+                     price_data_start_offset=params["sequence_length"] + 1,
                      enable_live_behaviour=params["enable_live_behaviour"]).run()
     clean_price_data_cache().run()
     ticker = remove_excluded_ticker(ticker).run()
