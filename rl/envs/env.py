@@ -16,8 +16,8 @@ class Env(Environment):
 
         self.data_iter = DataIterator(ticker)
 
-        self.curr_reward_counter = RewardCounter()
-        self.curr_simple_trading_env = SimpleTradingEnvTraining("init")
+        self.reward_counter = RewardCounter()
+        self.trading_env = SimpleTradingEnvTraining("init")
 
     @staticmethod
     def get_state_field(sequence: Sequence):
@@ -40,15 +40,15 @@ class Env(Environment):
         return next_state
 
     def hold(self, price):
-        reward = self.curr_simple_trading_env.hold(price)
+        reward = self.trading_env.hold(price)
         return reward
 
     def buy(self, price):
-        reward = self.curr_simple_trading_env.buy(price)
+        reward = self.trading_env.buy(price)
         return reward
 
     def sell(self, price):
-        reward = self.curr_simple_trading_env.sell(price)
+        reward = self.trading_env.sell(price)
         return reward
 
     def execute(self, actions):
@@ -69,7 +69,7 @@ class Env(Environment):
         else:
             raise ValueError("Invalid action.")
 
-        self.curr_reward_counter.add_reward(reward)
+        self.reward_counter.add_reward(reward)
 
         next_sequence = self.data_iter.next_sequence()
         next_state = self.next_state(next_sequence)
@@ -82,12 +82,12 @@ class Env(Environment):
         self.data_iter.next_ticker()
         next_sequence = self.data_iter.next_sequence()
         state = self.next_state(next_sequence)
-        self.curr_simple_trading_env = SimpleTradingEnvTraining(ticker_name=self.data_iter.curr_ticker.name)
+        self.trading_env = SimpleTradingEnvTraining(ticker_name=self.data_iter.curr_ticker.name)
         return state
 
     def log(self):
-        self.curr_reward_counter.log(step=self.data_iter.episode_count)
-        self.curr_reward_counter = RewardCounter()
+        self.reward_counter.log(step=self.data_iter.episode_count)
+        self.reward_counter = RewardCounter()
 
     def actions(self):
         return dict(type="int", num_values=3)
