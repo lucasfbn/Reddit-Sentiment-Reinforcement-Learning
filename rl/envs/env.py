@@ -111,7 +111,7 @@ class EnvNN(Env):
 
     def states(self):
         shape = self.data_iter.ticker[0].sequences[0].flat.shape
-        shape_extended = self.STATE_EXTENDER.get_new_shape_state(shape) if self.USE_STATE_EXTENDER else shape
+        shape = self.STATE_EXTENDER.get_new_shape_state(shape) if self.USE_STATE_EXTENDER else shape
         return dict(type="float", shape=(shape[1],), min_value=0.0, max_value=1.0)
 
     @staticmethod
@@ -130,7 +130,7 @@ class EnvCNN(Env):
 
     def states(self):
         shape = self.data_iter.ticker[0].sequences[0].arr.shape
-        shape_extended = self.STATE_EXTENDER.get_new_shape_state(shape) if self.USE_STATE_EXTENDER else shape
+        shape = self.STATE_EXTENDER.get_new_shape_state(shape) if self.USE_STATE_EXTENDER else shape
         return dict(type="float", shape=(1, shape[0], shape[1]), min_value=0.0, max_value=1.0)
 
     @staticmethod
