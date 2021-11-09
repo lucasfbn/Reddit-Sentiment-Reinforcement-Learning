@@ -262,9 +262,9 @@ def test_next_ticker():
     expected_curr_ticker = [0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1]
 
     for i in range(12):
-        e.next_ticker()
-        result_curr_ticker.append(e.curr_ticker)
-        result_curr_seq.append(e.curr_sequences[0])
+        e.data_iter.next_ticker()
+        result_curr_ticker.append(e.data_iter.curr_ticker)
+        result_curr_seq.append(e.data_iter.curr_sequences[0])
 
     result_curr_ticker = [tck.name for tck in result_curr_ticker]
 
