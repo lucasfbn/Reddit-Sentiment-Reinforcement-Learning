@@ -7,9 +7,12 @@ from preprocessing.sequences import Sequence
 from rl.envs.simple_trading import SimpleTradingEnvTraining
 from rl.envs.utils.reward_counter import RewardCounter
 from rl.envs.utils.data_iterator import DataIterator
+from rl.envs.utils.state_extender import StateExtenderNN, StateExtenderCNN
 
 
 class Env(Environment):
+    USE_STATE_EXTENDER = True
+    STATE_EXTENDER = None
 
     def __init__(self, ticker):
         super().__init__()
@@ -34,8 +37,15 @@ class Env(Environment):
     def states(self):
         raise NotImplementedError
 
+    def extend_state(self, state):
+        if self.USE_STATE_EXTENDER:
+            inventory_state = 1 if len(self.trading_env.inventory) > 0 else 0
+            state = self.STATE_EXTENDER.add_inventory_state(state, inventory_state)
+        return state
+
     def next_state(self, sequence):
         next_state = self.get_state_field(sequence)
+        next_state = self.extend_state(next_state)
         next_state = self.shape_state(next_state)
         return next_state
 
@@ -97,9 +107,11 @@ class Env(Environment):
 
 
 class EnvNN(Env):
+    STATE_EXTENDER = StateExtenderNN()
 
     def states(self):
         shape = self.data_iter.ticker[0].sequences[0].flat.shape
+        shape_extended = self.STATE_EXTENDER.get_new_shape_state(shape) if self.USE_STATE_EXTENDER else shape
         return dict(type="float", shape=(shape[1],), min_value=0.0, max_value=1.0)
 
     @staticmethod
@@ -114,9 +126,11 @@ class EnvNN(Env):
 
 
 class EnvCNN(Env):
+    STATE_EXTENDER = StateExtenderCNN()
 
     def states(self):
         shape = self.data_iter.ticker[0].sequences[0].arr.shape
+        shape_extended = self.STATE_EXTENDER.get_new_shape_state(shape) if self.USE_STATE_EXTENDER else shape
         return dict(type="float", shape=(1, shape[0], shape[1]), min_value=0.0, max_value=1.0)
 
     @staticmethod

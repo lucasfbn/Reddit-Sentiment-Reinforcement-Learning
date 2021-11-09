@@ -57,6 +57,7 @@ data = [t1, t2]
 
 def test_basic_env_cnn_run():
     env = EnvCNN(ticker=data)
+    env.USE_STATE_EXTENDER = False
 
     expected_states = [
         np.array([[1, 2, 3], [10, 11, 12]], dtype=np.float32).T,
@@ -84,6 +85,7 @@ def test_basic_env_cnn_run():
 
 def test_basic_env_nn_run():
     env = EnvNN(data)
+    env.USE_STATE_EXTENDER = False
 
     expected_states = [
         np.array([[1, 2, 3, 10, 11, 12]], dtype=np.float32),
@@ -203,6 +205,7 @@ def test_w_real_data_nn():
         data = pkl.load(f)
 
     env = EnvNN(data)
+    env.USE_STATE_EXTENDER = False
 
     for _ in range(100):
         states = env.reset()
@@ -218,6 +221,7 @@ def test_cnn_loop():
     Should loop through the whole data twice
     """
     env = EnvCNN(data)
+    env.USE_STATE_EXTENDER = False
 
     expected_states = [
         np.array([[1, 2, 3], [10, 11, 12]], dtype=np.float32).T,
@@ -246,6 +250,7 @@ def test_cnn_loop():
 
 def test_nn_states():
     env = EnvNN(data)
+    env.USE_STATE_EXTENDER = False
     assert env.states() == {'max_value': 1.0, 'min_value': 0.0, 'shape': (6,), 'type': 'float'}
 
 
