@@ -1,11 +1,11 @@
 from collections import deque
 
-import mlflow
 import numpy as np
 from tensorforce import Environment
 
-from rl.envs.utils.reward_counter import RewardCounter
+from preprocessing.sequences import Sequence
 from rl.envs.simple_trading import SimpleTradingEnvTraining
+from rl.envs.utils.reward_counter import RewardCounter
 
 
 class Env(Environment):
@@ -27,6 +27,10 @@ class Env(Environment):
         self.episode_count = 0
 
     @staticmethod
+    def get_state(sequence: Sequence):
+        raise NotImplementedError
+
+    @staticmethod
     def shape_state(state):
         raise NotImplementedError
 
@@ -46,14 +50,14 @@ class Env(Environment):
     def next_sequence(self):
         if len(self.curr_sequences) == 0:
             self.episode_end = True
-            current_state = self.curr_sequence.df
-            return current_state
         else:
             next_sequence = self.curr_sequences.popleft()
-            next_sequence = self.shape_state(next_sequence)
-            next_state = next_sequence.df
             self.curr_sequence = next_sequence
-            return next_state
+
+    def next_state(self):
+        next_state = self.get_state(self.curr_sequence)
+        next_state = self.shape_state(next_state)
+        return next_state
 
     def hold(self, price):
         reward = self.curr_simple_trading_env.hold(price)
@@ -87,7 +91,8 @@ class Env(Environment):
 
         self.curr_reward_counter.add_reward(reward)
 
-        next_state = self.next_sequence()
+        self.next_sequence()
+        next_state = self.next_state()
         return next_state, self.episode_end, reward
 
     def reset(self):
@@ -95,7 +100,8 @@ class Env(Environment):
         self.episode_count += 1
 
         self.next_ticker()
-        state = self.next_sequence()
+        self.next_sequence()
+        state = self.next_state()
         self.curr_simple_trading_env = SimpleTradingEnvTraining(ticker_name=self.curr_ticker.name)
         return state
 
@@ -117,9 +123,13 @@ class EnvNN(Env):
         return dict(type="float", shape=(shape[1],), min_value=0.0, max_value=1.0)
 
     @staticmethod
+    def get_state(sequence: Sequence):
+        return sequence.flat
+
+    @staticmethod
     def shape_state(state):
-        state.df = np.asarray(state.flat).astype("float32")
-        state.df = state.df.reshape((state.df.shape[1],))
+        state = np.asarray(state).astype("float32")
+        state = state.reshape((state.shape[1],))
         return state
 
 
@@ -130,7 +140,11 @@ class EnvCNN(Env):
         return dict(type="float", shape=(1, shape[0], shape[1]), min_value=0.0, max_value=1.0)
 
     @staticmethod
+    def get_state(sequence: Sequence):
+        return sequence.arr
+
+    @staticmethod
     def shape_state(state):
-        state.df = state.arr.values.reshape((1, state.arr.shape[0], state.arr.shape[1]))
-        state.df = np.asarray(state.df).astype('float32')
+        state = state.values.reshape((1, state.shape[0], state.shape[1]))
+        state = np.asarray(state).astype('float32')
         return state
