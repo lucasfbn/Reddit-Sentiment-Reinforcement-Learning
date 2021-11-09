@@ -41,13 +41,16 @@ class SimpleTradingEnv:
 
     def buy(self, price):
         reward = 0
-        self.inventory.append(price)
 
         if self.ENABLE_NEG_BUY_REWARD:
             reward -= price
 
         if self.ENABLE_TRANSACTION_COSTS:
             reward -= price * self.TRANSACTION_FEE_ASK
+
+        reward = self.buy_callback(reward, price)
+
+        self.inventory.append(price)
 
         logger.debug(f"BUY. Stock: {self.ticker_name}. Relative price: {price}")
         return reward
@@ -101,4 +104,6 @@ class SimpleTradingEnvTraining(SimpleTradingEnv):
         return reward
 
     def buy_callback(self, reward, price):
+        if len(self.inventory) == 0:
+            return 0
         return reward
