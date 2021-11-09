@@ -123,6 +123,7 @@ def test_training():
     env = SimpleTradingEnvTraining("test")
     env = set_all_false(env)
 
+    env.PARTIAL_HOLD_REWARD = True
     env.HOLD_REWARD_MULTIPLIER = 0.05
     env.buy(10)
     reward = env.hold(15)
