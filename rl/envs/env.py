@@ -4,34 +4,8 @@ import mlflow
 import numpy as np
 from tensorforce import Environment
 
+from rl.envs.utils.reward_counter import RewardCounter
 from rl.envs.simple_trading import SimpleTradingEnvTraining
-
-
-class EnvCounter:
-
-    def __init__(self):
-        self.full = 0
-        self.neg = 0
-        self.even = 0
-        self.pos = 0
-
-    def add_reward(self, reward):
-        self.full += reward
-
-        if reward == 0.0:
-            self.even += 1
-        elif reward > 0.0:
-            self.pos += 1
-        elif reward < 0.0:
-            self.neg += 1
-        else:
-            raise ValueError("Reward")
-
-    def log(self, step):
-        mlflow.log_metric("full run reward", self.full, step=step)
-        mlflow.log_metric("n_even_rewards", self.even, step=step)
-        mlflow.log_metric("n_pos_rewards", self.pos, step=step)
-        mlflow.log_metric("n_neg_rewards", self.neg, step=step)
 
 
 class Env(Environment):
@@ -44,7 +18,7 @@ class Env(Environment):
         self.ticker_iter_max = len(self.ticker)
 
         self.curr_ticker = None
-        self.curr_env_counter = EnvCounter()
+        self.curr_reward_counter = RewardCounter()
         self.curr_sequences = None
         self.curr_simple_trading_env = SimpleTradingEnvTraining("init")
         self.curr_sequence = None
@@ -111,7 +85,7 @@ class Env(Environment):
         else:
             raise ValueError("Invalid action.")
 
-        self.curr_env_counter.add_reward(reward)
+        self.curr_reward_counter.add_reward(reward)
 
         next_state = self.next_sequence()
         return next_state, self.episode_end, reward
@@ -126,8 +100,8 @@ class Env(Environment):
         return state
 
     def log(self):
-        self.curr_env_counter.log(step=self.episode_count)
-        self.curr_env_counter = EnvCounter()
+        self.curr_reward_counter.log(step=self.episode_count)
+        self.curr_reward_counter = RewardCounter()
 
     def actions(self):
         return dict(type="int", num_values=3)
