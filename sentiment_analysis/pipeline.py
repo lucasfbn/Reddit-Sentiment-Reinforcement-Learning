@@ -1,10 +1,9 @@
 import mlflow
-
-from utils.logger import setup_logger
+from mlflow_utils import log_file
+from simplepipeline import seq_map
 
 from sentiment_analysis.tasks import *
-from utils.mlflow_api import log_file
-from utils.pipeline_utils import seq_map
+from utils.logger import setup_logger
 from utils.util_funcs import update_check_key
 
 mlflow.set_tracking_uri(paths.mlflow_path)

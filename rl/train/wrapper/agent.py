@@ -1,9 +1,10 @@
 import mlflow
+from mlflow_utils import MlflowUtils
 from tensorforce import Runner, Agent
-from utils.mlflow_api import log_file, MlflowAPI
 from tqdm import tqdm
-from rl.train.wrapper.predict import predict_wrapper
+
 from rl.eval.evaluate import Evaluate
+from rl.train.wrapper.predict import predict_wrapper
 
 
 class AgentWrapper:
@@ -23,7 +24,7 @@ class AgentWrapper:
         self.agent = Agent.load(directory=str(artifact_path / "model"), format='numpy', tracking="all")
 
     def save(self):
-        path = str(MlflowAPI().get_artifact_path() / "model")
+        path = str(MlflowUtils().get_artifact_path() / "model")
         self.agent.save(directory=path, format='numpy')
         return path
 
