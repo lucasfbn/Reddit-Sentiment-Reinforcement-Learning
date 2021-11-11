@@ -10,11 +10,6 @@ import pandas as pd
 import paths
 from utils.mlflow_api import log_file
 
-# Backwards compatibility, use utils/logger.
-logging.basicConfig(level=logging.INFO,
-                    format="%(levelname)s %(asctime)s - %(message)s")
-log = logging.getLogger()
-
 
 def update_check_key(input_dict, update_dict):
     for key in update_dict.keys():
