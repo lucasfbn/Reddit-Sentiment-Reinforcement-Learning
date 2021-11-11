@@ -3,8 +3,8 @@ import pickle as pkl
 import mlflow
 import pandas as pd
 
-from eval.actions import Buy, Sell, ActionTracker
-from eval.operation import Operation
+from rl.eval.actions import Buy, Sell, ActionTracker
+from rl.eval.operation import Operation
 from utils.mlflow_api import load_file, log_file
 from utils.util_funcs import log
 

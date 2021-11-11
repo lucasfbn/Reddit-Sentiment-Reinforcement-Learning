@@ -1,9 +1,9 @@
 import mlflow
 
 import paths
-from rl.envs.env import EnvCNN
-from rl.wrapper.agent import AgentRunner
-from rl.wrapper.environment import EnvironmentWrapper
+from rl.train.envs.env import EnvCNN
+from rl.train.wrapper.agent import AgentRunner
+from rl.train.wrapper.environment import EnvironmentWrapper
 from utils.mlflow_api import load_file
 
 if __name__ == '__main__':

@@ -1,9 +1,9 @@
 import mlflow
 
-from rl.envs.env import EnvCNN
-from rl.envs.simple_trading import SimpleTradingEnvTraining
-from rl.wrapper.agent import AgentActObserve
-from rl.wrapper.environment import EnvironmentWrapper
+from rl.train.envs.env import EnvCNN
+from rl.train.envs.simple_trading import SimpleTradingEnvTraining
+from rl.train.wrapper.agent import AgentActObserve
+from rl.train.wrapper.environment import EnvironmentWrapper
 from utils.logger import setup_logger
 from utils.mlflow_api import load_file, init_mlflow
 

@@ -7,8 +7,8 @@ from numpy.testing import assert_array_equal
 
 from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
-from rl.envs.env import Env, EnvCNN, EnvNN
-from rl.envs.simple_trading import SimpleTradingEnv
+from rl.train.envs.env import Env, EnvCNN, EnvNN
+from rl.train.envs.simple_trading import SimpleTradingEnv
 from tests.utils import MockObj
 
 ticker = [Ticker(_, None) for _ in range(5)]

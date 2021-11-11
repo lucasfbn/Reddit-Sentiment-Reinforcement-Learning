@@ -3,10 +3,10 @@ from datetime import datetime
 import mlflow
 
 import paths
-from eval.evaluate import EvalLive
+from rl.eval.evaluate import EvalLive
 from preprocessing.pipeline import pipeline as preprocessing_pipeline
 from rl.agent import RLAgent
-from rl.envs.env import EnvCNN
+from rl.train.envs.env import EnvCNN
 from sentiment_analysis.pipeline import pipeline as sentiment_analysis_pipeline
 from utils.mlflow_api import load_file
 from utils.logger import setup_logger

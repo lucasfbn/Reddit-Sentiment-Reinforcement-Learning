@@ -2,7 +2,7 @@ import mlflow
 
 import paths
 from rl.agent import RLAgent
-from rl.envs.env import EnvCNN
+from rl.train.envs.env import EnvCNN
 from utils.mlflow_api import load_file, MlflowAPI
 from utils.util_funcs import log
 
