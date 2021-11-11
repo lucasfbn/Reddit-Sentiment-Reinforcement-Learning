@@ -287,7 +287,7 @@ class EvalLive(Evaluate):
 
 
 if __name__ == "__main__":
-    import paths
+    from utils import paths
 
     mlflow.set_tracking_uri(paths.mlflow_path)
     mlflow.set_experiment("Tests")

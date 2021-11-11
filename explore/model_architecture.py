@@ -1,5 +1,5 @@
 import tensorflow as tf
-import paths
+from utils import paths
 
 model = tf.keras.models.load_model(paths.models_path / "21-50 04_03-21")
 

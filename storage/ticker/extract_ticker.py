@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 
-import paths
+from utils import paths
 
 df = None
 first = True

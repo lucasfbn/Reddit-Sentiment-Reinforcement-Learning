@@ -11,7 +11,7 @@ from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB
 from sentiment_analysis.reddit_data.worker import workers
 from utils.util_funcs import log
 from utils.mlflow_api import log_file
-import paths
+from utils import paths
 
 subreddits = [
     "pennystocks",
