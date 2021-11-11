@@ -1,13 +1,9 @@
 import mlflow
+from mlflow_utils import load_file, log_file, init_mlflow, setup_logger
+from simplepipeline import par_map, seq_map, seq_map_unpack
 
-import paths
 from preprocessing.tasks import *
-from utils.mlflow_api import load_file, log_file, init_mlflow
-from utils.pipeline_utils import initialize, par_map, seq_map, seq_map_tuple_return
 from utils.util_funcs import update_check_key
-from utils.logger import setup_logger
-
-initialize()
 
 params = {
     "input_df": None,
@@ -83,15 +79,15 @@ def pipeline(**kwargs):
     # list of column names
 
     # Scale price data
-    ticker, new_price_data_columns = seq_map_tuple_return(scale, ticker,
-                                                          cols_to_be_scaled=params["price_data_columns"],
-                                                          drop_unscaled_cols=params["drop_unscaled_cols"])
+    ticker, new_price_data_columns = seq_map_unpack(scale, ticker,
+                                                    cols_to_be_scaled=params["price_data_columns"],
+                                                    drop_unscaled_cols=params["drop_unscaled_cols"])
     params["price_data_columns"] = new_price_data_columns[0]  # Because new_price_data_columns is a list
 
     # Scale additional metrics
-    ticker, new_additional_metric_columns = seq_map_tuple_return(scale, ticker,
-                                                                 cols_to_be_scaled=params["additional_metric_columns"],
-                                                                 drop_unscaled_cols=params["drop_unscaled_cols"])
+    ticker, new_additional_metric_columns = seq_map_unpack(scale, ticker,
+                                                           cols_to_be_scaled=params["additional_metric_columns"],
+                                                           drop_unscaled_cols=params["drop_unscaled_cols"])
     params["additional_metric_columns"] = new_additional_metric_columns[0]
 
     # Scale sentiment data
