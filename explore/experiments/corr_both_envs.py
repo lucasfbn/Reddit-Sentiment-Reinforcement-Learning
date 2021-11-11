@@ -3,9 +3,9 @@ from tensorforce import Agent, Environment
 from tqdm import tqdm
 
 import paths
-from eval.evaluate import Evaluate
+from rl.eval.evaluate import Evaluate
 from rl.agent import RLAgent
-from rl.envs.env import EnvCNN
+from rl.train.envs.env import EnvCNN
 from utils.mlflow_api import MlflowAPI
 from utils.mlflow_api import load_file
 from utils.util_funcs import log

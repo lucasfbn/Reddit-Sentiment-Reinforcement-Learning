@@ -1,10 +1,9 @@
 import mlflow
-from tensorforce import Runner, Agent, Environment
-from utils.mlflow_api import load_file, log_file, MlflowAPI
+from tensorforce import Runner, Agent
+from utils.mlflow_api import log_file, MlflowAPI
 from tqdm import tqdm
-from rl.wrapper.predict import predict_wrapper
-from eval.evaluate import Evaluate
-from rl.report import report
+from rl.train.wrapper.predict import predict_wrapper
+from rl.eval.evaluate import Evaluate
 from rl.report.env_evaluation import AccumulatedSimpleTradingEnvEvaluation
 
 

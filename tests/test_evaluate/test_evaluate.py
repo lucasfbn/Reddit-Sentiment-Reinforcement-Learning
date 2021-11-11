@@ -1,4 +1,4 @@
-from eval.evaluate import Evaluate, EvalLive
+from rl.eval.evaluate import Evaluate, EvalLive
 import pandas as pd
 from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
