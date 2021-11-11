@@ -1,5 +1,5 @@
 import mlflow
-import paths
+from utils import paths
 from utils.mlflow_api import load_file, log_file
 import pandas as pd
 

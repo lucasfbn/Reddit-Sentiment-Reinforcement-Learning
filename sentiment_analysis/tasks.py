@@ -5,7 +5,7 @@ import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from simplepipeline import task, filter_task
 
-import paths
+from utils import paths
 from sentiment_analysis.reddit_data.api.google_cloud import BigQueryDB, DetectGaps
 from sentiment_analysis.timespan import Timespan
 

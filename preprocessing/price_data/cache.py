@@ -2,7 +2,7 @@ import sqlite3
 
 import pandas as pd
 
-import paths
+from utils import paths
 
 
 class Cache:

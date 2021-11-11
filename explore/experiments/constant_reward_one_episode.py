@@ -1,6 +1,6 @@
 import mlflow
 
-import paths
+from utils import paths
 from rl.eval.evaluate import Evaluate
 from rl.agent import RLAgent
 from rl.train.envs.env import EnvCNN

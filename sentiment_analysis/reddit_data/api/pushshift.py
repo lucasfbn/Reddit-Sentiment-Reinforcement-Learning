@@ -171,7 +171,7 @@ def download():
 
 
 if __name__ == "__main__":
-    import paths
+    from utils import paths
     import json
 
     start = datetime(year=2021, month=2, day=23, hour=21)
