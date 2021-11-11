@@ -4,7 +4,6 @@ from utils.mlflow_api import log_file, MlflowAPI
 from tqdm import tqdm
 from rl.train.wrapper.predict import predict_wrapper
 from rl.eval.evaluate import Evaluate
-from rl.report.env_evaluation import AccumulatedSimpleTradingEnvEvaluation
 
 
 class AgentWrapper:
@@ -71,13 +70,6 @@ class AgentWrapper:
             ep.log_params()
             ep.log_metrics()
             ep.log_statistics()
-
-    def report_callback(self, episode, pred):
-        acc_env_eval = AccumulatedSimpleTradingEnvEvaluation(pred_ticker=pred)
-        acc_env_eval.run_evaluation()
-        totals = acc_env_eval.accumulate_evaluation()
-        mlflow.log_metrics(acc_env_eval.accumulate_evaluation())
-        log_file(acc_env_eval.to_dict(), fn=f"{str(episode)}_pred_eval.json")
 
 
 class AgentRunner(AgentWrapper):
