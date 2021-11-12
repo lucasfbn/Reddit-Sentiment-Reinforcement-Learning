@@ -2,7 +2,7 @@ import mlflow
 from mlflow_utils import load_file, init_mlflow, setup_logger
 
 from rl.train.envs.env import EnvCNN
-from rl.train.envs.simple_trading import SimpleTradingEnvTraining
+from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.train.wrapper.agent import AgentActObserve
 from rl.train.wrapper.environment import EnvironmentWrapper
 

@@ -2,7 +2,7 @@ import numpy as np
 from tensorforce import Environment
 
 from preprocessing.sequences import Sequence
-from rl.train.envs.simple_trading import SimpleTradingEnvTraining
+from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.train.envs.utils.reward_counter import RewardCounter
 from rl.train.envs.utils.data_iterator import DataIterator
 from rl.train.envs.utils.state_extender import StateExtenderNN, StateExtenderCNN

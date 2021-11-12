@@ -1,4 +1,4 @@
-from rl.train.envs.simple_trading import SimpleTradingEnv, SimpleTradingEnvTraining
+from rl.train.envs.sub_envs.trading import SimpleTradingEnv, SimpleTradingEnvTraining
 
 
 #######################################################
