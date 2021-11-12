@@ -97,6 +97,7 @@ class StateExtenderEnv(BaseEnv):
     def _extend_state(self, state):
         inventory_state = 1 if len(self.trading_env.inventory) > 0 else 0
         extended_state = self.state_extender.add_inventory_state(state, inventory_state)
+        return extended_state
 
     def next_state(self, sequence):
         next_state = self.get_state(sequence)
