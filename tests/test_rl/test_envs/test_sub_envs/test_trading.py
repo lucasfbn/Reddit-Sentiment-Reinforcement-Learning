@@ -130,18 +130,3 @@ def test_partial_hold_reward():
     env.buy(10)
     reward = env.hold(15)
     assert reward == 5 * env.HOLD_REWARD_MULTIPLIER
-
-
-def test_first_buy_no_negative_reward():
-    env = SimpleTradingEnvTraining("test")
-    env = set_all_false(env)
-    env.ENABLE_NEG_BUY_REWARD = True
-    env.PARTIAL_HOLD_REWARD = False
-
-    reward = env.buy(10)
-    assert reward == 0
-    reward = env.buy(10)
-    assert reward == -10
-
-    env.sell(15)
-    assert env.buy(10) == 0
