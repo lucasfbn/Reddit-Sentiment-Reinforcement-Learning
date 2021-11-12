@@ -7,7 +7,7 @@ from numpy.testing import assert_array_equal
 
 from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
-from rl.train.envs.env import Env, EnvCNN, EnvNN
+from rl.train.envs.env import EnvCNN, EnvNN
 from rl.train.envs.sub_envs.trading import SimpleTradingEnv
 from tests.utils import MockObj
 
@@ -76,7 +76,7 @@ def test_basic_env_cnn_run():
         while not terminal:
             assert_array_equal(state, expected_states[i].reshape(1, 3, 2))
             actions = random.randint(0, 2)
-            state, terminal, reward = env.execute(actions=actions)
+            state, reward, terminal, throwaway = env.step(actions=actions)
 
             i += 1
 
@@ -104,7 +104,7 @@ def test_basic_env_nn_run():
         while not terminal:
             assert_array_equal(state, expected_states[i].reshape(6, ))
             actions = random.randint(0, 2)
-            state, terminal, reward = env.execute(actions=actions)
+            state, reward, terminal, throwaway = env.step(actions=actions)
 
             i += 1
 
@@ -129,7 +129,7 @@ def test_reward():
         terminal = False
 
         while not terminal:
-            state, terminal, reward = env.execute(actions=actions[i])
+            state, reward, terminal, throwaway = env.step(actions=actions[i])
             assert reward == expected_rewards[i]
             i += 1
 
@@ -144,11 +144,11 @@ def test_buy():
     reward = 0
 
     ste.ENABLE_TRANSACTION_COSTS = True
-    resulting_reward = env.buy(price)
+    resulting_reward = env.trading_env.buy(price)
     assert resulting_reward == price * ste.TRANSACTION_FEE_ASK * -1
 
     ste.ENABLE_TRANSACTION_COSTS = False
-    resulting_reward = env.buy(price)
+    resulting_reward = env.trading_env.buy(price)
     assert resulting_reward == 0
 
 
@@ -166,7 +166,7 @@ def test_sell():
         expected_margin += price - inv
 
     ste.ENABLE_TRANSACTION_COSTS = True
-    resulting_reward = env.sell(price)
+    resulting_reward = env.trading_env.sell(price)
     assert resulting_reward == expected_margin - price * ste.TRANSACTION_FEE_BID
 
     env = EnvCNN(data)
@@ -181,7 +181,7 @@ def test_sell():
         expected_margin += price - inv
 
     ste.ENABLE_TRANSACTION_COSTS = False
-    resulting_reward = env.sell(price)
+    resulting_reward = env.trading_env.sell(price)
     assert resulting_reward == expected_margin
 
 
@@ -197,7 +197,7 @@ def test_w_real_data_cnn():
 
         while not terminal:
             actions = random.randint(0, 2)
-            states, terminal, reward = env.execute(actions=actions)
+            state, reward, terminal, throwaway = env.step(actions=actions)
 
 
 def test_w_real_data_nn():
@@ -213,7 +213,7 @@ def test_w_real_data_nn():
 
         while not terminal:
             actions = random.randint(0, 2)
-            states, terminal, reward = env.execute(actions=actions)
+            state, reward, terminal, throwaway = env.step(actions=actions)
 
 
 def test_cnn_loop():
@@ -240,38 +240,9 @@ def test_cnn_loop():
         while not terminal:
             assert_array_equal(state, expected_states[i].reshape(1, 3, 2))
             actions = random.randint(0, 2)
-            state, terminal, reward = env.execute(actions=actions)
+            state, reward, terminal, throwaway = env.step(actions=actions)
 
             i += 1
 
         if i == len(expected_states):
             i = 0
-
-
-def test_nn_states():
-    env = EnvNN(data)
-    env.USE_STATE_EXTENDER = False
-    assert env.states() == {'max_value': 1.0, 'min_value': 0.0, 'shape': (6,), 'type': 'float'}
-
-
-def test_cnn_states():
-    env = EnvCNN(data)
-    assert env.states() == {'max_value': 1.0, 'min_value': 0.0, 'shape': (1, 3, 2), 'type': 'float'}
-
-
-def test_next_ticker():
-    e = Env(ticker=ticker)
-
-    result_curr_ticker = []
-    result_curr_seq = []
-    expected_curr_ticker = [0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1]
-
-    for i in range(12):
-        e.data_iter.next_ticker()
-        result_curr_ticker.append(e.data_iter.curr_ticker)
-        result_curr_seq.append(e.data_iter.curr_sequences[0])
-
-    result_curr_ticker = [tck.name for tck in result_curr_ticker]
-
-    assert result_curr_ticker == expected_curr_ticker
-    assert result_curr_seq == expected_curr_ticker
