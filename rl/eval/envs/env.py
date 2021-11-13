@@ -3,12 +3,8 @@ import pickle as pkl
 import mlflow
 import pandas as pd
 
-from rl.eval.actions import Buy, Sell, ActionTracker
-from rl.eval.operation import Operation
-from utils.mlflow_api import load_file, log_file
-from utils.util_funcs import log
-
-log.setLevel("DEBUG")
+from rl.eval.envs.env_utils.actions import Buy, Sell, ActionTracker
+from rl.eval.envs.env_utils.operation import Operation
 
 
 class Evaluate:

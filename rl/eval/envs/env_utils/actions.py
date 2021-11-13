@@ -2,9 +2,9 @@ import mlflow
 
 import pandas as pd
 
-from utils.util_funcs import log
+import logging
 
-log.setLevel("INFO")
+log = logging.getLogger("root")
 
 
 class Action:
