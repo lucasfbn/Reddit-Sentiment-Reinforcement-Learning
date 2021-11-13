@@ -1,10 +1,19 @@
 import mlflow
-from mlflow_utils import load_file, init_mlflow, setup_logger
+from mlflow_utils import load_file, init_mlflow, setup_logger, MlflowUtils
 from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import EveryNTimesteps, CheckpointCallback
 
 import utils.paths
+from rl.train.callbacks.callbacks import EpisodeEndCallback
 from rl.train.envs.env import EnvCNNExtended
 from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
+from rl.train.networks.cnn_1d import CustomCNN
+
+"""
+https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html
+https://stable-baselines.readthedocs.io/en/master/guide/callbacks.html
+https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html
+"""
 
 if __name__ == '__main__':
     init_mlflow(utils.paths.mlflow_dir, "Tests")
@@ -27,7 +36,22 @@ if __name__ == '__main__':
                                HOLD_REWARD_MULTIPLIER=SimpleTradingEnvTraining.HOLD_REWARD_MULTIPLIER,
                                PARTIAL_HOLD_REWARD=SimpleTradingEnvTraining.PARTIAL_HOLD_REWARD,
                                dataset_id="5896df8aa22c41a3ade34d747bc9ed9a"))
-        # callback = EveryNTimesteps(n_steps=max(len(tck) for tck in data)
+
+        len_sequences = [len(tck) for tck in data]
+        max_timesteps = max(len_sequences)
+        total_timesteps_p_episode = sum(len_sequences)
+
+        episodes = 5
+
+        log_callback = EveryNTimesteps(n_steps=total_timesteps_p_episode, callback=EpisodeEndCallback())
+        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
+                                                 save_path=(MlflowUtils().get_artifact_path() / "models").as_posix())
+
+        policy_kwargs = dict(
+            features_extractor_class=CustomCNN,
+            features_extractor_kwargs=dict(features_dim=128)
+        )
+
         env = EnvCNNExtended(data)
-        model = PPO('MlpPolicy', env, verbose=1)
-        model.learn(250000)
+        model = PPO('CnnPolicy', env, verbose=1, policy_kwargs=policy_kwargs)
+        model.learn(episodes * total_timesteps_p_episode + 1, callback=[log_callback, checkpoint_callback])
