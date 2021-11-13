@@ -5,7 +5,7 @@ from itertools import product
 
 from tqdm import tqdm
 
-from rl.eval.evaluate import Evaluate
+from rl.eval.envs.env import Evaluate
 from utils.mlflow_api import *
 from utils.util_funcs import log
 
