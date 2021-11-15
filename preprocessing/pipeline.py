@@ -1,6 +1,6 @@
 import mlflow
 from mlflow_utils import load_file, log_file, init_mlflow, setup_logger
-from simplepipeline import par_map, seq_map, seq_map_unpack
+from simplepipeline import par_map, seq_map, seq_map_unpack, set_pipeline, get_pipeline, Pipeline
 
 from preprocessing.tasks import *
 from utils.util_funcs import update_check_key
@@ -34,6 +34,8 @@ params = {
 def pipeline(**kwargs):
     global params
     params = update_check_key(params, kwargs)
+
+    set_pipeline(Pipeline("Pre-Processing"))
 
     df = add_time(params["input_df"]).run()
     df = shift_time(df, params["start_hour"], params["start_min"]).run()
@@ -113,6 +115,7 @@ def pipeline(**kwargs):
 
     params.pop("input_df")
     mlflow.log_params(params=params)
+    mlflow.log_param("Executed tasks", get_pipeline().executed_tasks())
     return ticker
 
 
