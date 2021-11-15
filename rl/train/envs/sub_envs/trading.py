@@ -104,6 +104,4 @@ class SimpleTradingEnvTraining(SimpleTradingEnv):
         return reward
 
     def buy_callback(self, reward, price):
-        if len(self.inventory) == 0:
-            return 0
         return reward

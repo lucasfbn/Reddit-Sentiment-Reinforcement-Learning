@@ -1,24 +1,22 @@
 import mlflow
-from mlflow_utils import load_file, init_mlflow, setup_logger
+from mlflow_utils import load_file, init_mlflow, setup_logger, MlflowUtils
+from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import EveryNTimesteps, CheckpointCallback
 
-from rl.train.envs.env import EnvCNN
+import utils.paths
+from rl.train.callbacks.callbacks import EpisodeEndCallback
+from rl.train.envs.env import EnvCNNExtended, EnvCNN
 from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
-from rl.train.wrapper.agent import AgentActObserve
-from rl.train.wrapper.environment import EnvironmentWrapper
+from rl.train.networks.cnn_1d import CustomCNN
 
-
-class CustomAgent(AgentActObserve):
-
-    def episode_end_callback(self, episode):
-        self.log_callback(self.env.tf_env)
-
-        if episode % 10 == 0:
-            pred = self.predict(get_probabilities=False)
-            self.report_callback(episode, pred)
-
+"""
+https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html
+https://stable-baselines.readthedocs.io/en/master/guide/callbacks.html
+https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html
+"""
 
 if __name__ == '__main__':
-    init_mlflow("Optimize_Env")
+    init_mlflow(utils.paths.mlflow_dir, "Tests")
 
     with mlflow.start_run():
         setup_logger("INFO")
@@ -27,7 +25,8 @@ if __name__ == '__main__':
         SimpleTradingEnvTraining.ENABLE_TRANSACTION_COSTS = True
         SimpleTradingEnvTraining.ENABLE_NEG_BUY_REWARD = True
         SimpleTradingEnvTraining.ENABLE_POS_SELL_REWARD = True
-        SimpleTradingEnvTraining.PARTIAL_HOLD_REWARD = 0.25
+        SimpleTradingEnvTraining.PARTIAL_HOLD_REWARD = False
+        SimpleTradingEnvTraining.HOLD_REWARD_MULTIPLIER = 0.1
 
         mlflow.log_params(dict(ENABLE_TRANSACTION_COSTS=SimpleTradingEnvTraining.ENABLE_TRANSACTION_COSTS,
                                ENABLE_NEG_BUY_REWARD=SimpleTradingEnvTraining.ENABLE_NEG_BUY_REWARD,
@@ -38,14 +37,21 @@ if __name__ == '__main__':
                                PARTIAL_HOLD_REWARD=SimpleTradingEnvTraining.PARTIAL_HOLD_REWARD,
                                dataset_id="5896df8aa22c41a3ade34d747bc9ed9a"))
 
-        env = EnvironmentWrapper(EnvCNN, data)
-        env.create(max_episode_timesteps=max(len(tck) for tck in env.data))
+        len_sequences = [len(tck) for tck in data]
+        max_timesteps = max(len_sequences)
+        total_timesteps_p_episode = sum(len_sequences)
 
-        agent = CustomAgent(env)
-        agent.create()
-        # agent.load(MlflowAPI(run_id="c3aaa7c52b3f41afb256c4c3ad4376f4").get_artifact_path())
-        agent.train(episodes=100, episode_progress_indicator=env.len_data)
-        agent.save()
+        episodes = 5
 
-        # pred = agent.predict()
-        # log_file(pred, "pred.pkl")
+        log_callback = EveryNTimesteps(n_steps=total_timesteps_p_episode, callback=EpisodeEndCallback())
+        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
+                                                 save_path=(MlflowUtils().get_artifact_path() / "models").as_posix())
+
+        policy_kwargs = dict(
+            features_extractor_class=CustomCNN,
+            features_extractor_kwargs=dict(features_dim=128)
+        )
+
+        env = EnvCNN(data)
+        model = PPO('CnnPolicy', env, verbose=1, policy_kwargs=policy_kwargs)
+        model.learn(episodes * total_timesteps_p_episode + 1, callback=[log_callback, checkpoint_callback])

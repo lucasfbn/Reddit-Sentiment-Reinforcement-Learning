@@ -3,7 +3,7 @@ import os
 import mlflow
 
 from utils import paths
-from rl.eval.evaluate import Evaluate
+from rl.eval.envs.env import Evaluate
 from rl.agent import RLAgent
 from rl.train.envs.env import EnvCNN
 from utils.mlflow_api import load_file

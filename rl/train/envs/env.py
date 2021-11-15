@@ -1,27 +1,38 @@
+from abc import ABC
+
 import numpy as np
-from tensorforce import Environment
+from gym import Env, spaces
 
 from preprocessing.sequences import Sequence
 from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
-from rl.train.envs.utils.reward_counter import RewardCounter
 from rl.train.envs.utils.data_iterator import DataIterator
+from rl.train.envs.utils.reward_counter import RewardCounter
 from rl.train.envs.utils.state_extender import StateExtenderNN, StateExtenderCNN
 
 
-class Env(Environment):
-    USE_STATE_EXTENDER = True
-    STATE_EXTENDER = None
+class BaseEnv(Env):
 
     def __init__(self, ticker):
         super().__init__()
 
         self.data_iter = DataIterator(ticker)
-
         self.reward_counter = RewardCounter()
         self.trading_env = SimpleTradingEnvTraining("init")
 
+        self.action_space = spaces.Discrete(3, )
+        shape = self._get_initial_observation_state_shape()
+        self.observation_space = spaces.Box(low=np.zeros(shape),
+                                            high=np.ones(shape),
+                                            dtype=np.float64)
+
+    def _get_first_sequence(self):
+        return self.data_iter.ticker[0].sequences[0]
+
+    def _get_initial_observation_state_shape(self):
+        return self.get_state(self._get_first_sequence()).shape
+
     @staticmethod
-    def get_state_field(sequence: Sequence):
+    def get_state(sequence):
         """
         Implemented in subclasses. Determines which field of the sequence object
         contains the state.
@@ -29,50 +40,28 @@ class Env(Environment):
         raise NotImplementedError
 
     @staticmethod
-    def shape_state(state):
+    def shape_state(sequence):
         raise NotImplementedError
-
-    def states(self):
-        raise NotImplementedError
-
-    def extend_state(self, state):
-        if self.USE_STATE_EXTENDER:
-            inventory_state = 1 if len(self.trading_env.inventory) > 0 else 0
-            state = self.STATE_EXTENDER.add_inventory_state(state, inventory_state)
-        return state
 
     def next_state(self, sequence):
-        next_state = self.get_state_field(sequence)
-        next_state = self.extend_state(next_state)
+        next_state = self.get_state(sequence)
         next_state = self.shape_state(next_state)
         return next_state
 
-    def hold(self, price):
-        reward = self.trading_env.hold(price)
-        return reward
-
-    def buy(self, price):
-        reward = self.trading_env.buy(price)
-        return reward
-
-    def sell(self, price):
-        reward = self.trading_env.sell(price)
-        return reward
-
-    def execute(self, actions):
+    def step(self, actions):
         price = self.data_iter.curr_sequence.price
 
         # Hold
         if actions == 0:
-            reward = self.hold(price)
+            reward = self.trading_env.hold(price)
 
         # Buy
         elif actions == 1:
-            reward = self.buy(price)
+            reward = self.trading_env.buy(price)
 
         # Sell
         elif actions == 2:
-            reward = self.sell(price)
+            reward = self.trading_env.sell(price)
 
         else:
             raise ValueError("Invalid action.")
@@ -81,7 +70,11 @@ class Env(Environment):
 
         next_sequence = self.data_iter.next_sequence()
         next_state = self.next_state(next_sequence)
-        return next_state, self.data_iter.is_episode_end(), reward
+
+        return next_state, reward, self.data_iter.is_episode_end(), {}
+
+    def close(self):
+        pass
 
     def reset(self):
         self.data_iter.episode_end = False
@@ -97,23 +90,30 @@ class Env(Environment):
         self.reward_counter.log(step=self.data_iter.episode_count)
         self.reward_counter = RewardCounter()
 
-    def actions(self):
-        return dict(type="int", num_values=3)
 
-    # def max_episode_timesteps(self):
-    #     return max(len(tck) for tck in self.ticker)
+class StateExtenderEnv(BaseEnv):
+    state_extender = None
+
+    def _extend_state(self, state):
+        inventory_state = 1 if len(self.trading_env.inventory) > 0 else 0
+        extended_state = self.state_extender.add_inventory_state(state, inventory_state)
+        return extended_state
+
+    def next_state(self, sequence):
+        next_state = self.get_state(sequence)
+        next_state = self._extend_state(next_state)
+        next_state = self.shape_state(next_state)
+        return next_state
+
+    def _get_initial_observation_state_shape(self):
+        shape = self.get_state(self._get_first_sequence()).shape
+        return self.state_extender.get_new_shape_state(shape)
 
 
-class EnvNN(Env):
-    STATE_EXTENDER = StateExtenderNN()
-
-    def states(self):
-        shape = self.data_iter.ticker[0].sequences[0].flat.shape
-        shape = self.STATE_EXTENDER.get_new_shape_state(shape) if self.USE_STATE_EXTENDER else shape
-        return dict(type="float", shape=(shape[1],), min_value=0.0, max_value=1.0)
+class EnvNN(BaseEnv):
 
     @staticmethod
-    def get_state_field(sequence: Sequence):
+    def get_state(sequence: Sequence):
         return sequence.flat
 
     @staticmethod
@@ -123,16 +123,14 @@ class EnvNN(Env):
         return state
 
 
-class EnvCNN(Env):
-    STATE_EXTENDER = StateExtenderCNN()
+class EnvNNExtended(EnvNN, StateExtenderEnv):
+    state_extender = StateExtenderNN
 
-    def states(self):
-        shape = self.data_iter.ticker[0].sequences[0].arr.shape
-        shape = self.STATE_EXTENDER.get_new_shape_state(shape) if self.USE_STATE_EXTENDER else shape
-        return dict(type="float", shape=(1, shape[0], shape[1]), min_value=0.0, max_value=1.0)
+
+class EnvCNN(BaseEnv):
 
     @staticmethod
-    def get_state_field(sequence: Sequence):
+    def get_state(sequence: Sequence):
         return sequence.arr
 
     @staticmethod
@@ -140,3 +138,7 @@ class EnvCNN(Env):
         state = state.values.reshape((1, state.shape[0], state.shape[1]))
         state = np.asarray(state).astype('float32')
         return state
+
+
+class EnvCNNExtended(EnvCNN, StateExtenderEnv):
+    state_extender = StateExtenderCNN

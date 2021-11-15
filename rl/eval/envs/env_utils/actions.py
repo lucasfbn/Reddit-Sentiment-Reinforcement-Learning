@@ -2,9 +2,9 @@ import mlflow
 
 import pandas as pd
 
-from utils.util_funcs import log
+import logging
 
-log.setLevel("INFO")
+log = logging.getLogger("root")
 
 
 class Action:
@@ -32,8 +32,8 @@ class Action:
         old_len = len(self.actions)
 
         # Probability must be above threshold
-        self.actions = [action for action in self.actions if
-                        action.action_probas[self.action_name] >= self.p.thresholds[self.action_name]]
+        # self.actions = [action for action in self.actions if
+        #                 action.action_probas[self.action_name] >= self.p.thresholds[self.action_name]]
 
         if self.p.thresholds[self.action_name] == 0:
             assert old_len == len(self.actions)
