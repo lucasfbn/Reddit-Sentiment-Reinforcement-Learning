@@ -2,6 +2,7 @@ import mlflow
 from mlflow_utils import load_file, log_file, init_mlflow, setup_logger
 from simplepipeline import par_map, seq_map, seq_map_unpack, set_pipeline, get_pipeline, Pipeline
 
+import utils.paths as paths
 from preprocessing.tasks import *
 from utils.util_funcs import update_check_key
 
@@ -87,19 +88,19 @@ def pipeline(**kwargs):
     # Scale price data
     ticker, new_price_data_columns = seq_map_unpack(scale, ticker,
                                                     cols_to_be_scaled=params["price_data_columns"],
-                                                    drop_unscaled_cols=params["drop_unscaled_cols"])
+                                                    drop_unscaled_cols=params["drop_unscaled_cols"]).run()
     params["price_data_columns"] = new_price_data_columns[0]  # Because new_price_data_columns is a list
 
     # Scale additional metrics
     ticker, new_additional_metric_columns = seq_map_unpack(scale, ticker,
                                                            cols_to_be_scaled=params["additional_metric_columns"],
-                                                           drop_unscaled_cols=params["drop_unscaled_cols"])
+                                                           drop_unscaled_cols=params["drop_unscaled_cols"]).run()
     params["additional_metric_columns"] = new_additional_metric_columns[0]
 
     # Scale sentiment data
-    ticker, new_sentiment_data_columns = seq_map_tuple_return(scale, ticker,
-                                                              cols_to_be_scaled=params["sentiment_data_columns"],
-                                                              drop_unscaled_cols=params["drop_unscaled_cols"])
+    ticker, new_sentiment_data_columns = seq_map_unpack(scale, ticker,
+                                                        cols_to_be_scaled=params["sentiment_data_columns"],
+                                                        drop_unscaled_cols=params["drop_unscaled_cols"]).run()
     params["sentiment_data_columns"] = new_sentiment_data_columns[0]
 
     ticker = par_map(make_sequences, ticker,
@@ -120,7 +121,7 @@ def pipeline(**kwargs):
 
 
 def main():
-    init_mlflow("Datasets")
+    init_mlflow(paths.mlflow_dir, "Datasets")
     with mlflow.start_run():
         df = load_file(run_id="dec6cb437cbc455fa871d1ac5b9300c8", fn="report.csv", experiment="Sentiment")
         setup_logger("DEBUG")
