@@ -5,7 +5,7 @@ from stable_baselines3.common.callbacks import EveryNTimesteps, CheckpointCallba
 
 import utils.paths
 from rl.train.callbacks.callbacks import EpisodeEndCallback
-from rl.train.envs.env import EnvCNNExtended
+from rl.train.envs.env import EnvCNNExtended, EnvCNN
 from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.train.networks.cnn_1d import CustomCNN
 
@@ -52,6 +52,6 @@ if __name__ == '__main__':
             features_extractor_kwargs=dict(features_dim=128)
         )
 
-        env = EnvCNNExtended(data)
+        env = EnvCNN(data)
         model = PPO('CnnPolicy', env, verbose=1, policy_kwargs=policy_kwargs)
         model.learn(episodes * total_timesteps_p_episode + 1, callback=[log_callback, checkpoint_callback])
