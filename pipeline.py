@@ -3,7 +3,7 @@ from datetime import datetime
 import mlflow
 
 from utils import paths
-from rl.eval.evaluate import EvalLive
+from rl.eval.envs.env import EvalLive
 from preprocessing.pipeline import pipeline as preprocessing_pipeline
 from rl.agent import RLAgent
 from rl.train.envs.env import EnvCNN
