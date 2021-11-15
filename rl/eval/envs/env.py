@@ -1,10 +1,14 @@
+import logging
 import pickle as pkl
 
 import mlflow
 import pandas as pd
+from mlflow_utils import log_file
 
 from rl.eval.envs.env_utils.actions import Buy, Sell, ActionTracker
 from rl.eval.envs.env_utils.operation import Operation
+
+log = logging.getLogger("root")
 
 
 class Evaluate:
@@ -280,24 +284,3 @@ class EvalLive(Evaluate):
 
         self._handle_sells(sells)
         self._handle_buys(potential_buys)
-
-
-if __name__ == "__main__":
-    from utils import paths
-
-    mlflow.set_tracking_uri(paths.mlflow_path)
-    mlflow.set_experiment("Tests")
-
-    with mlflow.start_run():
-        ticker = load_file(run_id="016eb4ced3474c26abb37f0490b46647", experiment="Tests", fn="eval.pkl")
-        combination = {'max_trades_per_day': 3, 'max_price_per_stock': 20, 'max_investment_per_trade': 0.07}
-
-        ep = Evaluate(ticker=ticker, **combination, initial_balance=1000)
-        ep.set_thresholds({'hold': 0, 'buy': 0, 'sell': 0})
-        ep.initialize()
-        # ep.set_quantile_thresholds({'hold': None, 'buy': 0.95, 'sell': None})
-        ep.act()
-        ep.force_sell()
-        ep.log_results()
-        ep.log_statistics()
-        # print(ep.get_result())
