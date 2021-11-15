@@ -5,7 +5,7 @@ from pathlib import Path
 Used to avoid absolute paths throughout the project.
 """
 
-base_path = Path(__file__).parent
+base_path = Path(__file__).parent.parent
 tests_path = base_path / "tests"
 storage_path = base_path / "storage"
 data_path = storage_path / "data"
