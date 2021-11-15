@@ -2,6 +2,7 @@ import datetime
 from typing import Tuple
 
 import pandas as pd
+from simplepipeline import task, filter_task
 from sklearn.preprocessing import MinMaxScaler
 
 from preprocessing.price_data.cache import Cache
@@ -9,7 +10,6 @@ from preprocessing.price_data.cached_stock_data import CachedStockData
 from preprocessing.price_data.stock_prices import MissingDataException, OldDataException
 from preprocessing.sequences import SequenceGenerator
 from preprocessing.ticker import Ticker
-from simplepipeline import task, filter_task
 
 date_col = "date"
 date_day_col = "date_day"
@@ -161,6 +161,13 @@ def drop_ticker_with_too_few_data(ticker: Ticker, ticker_min_len: int) -> Ticker
     if len(ticker.df) < ticker_min_len:
         ticker.exclude = True
 
+    return ticker
+
+
+@task
+def mark_ticker_with_false_stock_data(ticker: Ticker, false_data_ticker: list) -> Ticker:
+    if ticker.name in false_data_ticker:
+        ticker.exclude = True
     return ticker
 
 

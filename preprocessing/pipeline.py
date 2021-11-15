@@ -12,6 +12,7 @@ params = {
     "sentiment_data_columns": ["num_comments", "score", "pos", "neu", "neg", "compound",
                                "num_posts"],
     "price_data_columns": ["Open", "High", "Low", "Close", "Volume"],
+    "ticker_with_false_data": ["PHIL", "USMJ", "MINE"],
     "additional_metric_columns": [],
     "price_column": "Close",
     "drop_unscaled_cols": True,
@@ -41,6 +42,9 @@ def pipeline(**kwargs):
     ticker = grp_by_ticker(df).run()
     ticker = seq_map(aggregate_daywise, ticker).run()
     ticker = seq_map(drop_ticker_with_too_few_data, ticker, ticker_min_len=params["ticker_min_len"]).run()
+    ticker = remove_excluded_ticker(ticker).run()
+    ticker = seq_map(mark_ticker_with_false_stock_data, ticker,
+                     false_data_ticker=params["ticker_with_false_data"]).run()
     ticker = remove_excluded_ticker(ticker).run()
     ticker = seq_map(sort_ticker_df_chronologically, ticker, by=params["main_date_col_param"]).run()
     ticker = seq_map(mark_trainable_days, ticker, ticker_min_len=params["ticker_min_len"]).run()
