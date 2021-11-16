@@ -186,7 +186,7 @@ def test_sell():
 
 
 def test_w_real_data_cnn():
-    with open("./ticker.pkl", "rb") as f:
+    with open("ticker.pkl", "rb") as f:
         data = pkl.load(f)
 
     env = EnvCNN(data)
@@ -201,7 +201,7 @@ def test_w_real_data_cnn():
 
 
 def test_w_real_data_nn():
-    with open("./ticker.pkl", "rb") as f:
+    with open("ticker.pkl", "rb") as f:
         data = pkl.load(f)
 
     env = EnvNN(data)
