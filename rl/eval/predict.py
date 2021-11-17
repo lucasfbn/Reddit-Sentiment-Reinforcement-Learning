@@ -31,7 +31,9 @@ if __name__ == "__main__":
         setup_logger("INFO")
         data = load_file(run_id="5896df8aa22c41a3ade34d747bc9ed9a", fn="ticker.pkl", experiment="Datasets")
 
-        model_path = MlflowUtils(run_id="7400b5a610fa4b82bbfcdfe8c65e9e9b", experiment="Tests").get_artifact_path()
-        model_path = model_path / "models" / "rl_model_510039_steps.zip"
+        log_file(data[:10], "part.pkl")
 
-        evaluated = predict(data, model_path)
+        # model_path = MlflowUtils(run_id="7400b5a610fa4b82bbfcdfe8c65e9e9b", experiment="Tests").get_artifact_path()
+        # model_path = model_path / "models" / "rl_model_510039_steps.zip"
+        #
+        # evaluated = predict(data, model_path)
