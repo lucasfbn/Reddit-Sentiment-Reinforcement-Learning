@@ -123,12 +123,10 @@ def grp_by_ticker(df: pd.DataFrame) -> list:
         List of Ticker instances for each ticker in df
     """
 
-    ticker = []
-
-    for name, ticker_df in df.groupby(["ticker"]):
-        ticker.append(Ticker(name=name, df=ticker_df))
-
-    return ticker
+    return [
+        Ticker(name=name, df=ticker_df)
+        for name, ticker_df in df.groupby(["ticker"])
+    ]
 
 
 @task
@@ -306,13 +304,7 @@ def remove_excluded_ticker(ticker: list) -> list:
         Filtered list of Ticker instances
     """
 
-    valid_ticker = []
-
-    for t in ticker:
-        if not t.exclude:
-            valid_ticker.append(t)
-
-    return valid_ticker
+    return [t for t in ticker if not t.exclude]
 
 
 @task
