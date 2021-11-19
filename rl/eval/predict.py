@@ -1,5 +1,6 @@
 import mlflow
-from mlflow_utils import load_file, init_mlflow, setup_logger, log_file, MlflowUtils
+from mlflow_utils import (MlflowUtils, init_mlflow, load_file, log_file,
+                          setup_logger)
 from stable_baselines3 import PPO
 from tqdm import tqdm
 

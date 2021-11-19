@@ -1,6 +1,7 @@
 import mlflow
-from mlflow_utils import load_file, log_file, init_mlflow, setup_logger
-from simplepipeline import par_map, seq_map, seq_map_unpack, set_pipeline, get_pipeline, Pipeline
+from mlflow_utils import init_mlflow, load_file, log_file, setup_logger
+from simplepipeline import (Pipeline, get_pipeline, par_map, seq_map,
+                            seq_map_unpack, set_pipeline)
 
 import utils.paths as paths
 from preprocessing.tasks import *

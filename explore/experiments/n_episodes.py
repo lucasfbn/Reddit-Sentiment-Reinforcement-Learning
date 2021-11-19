@@ -1,11 +1,11 @@
 import os
 
 import mlflow
-
-from utils import paths
-from rl.eval.envs.env import Evaluate
 from rl.agent import RLAgent
+
+from rl.eval.envs.env import Evaluate
 from rl.train.envs.env import EnvCNN
+from utils import paths
 from utils.mlflow_api import load_file
 from utils.util_funcs import log
 

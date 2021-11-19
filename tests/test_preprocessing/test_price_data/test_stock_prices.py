@@ -4,7 +4,9 @@ import pandas as pd
 import pytest
 from pandas import Period
 
-from preprocessing.price_data.stock_prices import StockPrices, OldDataException, MissingDataException
+from preprocessing.price_data.stock_prices import (MissingDataException,
+                                                   OldDataException,
+                                                   StockPrices)
 
 
 def test_historic():

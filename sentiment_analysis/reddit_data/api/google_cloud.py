@@ -3,7 +3,6 @@ from datetime import datetime
 
 import pandas as pd
 from google.cloud import bigquery
-
 from pandas_gbq.gbq import GenericGBQException
 
 from utils.util_funcs import dt_to_timestamp, log

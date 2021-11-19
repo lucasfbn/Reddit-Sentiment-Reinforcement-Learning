@@ -1,9 +1,9 @@
 import mlflow
-
-from utils import paths
 from rl.agent import RLAgent
+
 from rl.train.envs.env import EnvCNN
-from utils.mlflow_api import load_file, MlflowAPI
+from utils import paths
+from utils.mlflow_api import MlflowAPI, load_file
 from utils.util_funcs import log
 
 """

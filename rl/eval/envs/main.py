@@ -1,5 +1,5 @@
 import mlflow
-from mlflow_utils import load_file, init_mlflow, setup_logger
+from mlflow_utils import init_mlflow, load_file, setup_logger
 
 import utils.paths
 from rl.eval.envs.env import Evaluate
