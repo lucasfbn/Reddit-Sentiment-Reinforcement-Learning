@@ -95,16 +95,12 @@ class BaseEnv(Env):
 class StateExtenderEnv(BaseEnv):
     state_extender = None
 
-    def _get_inventory_state(self):
-        return 1 if len(self.trading_env.inventory) > 0 else 0
-
-    @staticmethod
     def extend_state(self, state, inventory_state):
         return self.state_extender.add_inventory_state(state, inventory_state)
 
     def next_state(self, sequence):
         next_state = self.get_state(sequence)
-        next_state = self.extend_state(next_state, self._get_inventory_state())
+        next_state = self.extend_state(next_state, self.trading_env.inventory_state())
         next_state = self.shape_state(next_state)
         return next_state
 
