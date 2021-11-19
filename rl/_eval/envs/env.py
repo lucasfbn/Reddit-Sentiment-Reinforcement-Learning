@@ -1,8 +1,9 @@
 from tqdm import tqdm
 
 from rl._eval.envs.sub_envs.trading import TradingSimulator
-from rl._eval.envs.utils.utils import *
+from rl._eval.envs.tracker.track import Tracker
 from rl._eval.envs.utils.predict_proba import predict_proba
+from rl._eval.envs.utils.utils import *
 
 
 class EvalEnv:
@@ -14,6 +15,8 @@ class EvalEnv:
         self.model = model
 
         self._trading_env = TradingSimulator()
+
+        self.tracker = Tracker(self._trading_env)
 
     def run_pre_processor(self):
         self.ticker = self.pre_processor.run(self.ticker)
@@ -48,12 +51,16 @@ class EvalEnv:
             # Execute sells first
             for sell in sells:
                 success = self._trading_env.sell(sell["operation"])
+                self.tracker.track(day, success, sell)
 
             for hold in holds:
                 success = self._trading_env.hold(hold["operation"])
+                self.tracker.track(day, success, hold)
 
+            # BUG: doesnt reach loop
             for buy in buys:
                 success = self._trading_env.buy(buy["operation"])
+                self.tracker.track(day, success, buy)
 
             self._trading_env.reset_day()
 

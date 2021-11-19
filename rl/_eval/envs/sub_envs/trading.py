@@ -77,3 +77,11 @@ class TradingSimulator:
 
     def hold(self, operation):
         return True
+
+    @property
+    def inventory(self):
+        return self._inventory
+
+    @property
+    def balance(self):
+        return self._balance
