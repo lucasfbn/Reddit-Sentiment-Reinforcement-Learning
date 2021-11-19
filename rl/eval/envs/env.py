@@ -1,9 +1,9 @@
 from tqdm import tqdm
 
-from rl._eval.envs.sub_envs.trading import TradingSimulator
-from rl._eval.envs.tracker.track import Tracker, EnvStateTracker
-from rl._eval.envs.utils.predict_proba import predict_proba
-from rl._eval.envs.utils.utils import *
+from rl.eval.envs.sub_envs.trading import TradingSimulator
+from rl.eval.envs.tracker.track import Tracker, EnvStateTracker
+from rl.eval.envs.utils.predict_proba import predict_proba
+from rl.eval.envs.utils.utils import *
 
 
 class EvalEnv:
