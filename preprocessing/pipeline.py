@@ -110,6 +110,7 @@ def pipeline(**kwargs):
                      columns_to_be_excluded_from_sequences=params["columns_to_be_excluded_from_sequences"],
                      price_column="price_scaled",
                      which=params["sequence_to_be_generated"]).run()
+    ticker = seq_map(delete_non_tradeable_sequences, ticker).run()
     ticker = seq_map(mark_short_sequences, ticker, min_sequence_len=params["min_sequence_len"]).run()
     ticker = remove_excluded_ticker(ticker).run()
 
