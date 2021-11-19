@@ -30,9 +30,10 @@ def main():
 
     init_mlflow(mlflow_dir, "Tests")
     with mlflow.start_run():
-        log_file(eval_env.tracker.trades.tracked, fn="trades.csv")
-        log_file(eval_env.tracker.env_state.tracked, fn="env_state.csv")
-        log_file(eval_env.tracker.tracked, fn="tracked.csv")
+        log_file(eval_env.detail_tracker.trades.tracked, fn="detailed_trades.csv")
+        log_file(eval_env.detail_tracker.env_state.tracked, fn="detailed_env_state.csv")
+        log_file(eval_env.detail_tracker.tracked, fn="detailed_tracked.csv")
+        log_file(eval_env.overall_tracker.tracked, fn="overall_tracked.csv")
 
 
 main()
