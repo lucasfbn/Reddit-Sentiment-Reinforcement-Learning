@@ -28,10 +28,7 @@ class TradingSimulator:
 
     @staticmethod
     def _base_checks(operation):
-        if not operation.tradeable:
-            return False
-
-        return True
+        return operation.tradeable
 
     def buy(self, operation):
         if not self._base_checks(operation):
