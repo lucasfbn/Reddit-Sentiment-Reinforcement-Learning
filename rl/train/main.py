@@ -1,11 +1,12 @@
 import mlflow
-from mlflow_utils import load_file, init_mlflow, setup_logger, MlflowUtils
+from mlflow_utils import MlflowUtils, init_mlflow, load_file, setup_logger
 from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import EveryNTimesteps, CheckpointCallback
+from stable_baselines3.common.callbacks import (CheckpointCallback,
+                                                EveryNTimesteps)
 
 import utils.paths
 from rl.train.callbacks.callbacks import EpisodeEndCallback
-from rl.train.envs.env import EnvCNNExtended, EnvCNN
+from rl.train.envs.env import EnvCNN, EnvCNNExtended
 from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.train.networks.cnn_1d import CustomCNN
 

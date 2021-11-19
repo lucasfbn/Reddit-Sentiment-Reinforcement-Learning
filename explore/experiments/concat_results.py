@@ -1,7 +1,8 @@
 import mlflow
+import pandas as pd
+
 from utils import paths
 from utils.mlflow_api import load_file, log_file
-import pandas as pd
 
 mlflow.set_tracking_uri(paths.mlflow_path)
 mlflow.set_experiment("N_Episodes_Impact_1")

@@ -1,15 +1,15 @@
 from datetime import datetime
 
 import mlflow
-
-from utils import paths
-from rl.eval.envs.env import EvalLive
-from preprocessing.pipeline import pipeline as preprocessing_pipeline
 from rl.agent import RLAgent
+
+from preprocessing.pipeline import pipeline as preprocessing_pipeline
+from rl.eval.envs.env import EvalLive
 from rl.train.envs.env import EnvCNN
 from sentiment_analysis.pipeline import pipeline as sentiment_analysis_pipeline
-from utils.mlflow_api import load_file
+from utils import paths
 from utils.logger import setup_logger
+from utils.mlflow_api import load_file
 
 
 class LivePipeline:

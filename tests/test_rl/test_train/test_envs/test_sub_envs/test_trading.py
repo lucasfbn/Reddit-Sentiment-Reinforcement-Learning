@@ -1,5 +1,5 @@
-from rl.train.envs.sub_envs.trading import SimpleTradingEnv, SimpleTradingEnvTraining
-
+from rl.train.envs.sub_envs.trading import (SimpleTradingEnv,
+                                            SimpleTradingEnvTraining)
 
 #######################################################
 ### Most tests are already covered in ./test_env.py ###

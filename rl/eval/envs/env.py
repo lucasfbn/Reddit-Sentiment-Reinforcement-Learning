@@ -1,286 +1,70 @@
-import logging
-import pickle as pkl
+from tqdm import tqdm
 
-import mlflow
-import pandas as pd
-from mlflow_utils import log_file
-
-from rl.eval.envs.env_utils.actions import Buy, Sell, ActionTracker
-from rl.eval.envs.env_utils.operation import Operation
-
-log = logging.getLogger("root")
+from rl.eval.envs.sub_envs.trading import TradingSimulator
+from rl.eval.envs.tracker.track import Tracker, EnvStateTracker
+from rl.eval.envs.utils.predict_proba import predict_proba
+from rl.eval.envs.utils.utils import *
 
 
-class Evaluate:
+class EvalEnv:
 
-    def __init__(self,
-                 ticker,
-                 initial_balance=1000,
-                 max_investment_per_trade=0.07,
-                 max_price_per_stock=10,
-                 max_trades_per_day=3,
-                 slippage=0.007,
-                 order_fee=0.02,
-                 partial_shares_possible=False,
-                 live=False):
-        self.live = live
-        self.partial_shares_possible = partial_shares_possible
-        self.order_fee = order_fee
-        self.slippage = slippage
-        self.max_trades_per_day = max_trades_per_day
-        self.max_price_per_stock = max_price_per_stock
-        self.max_investment_per_trade = max_investment_per_trade
-        self.initial_balance = initial_balance
+    def __init__(self, ticker, pre_processor, training_env, model):
         self.ticker = ticker
+        self.pre_processor = pre_processor
+        self.training_env = training_env
+        self.model = model
 
-        self.balance = self.initial_balance
-        self.inventory = []
-        self.profit = 1
+        self._trading_env = TradingSimulator()
 
-        self.thresholds = {}
-        self.extra_costs = 1 + self.slippage + self.order_fee
+        self.detail_tracker = Tracker(self._trading_env)
+        self.overall_tracker = EnvStateTracker(self._trading_env)
 
-        self.action_tracker = ActionTracker()
+    def run_pre_processor(self):
+        self.ticker = self.pre_processor.run(self.ticker)
 
-        self._dates_trades_combination = None
+    def eval_loop(self):
+        ticker_df = ticker_list_to_df(self.ticker)
+        ordered_day_wise = order_day_wise(self.ticker, ticker_df)
 
-        self._sequence_attributes_df = None
-        self._sequence_statistics = None
+        for day, operations in tqdm(ordered_day_wise.items(), desc="Processing day"):
 
-        self.training_emulator_active = False
+            action_pairs = []
 
-    def activate_training_emulator(self):
-        log.warning("Training emulator is active.")
-        self.training_emulator_active = True
-        self.max_investment_per_trade = None
-        self.max_price_per_stock = None
-        self.max_trades_per_day = None
-        self.set_thresholds({'hold': 0, 'buy': 0, 'sell': 0})
+            for operation in operations:
+                state = self.training_env.get_state(operation.sequence)
+                # TODO No extended state is not implemented yet.
+                # TODO Make this more flexible
+                state = self.training_env.extend_state(state, self._trading_env.inventory_state(operation))
+                state = self.training_env.shape_state(state)
 
-    def get_result(self):
-        return {"initial_balance": self.initial_balance, "max_investment_per_trade": self.max_investment_per_trade,
-                "max_price_per_stock": self.max_price_per_stock, "max_trades_per_day": self.max_trades_per_day,
-                "slippage": self.slippage, "thresholds": self.thresholds, "order_fee": self.order_fee,
-                "balance": self.balance, "profit": self.profit, "len_inventory": len(self.inventory),
-                "training_emulator_active": self.training_emulator_active}
+                action_direct, _ = self.model.predict(state, deterministic=True)
+                action_own, proba = predict_proba(model=self.model, state=state)
 
-    def get_params(self):
-        return {"initial_balance": self.initial_balance, "max_investment_per_trade": self.max_investment_per_trade,
-                "max_price_per_stock": self.max_price_per_stock, "max_trades_per_day": self.max_trades_per_day,
-                "slippage": self.slippage, "thresholds": self.thresholds, "order_fee": self.order_fee,
-                "profit": self.profit, "len_inventory": len(self.inventory), "training_emulator_active":
-                    self.training_emulator_active}
+                assert int(action_direct) == action_own
 
-    def get_metrics(self):
-        return {"balance": self.balance}
+                action = action_own
+                action_pairs.append(dict(action=action, proba=proba, operation=operation))
 
-    def log_params(self):
-        mlflow.log_params(self.get_params())
+            holds = [pair for pair in action_pairs if pair["action"] == 0]
+            buys = [pair for pair in action_pairs if pair["action"] == 1]
+            sells = [pair for pair in action_pairs if pair["action"] == 2]
 
-    def log_metrics(self, step=None):
-        mlflow.log_metrics(self.get_metrics(), step=step)
+            # Sort buys by probability in descending order
+            buys = sorted(buys, key=lambda tup: tup["proba"][1], reverse=True)
 
-    def log_results(self):
-        self.log_params()
-        self.log_metrics()
+            # Execute sells first
+            for sell in sells:
+                success = self._trading_env.sell(sell["operation"])
+                self.detail_tracker.track(day, success, sell)
 
-    def log_statistics(self):
-        log_file(self._sequence_statistics, "eval_probability_stats.csv")
-        log_file(self.action_tracker.get_actions(), "actions.csv")
+            for hold in holds:
+                success = self._trading_env.hold(hold["operation"])
+                self.detail_tracker.track(day, success, hold)
 
-        # Merge action stats with results
-        df = self.action_tracker.get_actions_stats()
-        df[" "] = "|"
+            for buy in buys:
+                success = self._trading_env.buy(buy["operation"])
+                self.detail_tracker.track(day, success, buy)
 
-        results = pd.DataFrame([{"metric": key, "val": value} for key, value in self.get_result().items()])
+            self.overall_tracker.track(day)
 
-        eval_stats = df.join(results, how="outer")
-        log_file(eval_stats, "eval_stats.csv")
-
-        log_file(self._sequence_attributes_df, "sequence_df.csv")
-
-    def _get_sequence_statistics(self):
-        df = self._sequence_attributes_df.describe(percentiles=[0.25, 0.5, 0.75, 0.85, 0.9, 0.95])
-        df["desc"] = df.index
-        self._sequence_statistics = df
-
-    def _rename_actions(self):
-        map_ = {0: "hold", 1: "buy", 2: "sell"}
-        for ticker in self.ticker:
-            for sequence in ticker.sequences:
-                sequence.action = map_[sequence.action]
-
-    def _sequence_attributes_to_df(self):
-        dicts = []
-
-        for ticker in self.ticker:
-            for seq in ticker.sequences:
-                seq_dict = dict(
-                    ticker=ticker.name,
-                    price=seq.price_raw,
-                    date=seq.date,
-                    tradeable=seq.tradeable,
-                    action=seq.action,
-                    action_probas=seq.action_probas,
-                    hold=seq.action_probas["hold"],
-                    buy=seq.action_probas["buy"],
-                    sell=seq.action_probas["sell"],
-                )
-                dicts.append(seq_dict)
-
-        self._sequence_attributes_df = pd.DataFrame(dicts)
-
-    def initialize(self):
-        self._rename_actions()
-        self._sequence_attributes_to_df()
-        self._get_sequence_statistics()
-        self._get_dates_trades_combination()
-
-    def set_quantile_thresholds(self, quantiles):
-        assert set(quantiles.keys()) == {"hold", "buy", "sell"}
-
-        for action, quantile in quantiles.items():
-            if quantile is None:
-                # Since the actions are a probability distribution between 3 classes,
-                # setting the quantile (which we will later filter for) to 0 will guarantee that we don't filter
-                # anything (as every probability is at least >= 0)
-                self.thresholds[action] = 0.0
-            else:
-                same_action_df = self._sequence_attributes_df[self._sequence_attributes_df["action"] == action]
-
-                # TODO Is this the correct behaviour?
-                if same_action_df.empty:
-                    self.thresholds[action] = 0.0
-                    continue
-
-                self.thresholds[action] = same_action_df[action].quantile(q=quantiles[action])
-
-    def set_thresholds(self, thresholds):
-        assert set(thresholds.keys()) == {"hold", "buy", "sell"}
-        self.thresholds = thresholds
-
-    def set_dates_trade_combination(self, dates_trades_combination):
-        self._dates_trades_combination = dates_trades_combination
-
-    def _get_dates_trades_combination(self):
-        if self._dates_trades_combination is not None:
-            return
-
-        df = self._sequence_attributes_df
-
-        # Generate a dict with the date range from min to max
-        dates = pd.DataFrame(pd.date_range(df["date"].min().to_timestamp(), df["date"].max().to_timestamp()))
-        dates[0] = dates[0].astype(str)
-        dates = dates.set_index(0)
-        dates["val"] = [[] for _ in range(len(dates))]
-        dates = dates.T.to_dict("records")[0]
-
-        # Group by date, convert grp rows to Operations and add them to the dates dict
-        df = df.sort_values(by=["date"])
-        grps = df.groupby(["date"])
-
-        for name, grp in grps:
-            lst = []
-
-            def to_operation(row):
-                lst.append(
-                    Operation(
-                        ticker=row["ticker"],
-                        price=row["price"],
-                        date=name,
-                        tradeable=row["tradeable"],
-                        action=row["action"],
-                        action_probas=row["action_probas"],
-                    )
-                )
-
-            pd.DataFrame(grp).apply(to_operation, axis="columns")
-
-            dates[name] = lst
-
-        self._dates_trades_combination = dates
-
-    def act(self):
-        for day, trade_option in self._dates_trades_combination.items():
-
-            log.debug(f"Processing day: {day}")
-
-            potential_buys = []
-            sells = []
-
-            for operation in trade_option:
-                if operation.action == "hold":
-                    continue
-                elif operation.action == "buy" and operation.tradeable:
-                    potential_buys.append(operation)
-                elif operation.action == "sell" and operation.tradeable:
-                    sells.append(operation)
-
-            self._handle_sells(sells)
-            self._handle_buys(potential_buys)
-
-            log.debug(f"Inventory len: {len(self.inventory)}")
-
-    def _handle_buys(self, potential_buys):
-        Buy(portfolio=self, actions=potential_buys, live=self.live).execute()
-
-    def _handle_sells(self, sells):
-        Sell(portfolio=self, actions=sells, live=self.live).execute()
-
-    def force_sell(self):
-        log.warning("FORCING SELL OF REMAINING INVENTORY.")
-
-        new_inventory = []
-        for position in self.inventory:
-            if not any(new_position.ticker == position.ticker for new_position in new_inventory):
-                position.tradeable = True
-                new_inventory.append(position)
-
-        Sell(portfolio=self, actions=new_inventory, live=self.live, forced=True).execute()
-
-    def save(self):
-        log_file(self, "state.pkl")
-        log.info("Successfully saved state.")
-
-    def load(self, path):
-        with open(path, "rb") as f:
-            state = pkl.load(f)
-        self.inventory = state.inventory
-        self.balance = state.balance
-        self.profit = state.profit
-
-        log.info("Successfully loaded state.")
-
-
-class EvalLive(Evaluate):
-
-    def initialize(self):
-        self._rename_actions()
-
-    def act(self):
-        now = pd.Period.now("D")
-
-        potential_buys = []
-        sells = []
-
-        for ticker in self.ticker:
-
-            last_seq = ticker.sequences[len(ticker.sequences) - 1]
-            if last_seq.date == now:
-
-                operation = Operation(ticker=ticker.name,
-                                      price=last_seq.price_raw,
-                                      date=last_seq.date,
-                                      tradeable=last_seq.tradeable,
-                                      action=last_seq.action,
-                                      action_probas=last_seq.action_probas)
-
-                if operation.action == "hold":
-                    continue
-                elif operation.action == "buy" and operation.tradeable:
-                    potential_buys.append(operation)
-                elif operation.action == "sell" and operation.tradeable:
-                    sells.append(operation)
-
-        self._handle_sells(sells)
-        self._handle_buys(potential_buys)
+            self._trading_env.reset_day()
