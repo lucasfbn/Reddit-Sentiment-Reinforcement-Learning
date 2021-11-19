@@ -68,3 +68,15 @@ def test_buy_checks():
     operation = MockObj(tradeable=True, price=10, ticker="1")
     env.MAX_PRICE_PER_STOCK = 5
     assert env.buy(operation) is False
+
+
+def test_inventory_state():
+    env = new_env()
+    operation = MockObj(tradeable=True, price=10, ticker="1")
+    env.buy(operation)
+
+    assert env.inventory_state(operation) == 1
+
+    env = new_env()
+    operation = MockObj(tradeable=True, price=10, ticker="1")
+    assert env.inventory_state(operation) == 0

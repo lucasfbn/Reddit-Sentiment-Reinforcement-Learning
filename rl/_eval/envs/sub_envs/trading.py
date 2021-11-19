@@ -75,6 +75,10 @@ class TradingSimulator:
     def hold(self, operation):
         return True
 
+    def inventory_state(self, operation):
+        is_in_inventory = any(op.ticker == operation.ticker for op in self._inventory)
+        return int(is_in_inventory)
+
     @property
     def inventory(self):
         return self._inventory
