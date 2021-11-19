@@ -1,4 +1,4 @@
-from pandas import Timestamp, Period
+from pandas import Period, Timestamp
 from pandas.testing import assert_frame_equal
 
 from sentiment_analysis.tasks import *

@@ -1,6 +1,6 @@
 import pickle as pkl
 
-from utils.mlflow_api import load_file, init_mlflow
+from utils.mlflow_api import init_mlflow, load_file
 
 ###
 # Used for external use of a dataset

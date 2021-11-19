@@ -1,6 +1,6 @@
 import mlflow
-
 import paths
+
 from utils.mlflow_api import load_file
 
 mlflow.set_tracking_uri(paths.mlflow_path)

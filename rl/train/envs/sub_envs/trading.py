@@ -78,6 +78,9 @@ class SimpleTradingEnv:
 
         return reward
 
+    def inventory_state(self):
+        return 1 if len(self.inventory) > 0 else 0
+
 
 class SimpleTradingEnvEvaluation(SimpleTradingEnv):
     TRANSACTION_FEE_ASK = 0.005  # Buy

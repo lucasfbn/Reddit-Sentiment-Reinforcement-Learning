@@ -1,7 +1,8 @@
-from utils.mlflow_api import load_file
-import pandas as pd
 import mlflow
+import pandas as pd
+
 from utils import paths
+from utils.mlflow_api import load_file
 
 mlflow.set_tracking_uri(paths.mlflow_path)
 ticker = load_file(fn="eval.pkl", run_id="c85d728efd4242c796b917e20ca8ce47", experiment="Live")

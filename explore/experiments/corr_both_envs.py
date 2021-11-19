@@ -1,13 +1,12 @@
 import mlflow
+from rl.agent import RLAgent
 from tensorforce import Agent, Environment
 from tqdm import tqdm
 
-from utils import paths
 from rl.eval.envs.env import Evaluate
-from rl.agent import RLAgent
 from rl.train.envs.env import EnvCNN
-from utils.mlflow_api import MlflowAPI
-from utils.mlflow_api import load_file
+from utils import paths
+from utils.mlflow_api import MlflowAPI, load_file
 from utils.util_funcs import log
 
 """

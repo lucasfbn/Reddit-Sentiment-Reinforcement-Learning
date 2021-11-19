@@ -7,7 +7,8 @@ from preprocessing.sequences import Sequence
 from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.train.envs.utils.data_iterator import DataIterator
 from rl.train.envs.utils.reward_counter import RewardCounter
-from rl.train.envs.utils.state_extender import StateExtenderNN, StateExtenderCNN
+from rl.train.envs.utils.state_extender import (StateExtenderCNN,
+                                                StateExtenderNN)
 
 
 class BaseEnv(Env):
@@ -94,14 +95,12 @@ class BaseEnv(Env):
 class StateExtenderEnv(BaseEnv):
     state_extender = None
 
-    def _extend_state(self, state):
-        inventory_state = 1 if len(self.trading_env.inventory) > 0 else 0
-        extended_state = self.state_extender.add_inventory_state(state, inventory_state)
-        return extended_state
+    def extend_state(self, state, inventory_state):
+        return self.state_extender.add_inventory_state(state, inventory_state)
 
     def next_state(self, sequence):
         next_state = self.get_state(sequence)
-        next_state = self._extend_state(next_state)
+        next_state = self.extend_state(next_state, self.trading_env.inventory_state())
         next_state = self.shape_state(next_state)
         return next_state
 
