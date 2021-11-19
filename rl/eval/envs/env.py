@@ -5,7 +5,7 @@ import mlflow
 import pandas as pd
 from mlflow_utils import log_file
 
-from rl.eval.envs.env_utils.actions import Buy, Sell, ActionTracker
+from rl.eval.envs.env_utils.actions import ActionTracker, Buy, Sell
 from rl.eval.envs.env_utils.operation import Operation
 
 log = logging.getLogger("root")

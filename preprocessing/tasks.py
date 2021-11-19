@@ -2,12 +2,13 @@ import datetime
 from typing import Tuple
 
 import pandas as pd
-from simplepipeline import task, filter_task
+from simplepipeline import filter_task, task
 from sklearn.preprocessing import MinMaxScaler
 
 from preprocessing.price_data.cache import Cache
 from preprocessing.price_data.cached_stock_data import CachedStockData
-from preprocessing.price_data.stock_prices import MissingDataException, OldDataException
+from preprocessing.price_data.stock_prices import (MissingDataException,
+                                                   OldDataException)
 from preprocessing.sequences import SequenceGenerator
 from preprocessing.ticker import Ticker
 
