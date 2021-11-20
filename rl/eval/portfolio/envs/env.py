@@ -31,11 +31,8 @@ class EvalEnv:
             action_pairs = []
 
             for operation in operations:
-                state = self.training_env.get_state(operation.sequence)
-                # TODO No extended state is not implemented yet.
-                # TODO Make this more flexible
-                state = self.training_env.extend_state(state, self._trading_env.inventory_state(operation))
-                state = self.training_env.shape_state(state)
+                state = self.training_env.state_handler.forward(operation.sequence,
+                                                                self._trading_env.inventory_state(operation))
 
                 action_direct, _ = self.model.predict(state, deterministic=True)
                 action_own, proba = predict_proba(model=self.model, state=state)
