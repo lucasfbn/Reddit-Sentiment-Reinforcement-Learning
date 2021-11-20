@@ -22,7 +22,7 @@ def main():
             / "models"
             / "rl_model_680052_steps.zip"
     )
-    model = PPO.load(model_path, training_env)
+    model = PPO.load(model_path)
 
     eval_env = EvalEnv(ticker, pre_processor, training_env, model)
     eval_env.run_pre_processor()
