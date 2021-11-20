@@ -25,9 +25,13 @@ class BaseEnv(Env, ABC):
                                             high=np.ones(shape),
                                             dtype=np.float64)
 
+    @property
     @abstractmethod
-    def forward_state(self, sequence: Sequence):
+    def state_handler(self):
         pass
+
+    def forward_state(self, sequence: Sequence):
+        return self.state_handler.forward(sequence, self.trading_env.inventory_state())
 
     def _get_first_sequence(self):
         return self.data_iter.ticker[0].sequences[0]
@@ -79,24 +83,16 @@ class BaseEnv(Env, ABC):
 
 
 class EnvNN(BaseEnv):
-    state_handler = StateHandlerNN()
-
-    def forward_state(self, sequence: Sequence):
-        self.state_handler.forward(sequence)
+    state_handler = StateHandlerNN(extend=False)
 
 
 class EnvNNExtended(EnvNN):
-    def forward_state(self, sequence: Sequence):
-        self.state_handler.forward_extend(sequence, self.trading_env.inventory_state())
+    state_handler = StateHandlerNN(extend=True)
 
 
 class EnvCNN(BaseEnv):
-    state_handler = StateHandlerCNN()
-
-    def forward_state(self, sequence: Sequence):
-        self.state_handler.forward(sequence)
+    state_handler = StateHandlerCNN(extend=False)
 
 
 class EnvCNNExtended(EnvCNN):
-    def forward_state(self, sequence: Sequence):
-        self.state_handler.forward_extend(sequence, self.trading_env.inventory_state())
+    state_handler = StateHandlerCNN(extend=True)

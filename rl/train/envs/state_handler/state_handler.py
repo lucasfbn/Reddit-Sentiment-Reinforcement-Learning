@@ -9,6 +9,9 @@ from preprocessing.sequences import Sequence
 
 class StateHandler(ABC):
 
+    def __init__(self, extend):
+        self.extend = extend
+
     @abstractmethod
     def get_state(self, sequence: Sequence) -> pd.DataFrame:
         pass
@@ -21,14 +24,12 @@ class StateHandler(ABC):
     def extend_state(self, state: pd.DataFrame, constant: Union[float, int, None]) -> pd.DataFrame:
         pass
 
-    def forward(self, sequence: Sequence):
+    def forward(self, sequence: Sequence, constant: Union[float, int, None] = None):
         state = self.get_state(sequence)
-        state = self.shape_state(state)
-        return state
-
-    def forward_extend(self, sequence: Sequence, constant: Union[float, int, None] = None):
-        state = self.get_state(sequence)
-        state = self.extend_state(state, constant)
+        if self.extend:
+            if constant is None:
+                raise ValueError("Unable to extend with constant=None. Please specify constant.")
+            state = self.extend_state(state, constant)
         state = self.shape_state(state)
         return state
 
