@@ -1,6 +1,4 @@
-import pytest
-
-from rl.eval.envs.sub_envs.trading import TradingSimulator
+from rl.eval.portfolio.envs.sub_envs.trading import TradingSimulator
 from tests.utils import MockObj
 
 

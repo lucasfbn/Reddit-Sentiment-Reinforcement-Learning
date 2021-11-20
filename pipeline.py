@@ -4,7 +4,7 @@ import mlflow
 from rl.agent import RLAgent
 
 from preprocessing.pipeline import pipeline as preprocessing_pipeline
-from rl.eval.envs.env import EvalLive
+from rl.eval.portfolio.envs.env import EvalLive
 from rl.train.envs.env import EnvCNN
 from sentiment_analysis.pipeline import pipeline as sentiment_analysis_pipeline
 from utils import paths

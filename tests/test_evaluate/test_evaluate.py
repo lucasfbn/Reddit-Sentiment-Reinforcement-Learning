@@ -6,7 +6,7 @@ from pandas.testing import assert_frame_equal
 
 from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
-from rl.eval.envs.env import EvalLive, Evaluate
+from rl.eval.portfolio.envs.env import EvalLive, Evaluate
 
 
 def generate_ticker():
