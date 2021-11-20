@@ -1,17 +1,16 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 import numpy as np
 from gym import Env, spaces
 
 from preprocessing.sequences import Sequence
+from rl.train.envs.state_handler.state_handler import StateHandlerCNN, StateHandlerNN
 from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.train.envs.utils.data_iterator import DataIterator
 from rl.train.envs.utils.reward_counter import RewardCounter
-from rl.train.envs.utils.state_extender import (StateExtenderCNN,
-                                                StateExtenderNN)
 
 
-class BaseEnv(Env):
+class BaseEnv(Env, ABC):
 
     def __init__(self, ticker):
         super().__init__()
@@ -26,28 +25,15 @@ class BaseEnv(Env):
                                             high=np.ones(shape),
                                             dtype=np.float64)
 
+    @abstractmethod
+    def forward_state(self, sequence: Sequence):
+        pass
+
     def _get_first_sequence(self):
         return self.data_iter.ticker[0].sequences[0]
 
     def _get_initial_observation_state_shape(self):
-        return self.get_state(self._get_first_sequence()).shape
-
-    @staticmethod
-    def get_state(sequence):
-        """
-        Implemented in subclasses. Determines which field of the sequence object
-        contains the state.
-        """
-        raise NotImplementedError
-
-    @staticmethod
-    def shape_state(sequence):
-        raise NotImplementedError
-
-    def next_state(self, sequence):
-        next_state = self.get_state(sequence)
-        next_state = self.shape_state(next_state)
-        return next_state
+        return self.forward_state(self._get_first_sequence()).shape
 
     def step(self, actions):
         price = self.data_iter.curr_sequence.price
@@ -70,7 +56,7 @@ class BaseEnv(Env):
         self.reward_counter.add_reward(reward)
 
         next_sequence = self.data_iter.next_sequence()
-        next_state = self.next_state(next_sequence)
+        next_state = self.forward_state(next_sequence)
 
         return next_state, reward, self.data_iter.is_episode_end(), {}
 
@@ -83,7 +69,7 @@ class BaseEnv(Env):
 
         self.data_iter.next_ticker()
         next_sequence = self.data_iter.next_sequence()
-        state = self.next_state(next_sequence)
+        state = self.forward_state(next_sequence)
         self.trading_env = SimpleTradingEnvTraining(ticker_name=self.data_iter.curr_ticker.name)
         return state
 
@@ -92,52 +78,25 @@ class BaseEnv(Env):
         self.reward_counter = RewardCounter()
 
 
-class StateExtenderEnv(BaseEnv):
-    state_extender = None
-
-    def extend_state(self, state, inventory_state):
-        return self.state_extender.add_inventory_state(state, inventory_state)
-
-    def next_state(self, sequence):
-        next_state = self.get_state(sequence)
-        next_state = self.extend_state(next_state, self.trading_env.inventory_state())
-        next_state = self.shape_state(next_state)
-        return next_state
-
-    def _get_initial_observation_state_shape(self):
-        shape = self.get_state(self._get_first_sequence()).shape
-        return self.state_extender.get_new_shape_state(shape)
-
-
 class EnvNN(BaseEnv):
+    state_handler = StateHandlerNN()
 
-    @staticmethod
-    def get_state(sequence: Sequence):
-        return sequence.flat
-
-    @staticmethod
-    def shape_state(state):
-        state = np.asarray(state).astype("float32")
-        state = state.reshape((state.shape[1],))
-        return state
+    def forward_state(self, sequence: Sequence):
+        self.state_handler.forward(sequence)
 
 
-class EnvNNExtended(EnvNN, StateExtenderEnv):
-    state_extender = StateExtenderNN
+class EnvNNExtended(EnvNN):
+    def forward_state(self, sequence: Sequence):
+        self.state_handler.forward_extend(sequence, self.trading_env.inventory_state())
 
 
 class EnvCNN(BaseEnv):
+    state_handler = StateHandlerCNN()
 
-    @staticmethod
-    def get_state(sequence: Sequence):
-        return sequence.arr
-
-    @staticmethod
-    def shape_state(state):
-        state = state.values.reshape((1, state.shape[0], state.shape[1]))
-        state = np.asarray(state).astype('float32')
-        return state
+    def forward_state(self, sequence: Sequence):
+        self.state_handler.forward(sequence)
 
 
-class EnvCNNExtended(EnvCNN, StateExtenderEnv):
-    state_extender = StateExtenderCNN
+class EnvCNNExtended(EnvCNN):
+    def forward_state(self, sequence: Sequence):
+        self.state_handler.forward_extend(sequence, self.trading_env.inventory_state())
