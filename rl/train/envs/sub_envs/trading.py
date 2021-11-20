@@ -25,12 +25,7 @@ class SimpleTradingEnv:
         return reward
 
     def calculate_margin(self, current_price):
-        margin = 0
-
-        for buy_price in self.inventory:
-            margin += current_price - buy_price
-
-        return margin
+        return sum(current_price - buy_price for buy_price in self.inventory)
 
     def hold(self, price):
         reward = 0
