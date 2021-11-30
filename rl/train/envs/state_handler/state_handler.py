@@ -17,12 +17,11 @@ class StateHandler(ABC):
         pass
 
     @abstractmethod
-    def shape_state(self, state: pd.DataFrame) -> np.ndarray:
-        pass
-
-    @abstractmethod
     def extend_state(self, state: pd.DataFrame, constant: Union[float, int, None]) -> pd.DataFrame:
         pass
+
+    def shape_state(self, state: pd.DataFrame) -> np.ndarray:
+        return np.asarray(state).astype('float32')
 
     def forward(self, sequence: Sequence, constant: Union[float, int, None] = None):
         state = self.get_state(sequence)
@@ -39,11 +38,6 @@ class StateHandlerCNN(StateHandler):
     def get_state(self, sequence: Sequence):
         return sequence.arr
 
-    def shape_state(self, state):
-        state = state.values.reshape((1, state.shape[0], state.shape[1]))
-        state = np.asarray(state).astype('float32')
-        return state
-
     def extend_state(self, state, constant):
         state_columns = list(state.columns)
         constant_list = [constant for _ in range(len(state_columns))]
@@ -55,11 +49,6 @@ class StateHandlerNN(StateHandler):
 
     def get_state(self, sequence):
         return sequence.flat
-
-    def shape_state(self, state):
-        state = np.asarray(state).astype("float32")
-        state = state.reshape((state.shape[1],))
-        return state
 
     def extend_state(self, state: pd.DataFrame, constant):
         raise NotImplementedError
