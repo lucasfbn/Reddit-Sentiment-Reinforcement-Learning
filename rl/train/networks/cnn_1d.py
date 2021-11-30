@@ -17,9 +17,9 @@ class CustomCNN(BaseFeaturesExtractor):
 
         obs_shape = observation_space.shape
         self.cnn = nn.Sequential(
-            nn.Conv1d(in_channels=obs_shape[0], out_channels=32, kernel_size=8, stride=2, padding=0),
+            nn.Conv1d(in_channels=obs_shape[0], out_channels=32, kernel_size=5, stride=1, padding=0),
             nn.ReLU(),
-            nn.Conv1d(32, 64, kernel_size=4, stride=2, padding=0),
+            nn.Conv1d(32, 32, kernel_size=5, stride=1, padding=0),
             nn.ReLU(),
             nn.Flatten(),
         )
@@ -34,3 +34,16 @@ class CustomCNN(BaseFeaturesExtractor):
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
         return self.linear(self.cnn(observations))
+
+# from gym import Env, spaces
+# import numpy as np
+#
+# shape = (10, 14)
+#
+# obs_space = spaces.Box(low=np.zeros(shape),
+#                        high=np.ones(shape),
+#                        dtype=np.float64)
+#
+# model = nn.Conv1d(in_channels=obs_space.shape[0], out_channels=32, kernel_size=7, stride=1, padding="same")
+# out = model(th.as_tensor(obs_space.sample()[None]).float())
+# print(out)
