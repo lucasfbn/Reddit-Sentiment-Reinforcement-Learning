@@ -17,11 +17,11 @@ https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html
 """
 
 if __name__ == '__main__':
-    init_mlflow(utils.paths.mlflow_dir, "Tests")
+    init_mlflow(utils.paths.mlflow_dir, "Training")
 
     with mlflow.start_run():
         setup_logger("INFO")
-        data = load_file(run_id="5896df8aa22c41a3ade34d747bc9ed9a", fn="ticker.pkl", experiment="Datasets")
+        data = load_file(run_id="c3925e0cbdcd4620b5cb909e1a629419", fn="ticker.pkl", experiment="Datasets")
 
         mlflow.log_params(dict(ENABLE_TRANSACTION_COSTS=SimpleTradingEnvTraining.ENABLE_TRANSACTION_COSTS,
                                ENABLE_NEG_BUY_REWARD=SimpleTradingEnvTraining.ENABLE_NEG_BUY_REWARD,
@@ -36,7 +36,7 @@ if __name__ == '__main__':
         max_timesteps = max(len_sequences)
         total_timesteps_p_episode = sum(len_sequences)
 
-        episodes = 5
+        episodes = 7
 
         log_callback = EveryNTimesteps(n_steps=total_timesteps_p_episode, callback=EpisodeEndCallback())
         checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
@@ -44,7 +44,7 @@ if __name__ == '__main__':
 
         policy_kwargs = dict(
             features_extractor_class=CustomCNN,
-            features_extractor_kwargs=dict(features_dim=128)
+            features_extractor_kwargs=dict(features_dim=32)
         )
 
         env = EnvCNN(data)
