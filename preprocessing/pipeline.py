@@ -14,7 +14,7 @@ params = {
     "sentiment_data_columns": ["num_comments", "score", "pos", "neu", "neg", "compound",
                                "num_posts"],
     "price_data_columns": ["Open", "High", "Low", "Close", "Volume"],
-    "ticker_with_false_data": ["PHIL", "USMJ", "MINE"],
+    "ticker_with_false_data": ["PHIL", "USMJ", "MINE", "SPONF", "TIPS"],
     "additional_metric_columns": [],
     "price_column": "Close",
     "drop_unscaled_cols": True,
