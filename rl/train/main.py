@@ -47,6 +47,6 @@ if __name__ == '__main__':
             features_extractor_kwargs=dict(features_dim=32)
         )
 
-        env = EnvCNN(data)
+        env = EnvCNNExtended(data)
         model = PPO('CnnPolicy', env, verbose=1, policy_kwargs=policy_kwargs)
         model.learn(episodes * total_timesteps_p_episode + 1, callback=[log_callback, checkpoint_callback])
