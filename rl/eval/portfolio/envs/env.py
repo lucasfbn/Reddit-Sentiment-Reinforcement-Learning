@@ -2,7 +2,7 @@ from tqdm import tqdm
 
 from rl.eval.portfolio.envs.sub_envs.trading import TradingSimulator
 from rl.eval.portfolio.envs.tracker.track import Tracker, EnvStateTracker
-from rl.eval.portfolio.envs.utils.predict_proba import predict_proba
+from rl.eval.utils.predict_proba import predict_proba
 from rl.eval.portfolio.envs.utils.utils import *
 
 
