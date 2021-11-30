@@ -129,6 +129,8 @@ class Eval:
             tracker.add(action, seq.price, reward)
 
         tracker.add_metadata({"open_positions": len(trading_env.inventory)})
+        tracker.add_metadata({"min_date": str(sequences[0].date)})
+        tracker.add_metadata({"max_date": str(sequences[len(sequences) - 1].date)})
 
     def eval_ticker(self):
         for ticker in tqdm(self.ticker):
