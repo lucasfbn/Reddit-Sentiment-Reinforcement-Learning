@@ -13,13 +13,15 @@ class Tracker:
         self._prices = []
         self._rewards = []
         self._timesteps = 0
+        self._dates = []
         self._metadata = []
 
-    def add(self, action, price, reward):
+    def add(self, action, price, reward, date):
         self._actions.append(action)
         self._prices.append(price)
         self._rewards.append(reward)
         self._timesteps += 1
+        self._dates.append(str(date))
 
     def add_metadata(self, info: dict):
         self._metadata.append(info)
@@ -34,7 +36,8 @@ class Tracker:
                 "actions": self._actions,
                 "prices": self._prices,
                 "timesteps": list(range(self._timesteps)),
-                "rewards": self._rewards
+                "rewards": self._rewards,
+                "dates": self._dates
             }
         }
 
@@ -126,7 +129,7 @@ class Eval:
             else:
                 raise ValueError("Invalid action.")
 
-            tracker.add(action, seq.price, reward)
+            tracker.add(action, seq.price, reward, seq.date)
 
         tracker.add_metadata({"open_positions": len(trading_env.inventory)})
         tracker.add_metadata({"min_date": str(sequences[0].date)})
