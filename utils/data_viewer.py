@@ -1,12 +1,11 @@
 import mlflow
-import paths
+import utils.paths
 
-from utils.mlflow_api import load_file
+from mlflow_utils import init_mlflow, load_file
 
-mlflow.set_tracking_uri(paths.mlflow_path)
-mlflow.set_experiment("Tests")
+init_mlflow(utils.paths.mlflow_dir, "Tests")
 
-data = load_file(run_id="316b9d31ba41439ebc34c309f9a659ee", fn="ticker.pkl", experiment="Datasets")
+data = load_file(run_id="c3925e0cbdcd4620b5cb909e1a629419", fn="ticker.pkl", experiment="Datasets")
 
 import pickle as pkl
 
