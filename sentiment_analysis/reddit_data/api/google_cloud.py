@@ -1,11 +1,12 @@
-import json
-from datetime import datetime
+import logging
 
 import pandas as pd
 from google.cloud import bigquery
 from pandas_gbq.gbq import GenericGBQException
 
-from utils.util_funcs import dt_to_timestamp, log
+from utils.util_funcs import dt_to_timestamp
+
+log = logging.getLogger("root")
 
 
 class BigQueryDB:
@@ -23,7 +24,7 @@ class BigQueryDB:
                       project_id=self.project_id,
                       if_exists="append")
         except GenericGBQException as e:
-            log.warn(f"Error while uploading. Error:\n {e}. \n Len df: {len(df)}")
+            log.warning(f"Error while uploading. Error:\n {e}. \n Len df: {len(df)}")
 
     def download(self, start, end, fields, sql=None, check_duplicates=True):
         log.debug("Starting download...")

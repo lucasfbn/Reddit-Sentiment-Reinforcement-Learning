@@ -1,13 +1,10 @@
 import mlflow
 from mlflow_utils import log_file
+from mlflow_utils import setup_logger, init_mlflow
 from simplepipeline import seq_map
 
 from sentiment_analysis.tasks import *
-from utils.logger import setup_logger
 from utils.util_funcs import update_check_key
-
-mlflow.set_tracking_uri(paths.mlflow_path)
-mlflow.set_experiment("Sentiment")
 
 params = {
     "gc_dump_fn": "gc_dump.csv",
@@ -64,9 +61,10 @@ def pipeline(**kwargs):
 
 
 def main():
+    init_mlflow(paths.mlflow_dir, "Sentiment")
     with mlflow.start_run():
         setup_logger("DEBUG")
-        pipeline(start=datetime(year=2021, month=3, day=2), end=datetime(year=2021, month=8, day=13))
+        pipeline(start=datetime(year=2021, month=3, day=2), end=datetime(year=2021, month=11, day=29))
 
 
 if __name__ == "__main__":
