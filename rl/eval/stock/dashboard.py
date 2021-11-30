@@ -17,8 +17,8 @@ def plot_price_action(ticker_data):
     df = pd.DataFrame(ticker_data["points"])
     df["actions"] = df["actions"].astype(str)
 
-    fig1 = px.scatter(x="timesteps", y="prices", data_frame=df, color="actions", hover_data=["rewards"],
-                      color_discrete_map={'2': 'rgb(255,0,0)', '1': 'rgb(0,255,0)', 
+    fig1 = px.scatter(x="timesteps", y="prices", data_frame=df, color="actions", hover_data=["rewards", "dates"],
+                      color_discrete_map={'2': 'rgb(255,0,0)', '1': 'rgb(0,255,0)',
                                           '0': 'rgb(0,0,255)'})
     fig1.update_traces(marker={"size": 20})
 
