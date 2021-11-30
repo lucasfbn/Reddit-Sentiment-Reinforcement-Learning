@@ -11,7 +11,7 @@ class SimpleTradingEnv:
     ENABLE_NEG_BUY_REWARD = False
     ENABLE_POS_SELL_REWARD = False
 
-    def __init__(self, ticker_name):
+    def __init__(self, ticker_name=""):
         self.ticker_name = ticker_name
         self.inventory = []
 
