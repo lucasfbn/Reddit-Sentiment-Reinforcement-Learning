@@ -23,12 +23,6 @@ if __name__ == '__main__':
         setup_logger("INFO")
         data = load_file(run_id="5896df8aa22c41a3ade34d747bc9ed9a", fn="ticker.pkl", experiment="Datasets")
 
-        SimpleTradingEnvTraining.ENABLE_TRANSACTION_COSTS = True
-        SimpleTradingEnvTraining.ENABLE_NEG_BUY_REWARD = True
-        SimpleTradingEnvTraining.ENABLE_POS_SELL_REWARD = True
-        SimpleTradingEnvTraining.PARTIAL_HOLD_REWARD = False
-        SimpleTradingEnvTraining.HOLD_REWARD_MULTIPLIER = 0.1
-
         mlflow.log_params(dict(ENABLE_TRANSACTION_COSTS=SimpleTradingEnvTraining.ENABLE_TRANSACTION_COSTS,
                                ENABLE_NEG_BUY_REWARD=SimpleTradingEnvTraining.ENABLE_NEG_BUY_REWARD,
                                ENABLE_POS_SELL_REWARD=SimpleTradingEnvTraining.ENABLE_POS_SELL_REWARD,

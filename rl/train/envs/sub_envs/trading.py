@@ -7,9 +7,9 @@ class SimpleTradingEnv:
     TRANSACTION_FEE_ASK = 0.005  # Buy
     TRANSACTION_FEE_BID = 0.01  # Sell
 
-    ENABLE_TRANSACTION_COSTS = False
-    ENABLE_NEG_BUY_REWARD = False
-    ENABLE_POS_SELL_REWARD = False
+    ENABLE_TRANSACTION_COSTS = True
+    ENABLE_NEG_BUY_REWARD = True
+    ENABLE_POS_SELL_REWARD = True
 
     def __init__(self, ticker_name=""):
         self.ticker_name = ticker_name
