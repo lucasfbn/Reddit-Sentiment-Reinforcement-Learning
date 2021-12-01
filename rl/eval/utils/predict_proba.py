@@ -4,6 +4,7 @@ from stable_baselines3.common.policies import obs_as_tensor
 
 def predict_proba(model, state):
     obs = obs_as_tensor(state, model.policy.device)
+    obs = obs.unsqueeze(0)
     dis = model.policy.get_distribution(obs)
     probs = dis.distribution.probs
     probs_np = probs.detach().numpy()
