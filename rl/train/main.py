@@ -50,3 +50,7 @@ if __name__ == '__main__':
         env = EnvCNNExtended(data)
         model = PPO('CnnPolicy', env, verbose=1, policy_kwargs=policy_kwargs)
         model.learn(episodes * total_timesteps_p_episode + 1, callback=[log_callback, checkpoint_callback])
+
+        import os
+
+        os.system('shutdown -s')
