@@ -13,32 +13,32 @@ class Networks:
     @property
     def networks(self):
         return [
-            nn.Sequential(
+            (nn.Sequential(
                 nn.Conv1d(in_channels=self.in_channels, out_channels=64, kernel_size=3, stride=1, padding=0),
                 nn.ReLU(),
                 nn.Conv1d(64, 64, kernel_size=3, stride=1, padding=0),
                 nn.ReLU(),
                 nn.Flatten(),
-            ),
-            nn.Sequential(
+            ), 96),
+            (nn.Sequential(
                 nn.Conv1d(in_channels=self.in_channels, out_channels=64, kernel_size=5, stride=1, padding=0),
                 nn.ReLU(),
                 nn.Conv1d(64, 64, kernel_size=5, stride=1, padding=0),
                 nn.ReLU(),
                 nn.Flatten(),
-            ),
-            nn.Sequential(
+            ), 64),
+            (nn.Sequential(
                 nn.Conv1d(in_channels=self.in_channels, out_channels=64, kernel_size=7, stride=1, padding=0),
                 nn.ReLU(),
                 nn.Conv1d(64, 64, kernel_size=7, stride=1, padding=0),
                 nn.ReLU(),
                 nn.Flatten(),
-            )
+            ), 16)
         ]
 
 
 class TuneableNetwork(BaseFeaturesExtractor):
-    def __init__(self, observation_space: gym.spaces.Box, cnn: nn.Sequential, features_dim: int = 256):
+    def __init__(self, observation_space: gym.spaces.Box, cnn: nn.Sequential, features_dim: int = 96):
         """
         Args:
             observation_space:
@@ -55,7 +55,7 @@ class TuneableNetwork(BaseFeaturesExtractor):
             ).shape[1]
 
         self.linear = nn.Sequential(nn.Linear(n_flatten, n_flatten // 2), nn.ReLU(),
-                                    nn.Linear(n_flatten // 2, n_flatten // 4), nn.ReLU())
+                                    nn.Linear(n_flatten // 2, features_dim), nn.ReLU())
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
         return self.linear(self.cnn(observations))
