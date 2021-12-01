@@ -9,6 +9,7 @@ from rl.train.callbacks.callbacks import EpisodeEndCallback
 from rl.train.envs.env import EnvCNN, EnvCNNExtended
 from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.train.networks.cnn_1d import CustomCNN
+from rl.train.networks.cnn_1d_tune import Networks, TuneableNetwork
 
 """
 https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html
@@ -36,21 +37,27 @@ if __name__ == '__main__':
         max_timesteps = max(len_sequences)
         total_timesteps_p_episode = sum(len_sequences)
 
-        episodes = 7
-
-        log_callback = EveryNTimesteps(n_steps=total_timesteps_p_episode, callback=EpisodeEndCallback())
-        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
-                                                 save_path=(MlflowUtils().get_artifact_path() / "models").as_posix())
-
-        policy_kwargs = dict(
-            features_extractor_class=CustomCNN,
-            features_extractor_kwargs=dict(features_dim=32)
-        )
+        episodes = 10
 
         env = EnvCNNExtended(data)
-        model = PPO('CnnPolicy', env, verbose=1, policy_kwargs=policy_kwargs)
-        model.learn(episodes * total_timesteps_p_episode + 1, callback=[log_callback, checkpoint_callback])
 
-        import os
+        networks = Networks(in_channels=env.observation_space.shape[0]).networks
 
-        os.system('shutdown -s')
+        for network, features_dim in networks:
+            with mlflow.start_run(nested=True):
+                log_callback = EveryNTimesteps(n_steps=total_timesteps_p_episode, callback=EpisodeEndCallback())
+                checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
+                                                         save_path=(
+                                                                 MlflowUtils().get_artifact_path() / "models").as_posix())
+
+                policy_kwargs = dict(
+                    features_extractor_class=TuneableNetwork,
+                    features_extractor_kwargs=dict(cnn=network, features_dim=features_dim)
+                )
+
+                model = PPO('CnnPolicy', env, verbose=1, policy_kwargs=policy_kwargs)
+                model.learn(episodes * total_timesteps_p_episode + 1, callback=[log_callback, checkpoint_callback])
+
+        # import os
+        #
+        # os.system('shutdown -s')
