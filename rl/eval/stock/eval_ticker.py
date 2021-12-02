@@ -72,10 +72,18 @@ class AggStats:
     def neg(series):
         return sum(series < 0) / len(series)
 
+    @staticmethod
+    def mean_neg(series):
+        return series[series < 0].mean()
+
+    @staticmethod
+    def mean_pos(series):
+        return series[series > 0].mean()
+
     def agg(self):
         df = self.tracker_df.select_dtypes(include="number")
         agg = df.agg(["count", "mean", "min", "max", self.q(0.25), self.q(0.50), self.q(0.75),
-                      self.q(0.9), self.q(0.95), self.pos, self.even, self.neg])
+                      self.q(0.9), self.q(0.95), self.pos, self.even, self.neg, self.mean_neg, self.mean_pos])
         agg = agg.round(4)
         agg["func"] = agg.index
 
