@@ -10,9 +10,9 @@ from rl.train.envs.sub_envs.trading import SimpleTradingEnvEvaluation
 
 
 def main(dataset_run_id, model_run_id, model_fn):
-    init_mlflow(utils.paths.mlflow_dir, "Eval_Stocks")
+    init_mlflow(utils.paths.mlflow_dir, "Training")
     setup_logger("INFO")
-    with mlflow.start_run():
+    with mlflow.start_run(run_id=model_run_id, nested=True):
         data = load_file(run_id=dataset_run_id, fn="ticker.pkl", experiment="Datasets")
 
         training_env = EnvCNNExtended
@@ -37,6 +37,6 @@ def main(dataset_run_id, model_run_id, model_fn):
 
 main(
     dataset_run_id="c3925e0cbdcd4620b5cb909e1a629419",
-    model_run_id="a8ed39bab664416882c4f52d63c3a9bb",
-    model_fn="rl_model_646630_steps.zip"
+    model_run_id="0e29194a80494ad1a0ad03ab3b0eb30b",
+    model_fn="rl_model_3233150_steps.zip"
 )
