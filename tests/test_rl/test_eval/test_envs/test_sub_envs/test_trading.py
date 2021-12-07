@@ -1,4 +1,4 @@
-from rl.eval.portfolio.envs.sub_envs.trading import TradingSimulator
+from rl.portfolio.eval.envs.sub_envs.trading import TradingSimulator
 from tests.utils import MockObj
 
 

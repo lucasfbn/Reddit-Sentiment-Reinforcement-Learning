@@ -1,6 +1,6 @@
 import pandas as pd
 
-from rl.eval.portfolio.envs.utils.operation import Operation
+from rl.portfolio.eval.envs.utils.operation import Operation
 
 
 def ticker_list_to_df(ticker):

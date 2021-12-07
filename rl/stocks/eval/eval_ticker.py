@@ -1,6 +1,6 @@
 from tqdm import tqdm
 
-from rl.eval.utils.predict_proba import predict_proba
+from rl.utils.predict_proba import predict_proba
 import pandas as pd
 
 
