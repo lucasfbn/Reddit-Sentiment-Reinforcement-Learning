@@ -7,9 +7,7 @@ from numpy.testing import assert_array_equal
 
 from preprocessing.sequences import Sequence
 from preprocessing.tasks import Ticker
-from rl.train.envs.env import EnvCNN, EnvNN
-from rl.train.envs.sub_envs.trading import SimpleTradingEnv
-from tests.utils import MockObj
+from rl.stocks.train.envs.env import EnvCNN, EnvNN
 
 ticker = [Ticker(_, None) for _ in range(5)]
 for tck in ticker:
@@ -74,7 +72,7 @@ def test_basic_env_cnn_run():
         terminal = False
 
         while not terminal:
-            assert_array_equal(state, expected_states[i].reshape(1, 3, 2))
+            assert_array_equal(state, expected_states[i])
             actions = random.randint(0, 2)
             state, reward, terminal, throwaway = env.step(actions=actions)
 
@@ -102,7 +100,7 @@ def test_basic_env_nn_run():
         terminal = False
 
         while not terminal:
-            assert_array_equal(state, expected_states[i].reshape(6, ))
+            assert_array_equal(state, expected_states[i])
             actions = random.randint(0, 2)
             state, reward, terminal, throwaway = env.step(actions=actions)
 
@@ -147,7 +145,6 @@ def test_cnn_loop():
     Should loop through the whole data twice
     """
     env = EnvCNN(data)
-    env.USE_STATE_EXTENDER = False
 
     expected_states = [
         np.array([[1, 2, 3], [10, 11, 12]], dtype=np.float32).T,
@@ -164,7 +161,7 @@ def test_cnn_loop():
         terminal = False
 
         while not terminal:
-            assert_array_equal(state, expected_states[i].reshape(1, 3, 2))
+            assert_array_equal(state, expected_states[i])
             actions = random.randint(0, 2)
             state, reward, terminal, throwaway = env.step(actions=actions)
 

@@ -5,11 +5,10 @@ from stable_baselines3.common.callbacks import (CheckpointCallback,
                                                 EveryNTimesteps)
 
 import utils.paths
-from rl.train.callbacks.callbacks import EpisodeEndCallback
-from rl.train.envs.env import EnvCNN, EnvCNNExtended
-from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
-from rl.train.networks.cnn_1d import CustomCNN
-from rl.train.networks.cnn_1d_tune import Networks, TuneableNetwork
+from rl.stocks.train.callbacks.callbacks import EpisodeEndCallback
+from rl.stocks.train.envs.env import EnvCNNExtended
+from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
+from rl.stocks.train.networks.cnn_1d_tune import Networks, TuneableNetwork
 
 """
 https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html

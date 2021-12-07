@@ -193,7 +193,7 @@ ticker_regex = re.compile(r"((?<=\W)|(^))[A-Z]{2,5}(?=(\W|$))", re.MULTILINE)
 
 def extract_ticker(txt: str, valid_ticker: list, ticker_blacklist: list):
     """
-    Extracts (stock) ticker from a given string. Each ticker has to be in the valid_ticker list and will be ignored
+    Extracts (stocks) ticker from a given string. Each ticker has to be in the valid_ticker list and will be ignored
     if in the ticker_blacklist.
 
     Args:

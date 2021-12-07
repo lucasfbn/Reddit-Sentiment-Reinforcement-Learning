@@ -34,7 +34,7 @@ def test_sell():
     operation1 = MockObj(tradeable=True, price=10, ticker="1")
     _ = env.buy(operation1)
 
-    # No sell because no stock in inventory
+    # No sell because no stocks in inventory
     operation2 = MockObj(tradeable=True, price=20, ticker="2")
     success = env.sell(operation2)
 

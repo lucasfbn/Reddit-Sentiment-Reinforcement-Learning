@@ -4,10 +4,10 @@ import numpy as np
 from gym import Env, spaces
 
 from preprocessing.sequences import Sequence
-from rl.train.envs.state_handler.state_handler import StateHandlerCNN, StateHandlerNN
-from rl.train.envs.sub_envs.trading import SimpleTradingEnvTraining
-from rl.train.envs.utils.data_iterator import DataIterator
-from rl.train.envs.utils.reward_counter import RewardCounter
+from rl.stocks.train.envs.state_handler.state_handler import StateHandlerCNN, StateHandlerNN
+from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
+from rl.stocks.train.envs.utils.data_iterator import DataIterator
+from rl.stocks.train.envs.utils.reward_counter import RewardCounter
 
 
 class BaseEnv(Env, ABC):

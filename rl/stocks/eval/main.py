@@ -4,9 +4,9 @@ from mlflow_utils import setup_logger
 from stable_baselines3 import PPO
 
 import utils.paths
-from rl.eval.stock.eval_ticker import Eval
-from rl.train.envs.env import EnvCNN, EnvCNNExtended
-from rl.train.envs.sub_envs.trading import SimpleTradingEnvEvaluation
+from rl.stocks.eval.eval_ticker import Eval
+from rl.stocks.train.envs.env import EnvCNNExtended
+from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvEvaluation
 
 
 def main(dataset_run_id, model_run_id, model_fn):
