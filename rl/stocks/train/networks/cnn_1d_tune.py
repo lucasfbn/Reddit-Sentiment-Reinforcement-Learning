@@ -14,26 +14,28 @@ class Networks:
     def networks(self):
         return [
             (nn.Sequential(
-                nn.Conv1d(in_channels=self.in_channels, out_channels=64, kernel_size=3, stride=1, padding=0),
+                nn.Conv1d(in_channels=self.in_channels, out_channels=64, kernel_size=9, stride=1, padding=0),
                 nn.ReLU(),
                 nn.Conv1d(64, 64, kernel_size=3, stride=1, padding=0),
                 nn.ReLU(),
                 nn.Flatten(),
-            ), 96),
+            ), 128),
             (nn.Sequential(
-                nn.Conv1d(in_channels=self.in_channels, out_channels=64, kernel_size=5, stride=1, padding=0),
+                nn.Conv1d(in_channels=self.in_channels, out_channels=64, kernel_size=7, stride=1, padding=0),
                 nn.ReLU(),
                 nn.Conv1d(64, 64, kernel_size=5, stride=1, padding=0),
+                nn.ReLU(),
+                nn.Conv1d(64, 64, kernel_size=3, stride=1, padding=0),
                 nn.ReLU(),
                 nn.Flatten(),
             ), 64),
             (nn.Sequential(
                 nn.Conv1d(in_channels=self.in_channels, out_channels=64, kernel_size=7, stride=1, padding=0),
                 nn.ReLU(),
-                nn.Conv1d(64, 64, kernel_size=7, stride=1, padding=0),
+                nn.Conv1d(64, 64, kernel_size=5, stride=1, padding=0),
                 nn.ReLU(),
                 nn.Flatten(),
-            ), 16)
+            ), 128)
         ]
 
 
@@ -74,8 +76,9 @@ if __name__ == '__main__':
 
     networks = Networks(in_channels=obs_space.shape[0])
 
-    for network in networks.networks:
-        model = TuneableNetwork(obs_space, network)
+    for network, feature_dims in networks.networks:
+        # model = TuneableNetwork(obs_space, network)
+        model = network
         out = model(th.as_tensor(obs_space.sample()[None]).float())
         print(out.shape)
         # print(out)
