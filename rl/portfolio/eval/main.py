@@ -2,8 +2,8 @@ import mlflow
 from mlflow_utils import artifact_path, init_mlflow, load_file, log_file
 from stable_baselines3 import PPO
 
-from rl.eval.portfolio.envs.env import EvalEnv
-from rl.eval.portfolio.envs.pre_process.pre_process import PreProcessor
+from rl.portfolio.eval.envs.env import EvalEnv
+from rl.portfolio.eval.envs.pre_process.pre_process import PreProcessor
 from rl.stocks.train.envs.env import EnvCNN
 from utils.paths import mlflow_dir
 

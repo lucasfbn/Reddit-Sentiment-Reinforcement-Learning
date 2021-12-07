@@ -1,7 +1,7 @@
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-from rl.eval.portfolio.envs.utils.utils import order_day_wise, ticker_list_to_df
+from rl.portfolio.eval.envs.utils.utils import order_day_wise, ticker_list_to_df
 from tests.utils import MockObj
 
 ticker = [
