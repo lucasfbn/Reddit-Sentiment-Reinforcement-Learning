@@ -4,7 +4,7 @@ from stable_baselines3 import PPO
 
 from rl.eval.portfolio.envs.env import EvalEnv
 from rl.eval.portfolio.envs.pre_process.pre_process import PreProcessor
-from rl.train.envs.env import EnvCNN
+from rl.stocks.train.envs.env import EnvCNN
 from utils.paths import mlflow_dir
 
 
