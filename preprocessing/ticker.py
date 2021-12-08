@@ -21,8 +21,11 @@ class Ticker:
         self.name = name
         self.exclude = False
 
-        self.sequences = None
+        self.sequences = []
         self.eval = Eval()
+
+    def drop_data(self):
+        _ = [seq.drop_data() for seq in self.sequences]
 
     def __len__(self):
         return len(self.sequences)
