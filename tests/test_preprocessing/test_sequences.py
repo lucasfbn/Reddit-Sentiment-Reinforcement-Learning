@@ -2,7 +2,7 @@ import pandas as pd
 
 from pandas.testing import assert_frame_equal
 
-from preprocessing.sequences import SequenceGenerator
+from preprocessing.sequence_generator import SequenceGenerator
 from preprocessing.sequence import Sequence, Metadata
 
 

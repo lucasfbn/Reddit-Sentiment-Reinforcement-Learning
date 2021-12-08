@@ -9,7 +9,7 @@ from preprocessing.price_data.cache import Cache
 from preprocessing.price_data.cached_stock_data import CachedStockData
 from preprocessing.price_data.stock_prices import (MissingDataException,
                                                    OldDataException)
-from preprocessing.sequences import SequenceGenerator
+from preprocessing.sequence_generator import SequenceGenerator
 from preprocessing.ticker import Ticker
 
 date_col = "date"
@@ -558,7 +558,7 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
                    columns_to_be_excluded_from_sequences: list, price_column: str, which="all") -> Ticker:
     """
     Generates flat and array sequences from a given ticker df. For further details on what sequences are please check
-    the documentation in the sequence class (sequences.py) itself.
+    the documentation in the sequence class (sequence_generator.py) itself.
 
     Args:
         ticker:
