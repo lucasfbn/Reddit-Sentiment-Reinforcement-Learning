@@ -7,10 +7,5 @@ class Ticker:
 
         self.sequences = None
 
-        self.actions = None
-
-    def add_eval(self, actions):
-        self.actions = actions
-
     def __len__(self):
         return len(self.sequences)
