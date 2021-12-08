@@ -22,7 +22,7 @@ class Ticker:
         self.exclude = False
 
         self.sequences = []
-        self.eval = Eval()
+        self.evl = Eval()
 
     def drop_data(self):
         _ = [seq.drop_data() for seq in self.sequences]
