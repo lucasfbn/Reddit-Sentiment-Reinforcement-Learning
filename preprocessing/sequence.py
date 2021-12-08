@@ -5,19 +5,20 @@ import pandas as pd
 
 @dataclass
 class Data:
-    flat = pd.DataFrame
-    arr = pd.DataFrame
+    df: pd.DataFrame = None
+    flat: pd.DataFrame = None
+    arr: pd.DataFrame = None
 
 
 @dataclass
 class Metadata:
-    ticker_name: str
-    tradeable: bool
-    available: bool
-    sentiment_data_available: bool
-    date: pd.datetime
-    price: float
-    price_raw: float
+    tradeable: bool = None
+    available: bool = None
+    sentiment_data_available: bool = None
+    date: pd.datetime = None
+    price: float = None
+    price_raw: float = None
+    ticker_name: str = None
 
     def to_dict(self):
         return asdict(self)
@@ -25,8 +26,8 @@ class Metadata:
 
 @dataclass
 class Eval:
-    action: int
-    probas: list
+    action: int = None
+    probas: list = None
     hold_proba: float = None
     buy_proba: float = None
     sell_proba: float = None
@@ -41,11 +42,11 @@ class Eval:
 
 class Sequence:
 
-    def __init__(self, index: int = None, data: Data = None, metadata: Metadata = None, eval: Eval = None):
+    def __init__(self, index: int = None, data: Data = None, metadata: Metadata = None, evl: Eval = None):
         self.index = index
         self.data = data
         self.metadata = metadata
-        self.eval = eval
+        self.evl = evl
 
     def drop_data(self):
         self.data = None
