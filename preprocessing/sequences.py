@@ -1,42 +1,6 @@
 import pandas as pd
+
 from preprocessing.sequence import Sequence, Metadata, Data
-
-
-# class Sequence:
-#
-#     def __init__(self, price, available, tradeable, date, sentiment_data_available, df, price_raw, flat=None, arr=None,
-#                  ticker_name=None):
-#         self.df = df
-#         self.tradeable = tradeable
-#         self.available = available
-#         self.price = price
-#         self.price_raw = price_raw
-#         self.sentiment_data_available = sentiment_data_available
-#         self.date = date
-#
-#         self.flat = flat
-#         self.arr = arr
-#
-#         self.ticker_name = ticker_name
-#
-#         # Used later on during evaluation
-#         self.action = None
-#         self.action_probas = None
-#
-#     def add_eval(self, action, action_probas):
-#         """
-#         Quickly add evaluation information.
-#         """
-#         self.action = action
-#         self.action_probas = action_probas
-#
-#     def cleanup(self):
-#         self.flat = None
-#         self.df = None
-#         self.arr = None
-#
-#     def __len__(self):
-#         return len(self.arr)
 
 
 class SequenceGenerator:
