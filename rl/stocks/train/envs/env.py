@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from gym import Env, spaces
 
-from preprocessing.sequences import Sequence
+from preprocessing.sequence import Sequence
 from rl.stocks.train.envs.state_handler.state_handler import StateHandlerCNN, StateHandlerNN
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.envs.utils.data_iterator import DataIterator
@@ -40,7 +40,7 @@ class BaseEnv(Env, ABC):
         return self.forward_state(self._get_first_sequence()).shape
 
     def step(self, actions):
-        price = self.data_iter.curr_sequence.price
+        price = self.data_iter.curr_sequence.metadata.price
 
         # Hold
         if actions == 0:

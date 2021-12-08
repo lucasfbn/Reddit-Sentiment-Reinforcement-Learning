@@ -611,5 +611,5 @@ def delete_non_tradeable_sequences(ticker: Ticker):
     """
     Deletes sequences within the given ticker that are not tradeable.
     """
-    ticker.sequences = [seq for seq in ticker.sequences if seq.tradeable]
+    ticker.sequences = [seq for seq in ticker.sequences if seq.metadata.tradeable]
     return ticker
