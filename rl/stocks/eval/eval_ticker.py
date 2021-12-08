@@ -14,14 +14,16 @@ class Tracker:
         self._rewards = []
         self._timesteps = 0
         self._dates = []
+        self._probas = []
         self._metadata = []
 
-    def add(self, action, price, reward, date):
+    def add(self, action, price, reward, date, proba):
         self._actions.append(action)
         self._prices.append(price)
         self._rewards.append(reward)
         self._timesteps += 1
         self._dates.append(str(date))
+        self._probas.append(proba)
 
     def add_metadata(self, info: dict):
         self._metadata.append(info)
@@ -37,6 +39,7 @@ class Tracker:
                 "prices": self._prices,
                 "timesteps": list(range(self._timesteps)),
                 "rewards": self._rewards,
+                "probas": self._probas,
                 "dates": self._dates
             }
         }
@@ -102,23 +105,6 @@ class Eval:
 
         self._all_tracker = []
 
-    def _eval_sequence(self, sequence, trading_env):
-
-        state = self.training_env_cls.state_handler.forward(sequence,
-                                                            trading_env.inventory_state())
-        action, _ = predict_proba(self.model, state)
-
-        if action == 0:
-            reward = trading_env.hold(sequence.price)
-        elif action == 1:
-            reward = trading_env.buy(sequence.price)
-        elif action == 2:
-            reward = trading_env.sell(sequence.price)
-        else:
-            raise ValueError("Invalid action.")
-
-        return action, reward
-
     def _eval_sequences(self, sequences, tracker):
 
         trading_env = self.trading_env_cls()
@@ -126,7 +112,7 @@ class Eval:
         for seq in sequences:
             state = self.training_env_cls.state_handler.forward(seq,
                                                                 trading_env.inventory_state())
-            action, _ = predict_proba(self.model, state)
+            action, proba = predict_proba(self.model, state)
 
             if action == 0:
                 reward = trading_env.hold(seq.price)
@@ -137,7 +123,7 @@ class Eval:
             else:
                 raise ValueError("Invalid action.")
 
-            tracker.add(action, seq.price, reward, seq.date)
+            tracker.add(action, seq.price, reward, seq.date, proba)
 
         tracker.add_metadata({"open_positions": len(trading_env.inventory)})
         tracker.add_metadata({"min_date": str(sequences[0].date)})
