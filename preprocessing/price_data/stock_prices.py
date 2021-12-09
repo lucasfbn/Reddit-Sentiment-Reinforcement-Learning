@@ -93,12 +93,7 @@ class StockPrices:
         self.prices.columns = [col.replace(" ", "_") for col in self.prices.columns]
 
     def download(self):
-
-        if self.live:
-            self.prices = self._get_live_data()
-        else:
-            self.prices = self._get_historic_data()
-
+        self.prices = self._get_live_data() if self.live else self._get_historic_data()
         # Add date_day column from index
         self.prices[self.date_col] = pd.to_datetime(self.prices.index).to_period('D')
         # Index is the dates, we want a numerical index
