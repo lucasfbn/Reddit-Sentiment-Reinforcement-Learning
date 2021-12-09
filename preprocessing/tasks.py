@@ -5,8 +5,7 @@ import pandas as pd
 from simplepipeline import filter_task, task
 from sklearn.preprocessing import MinMaxScaler
 
-from preprocessing.price_data.cache import Cache
-from preprocessing.price_data.cached_stock_data import CachedStockData
+from preprocessing.price_data.stock_prices import StockPrices
 from preprocessing.price_data.stock_prices import (MissingDataException,
                                                    OldDataException)
 from preprocessing.sequence_generator import SequenceGenerator
@@ -251,12 +250,11 @@ def add_price_data(ticker: Ticker, price_data_start_offset: int, enable_live_beh
     # Will be overwritten to current date if enable_live_behaviour = True
     end_date = ticker.df[main_date_col].max()
 
-    csd = CachedStockData(ticker=ticker.name, start_date=start_date, end_date=end_date,
-                          live=enable_live_behaviour)
-    csd.initialize_cache()
+    stock = StockPrices(ticker_name=ticker.name, start_date=start_date, end_date=end_date,
+                        live=enable_live_behaviour)
 
     try:
-        prices = csd.get()
+        prices = stock.download()
         ticker.df = merge_prices_with_ticker_df(prices, ticker.df)
 
     except (MissingDataException, OldDataException) as e:
