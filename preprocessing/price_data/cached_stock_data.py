@@ -49,7 +49,6 @@ class CachedStockData:
         return df[(df[self.date_col] >= self.start_date) & (df[self.date_col] <= self.end_date)]
 
     def drop_duplicates(self, df):
-        old_len = len(df)
         df = df.drop_duplicates(subset=[self.date_col], keep="last")
         return df
 
