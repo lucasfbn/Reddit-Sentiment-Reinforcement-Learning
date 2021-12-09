@@ -29,7 +29,7 @@ def test_offset():
                      end_date=df["date_day_shifted"].max(), live=False)
     prices = sp.download()
 
-    assert prices.loc[0, "date_day_shifted"] == Period('2021-04-30', 'D')
+    assert prices.loc[0, "date_day_shifted"] == Period('2021-04-29', 'D')
     assert prices.loc[len(prices) - 1, "date_day_shifted"] == Period('2021-05-20', 'D')
 
 
