@@ -1,4 +1,5 @@
 from dataclasses import dataclass, asdict
+from datetime import datetime
 
 import pandas as pd
 
@@ -15,7 +16,7 @@ class Metadata:
     tradeable: bool = None
     available: bool = None
     sentiment_data_available: bool = None
-    date: pd.datetime = None
+    date: datetime = None
     price: float = None
     price_raw: float = None
     ticker_name: str = None
