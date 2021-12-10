@@ -1,10 +1,11 @@
-import streamlit as st
-from mlflow_utils import artifact_path, init_mlflow, load_file
-from mlflow_utils import setup_logger
-import utils.paths
-import plotly.express as px
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objects as go
+import streamlit as st
+from mlflow_utils import init_mlflow, load_file
+from mlflow_utils import setup_logger
+
+import utils.paths
 
 EXPERIMENT = "Eval_Stocks"
 EVAL_TICKER_FN = "evl_ticker.pkl"
