@@ -4,97 +4,6 @@ from rl.utils.predict_proba import predict_proba
 import pandas as pd
 
 
-class Tracker:
-
-    def __init__(self, ticker_name):
-        self.ticker_name = ticker_name
-
-        self._actions = []
-        self._prices = []
-        self._rewards = []
-        self._timesteps = 0
-        self._dates = []
-        self._probas = []
-        self._metadata = []
-
-    def add(self, action, price, reward, date, proba):
-        self._actions.append(action)
-        self._prices.append(price)
-        self._rewards.append(reward)
-        self._timesteps += 1
-        self._dates.append(str(date))
-        self._probas.append(proba)
-
-    def add_metadata(self, info: dict):
-        self._metadata.append(info)
-
-    def make_dict(self):
-        d = {
-            "metadata": {
-                "ticker": self.ticker_name,
-                "profit": sum(self._rewards),
-            },
-            "points": {
-                "actions": self._actions,
-                "prices": self._prices,
-                "timesteps": list(range(self._timesteps)),
-                "rewards": self._rewards,
-                "probas": self._probas,
-                "dates": self._dates
-            }
-        }
-
-        for metadata in self._metadata:
-            d["metadata"] = d["metadata"] | metadata
-
-        return d
-
-
-class AggStats:
-
-    def __init__(self, tracker_df):
-        self.tracker_df = tracker_df
-
-    @staticmethod
-    def q(n):
-        def percentile_(x):
-            return x.quantile(n)
-
-        percentile_.__name__ = str(n)
-        return percentile_
-
-    @staticmethod
-    def pos(series):
-        return sum(series > 0) / len(series)
-
-    @staticmethod
-    def even(series):
-        return sum(series == 0) / len(series)
-
-    @staticmethod
-    def neg(series):
-        return sum(series < 0) / len(series)
-
-    @staticmethod
-    def mean_neg(series):
-        return series[series < 0].mean()
-
-    @staticmethod
-    def mean_pos(series):
-        return series[series > 0].mean()
-
-    def agg(self):
-        df = self.tracker_df.select_dtypes(include="number")
-        agg = df.agg(["count", "mean", "min", "max", self.q(0.25), self.q(0.50), self.q(0.75),
-                      self.q(0.9), self.q(0.95), self.pos, self.even, self.neg, self.mean_neg, self.mean_pos])
-        agg = agg.round(4)
-        agg["func"] = agg.index
-
-        cols = agg.columns.tolist()
-        agg = agg[cols[-1:] + cols[:-1]]
-        return agg
-
-
 class Eval:
 
     def __init__(self, ticker, model, training_env_cls, trading_env_cls):
@@ -105,7 +14,7 @@ class Eval:
 
         self._all_tracker = []
 
-    def _eval_sequences(self, sequences, tracker):
+    def _eval_sequences(self, sequences):
 
         trading_env = self.trading_env_cls()
 
@@ -115,27 +24,28 @@ class Eval:
             action, proba = predict_proba(self.model, state)
 
             if action == 0:
-                reward = trading_env.hold(seq.price)
+                reward = trading_env.hold(seq.metadata.price)
             elif action == 1:
-                reward = trading_env.buy(seq.price)
+                reward = trading_env.buy(seq.metadata.price)
             elif action == 2:
-                reward = trading_env.sell(seq.price)
+                reward = trading_env.sell(seq.metadata.price)
             else:
                 raise ValueError("Invalid action.")
 
-            tracker.add(action, seq.price, reward, seq.date, proba)
+            seq.evl.action = action
+            seq.evl.reward = reward
+            seq.evl.probas = proba
+            seq.evl.open_positions = len(trading_env.inventory)
+            seq.evl.split_probas()
 
-        tracker.add_metadata({"open_positions": len(trading_env.inventory)})
-        tracker.add_metadata({"min_date": str(sequences[0].date)})
-        tracker.add_metadata({"max_date": str(sequences[len(sequences) - 1].date)})
+        return len(trading_env.inventory)
 
     def eval_ticker(self):
         for ticker in tqdm(self.ticker):
-            tracker = Tracker(ticker.name)
+            ticker.evl.open_positions = self._eval_sequences(ticker.sequences)
 
-            self._eval_sequences(ticker.sequences, tracker)
-
-            self._all_tracker.append(tracker)
+        _ = [(ticker.drop_sequence_data(), ticker.aggregate_rewards()) for ticker in self.ticker]
+        return self.ticker
 
     @property
     def all_tracker(self):
