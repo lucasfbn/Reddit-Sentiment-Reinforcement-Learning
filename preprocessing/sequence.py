@@ -32,6 +32,7 @@ class Eval:
     buy_proba: float = None
     sell_proba: float = None
     reward: float = None
+    open_positions: int = None
 
     def __post_init__(self):
         self.hold_proba, self.buy_proba, self.sell_proba = self.probas
