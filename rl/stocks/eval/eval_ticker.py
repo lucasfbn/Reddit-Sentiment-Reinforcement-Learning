@@ -41,5 +41,8 @@ class Eval:
         for ticker in tqdm(self.ticker):
             ticker.evl.open_positions = self._eval_sequences(ticker.sequences)
 
-        _ = [(ticker.drop_sequence_data(), ticker.aggregate_rewards()) for ticker in self.ticker]
+        _ = [(ticker.drop_sequence_data(),
+              ticker.aggregate_rewards(),
+              ticker.set_min_max_date()) for ticker in self.ticker]
+
         return self.ticker
