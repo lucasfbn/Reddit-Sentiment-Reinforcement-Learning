@@ -24,8 +24,15 @@ class Ticker:
         self.sequences = []
         self.evl = Eval()
 
-    def drop_data(self):
+    def drop_sequence_data(self):
         _ = [seq.drop_data() for seq in self.sequences]
+
+    def aggregate_rewards(self):
+        self.evl.reward = sum(seq.evl.reward for seq in self.sequences)
+        return self.evl.reward
+
+    def aggregate_sequence_eval(self):
+        return pd.DataFrame([seq.evl.to_dict() for seq in self.sequences])
 
     def __len__(self):
         return len(self.sequences)
