@@ -34,7 +34,7 @@ class Eval:
     reward: float = None
     open_positions: int = None
 
-    def __post_init__(self):
+    def split_probas(self):
         self.hold_proba, self.buy_proba, self.sell_proba = self.probas
 
     def to_dict(self):
@@ -47,7 +47,7 @@ class Sequence:
         self.index = index
         self.data = data
         self.metadata = metadata
-        self.evl = evl
+        self.evl = Eval() if evl is None else evl
 
     def drop_data(self):
         self.data = None
