@@ -37,7 +37,7 @@ def order_day_wise(ticker, df):
 
         def to_operation(row):
             curr_ticker = ticker[row["ticker_id"]]
-            curr_sequence = curr_ticker.sequences[row["seq_id"]]
+            curr_sequence = curr_ticker.sequences.lst[row["seq_id"]]
             temp.append(Operation(curr_ticker, curr_sequence))
 
         pd.DataFrame(grp).apply(to_operation, axis="columns")
