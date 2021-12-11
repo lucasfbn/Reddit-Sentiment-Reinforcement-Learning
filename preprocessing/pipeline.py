@@ -55,7 +55,7 @@ def pipeline(**kwargs):
     ticker = par_map(add_price_data, ticker,
                      price_data_start_offset=params["sequence_length"] + 1,
                      enable_live_behaviour=params["enable_live_behaviour"]).run()
-    clean_price_data_cache().run()
+    # clean_price_data_cache().run()
     ticker = remove_excluded_ticker(ticker).run()
     ticker = seq_map(mark_sentiment_data_available_days, ticker,
                      sentiment_data_columns=params["sentiment_data_columns"]).run()
@@ -126,7 +126,7 @@ def main():
     init_mlflow(paths.mlflow_dir, "Datasets")
     with mlflow.start_run():
         df = load_file(run_id="79039ba283584f278acf101a27b2bd0e", fn="report.csv", experiment="Sentiment")
-        setup_logger("DEBUG")
+        setup_logger("INFO")
         pipeline(input_df=df)
 
 

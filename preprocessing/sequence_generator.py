@@ -1,41 +1,6 @@
 import pandas as pd
 
-
-class Sequence:
-
-    def __init__(self, price, available, tradeable, date, sentiment_data_available, df, price_raw, flat=None, arr=None,
-                 ticker_name=None):
-        self.df = df
-        self.tradeable = tradeable
-        self.available = available
-        self.price = price
-        self.price_raw = price_raw
-        self.sentiment_data_available = sentiment_data_available
-        self.date = date
-
-        self.flat = flat
-        self.arr = arr
-
-        self.ticker_name = ticker_name
-
-        # Used later on during evaluation
-        self.action = None
-        self.action_probas = None
-
-    def add_eval(self, action, action_probas):
-        """
-        Quickly add evaluation information.
-        """
-        self.action = action
-        self.action_probas = action_probas
-
-    def cleanup(self):
-        self.flat = None
-        self.df = None
-        self.arr = None
-
-    def __len__(self):
-        return len(self.arr)
+from preprocessing.sequence import Sequence, Metadata, Data
 
 
 class SequenceGenerator:
@@ -120,16 +85,19 @@ class SequenceGenerator:
         """
 
         for slice in self._sliced:
-            self._sequences.append(
-                Sequence(
-                    available=self._add_availability(slice),
-                    tradeable=self._add_tradeable(slice),
-                    price=self._add_price(slice),
-                    price_raw=self._add_raw_price(slice),
-                    sentiment_data_available=self._add_sentiment_data_availability(slice),
-                    date=self._add_date(slice),
-                    df=slice
-                ))
+            metadata = Metadata(
+                available=self._add_availability(slice),
+                tradeable=self._add_tradeable(slice),
+                price=self._add_price(slice),
+                price_raw=self._add_raw_price(slice),
+                sentiment_data_available=self._add_sentiment_data_availability(slice),
+                date=self._add_date(slice),
+            )
+
+            data = Data(df=slice)
+
+            self._sequences.append(Sequence(metadata=metadata, data=data))
+
         return self._sequences
 
     def filter_availability(self) -> list:
@@ -139,7 +107,7 @@ class SequenceGenerator:
         if not self.include_available_days_only:
             return self._sequences
 
-        self._sequences = [seq for seq in self._sequences if seq.available is True]
+        self._sequences = [seq for seq in self._sequences if seq.metadata.available is True]
         return self._sequences
 
     def handle_column_order(self):
@@ -149,12 +117,12 @@ class SequenceGenerator:
         if self.price_column is None or not self._sequences:  # If sequences is empty
             return self._sequences
 
-        cols = self._sequences[0].df.columns.tolist()
+        cols = self._sequences[0].data.df.columns.tolist()
         cols.remove(self.price_column)
         cols += [self.price_column]
 
         for seq in self._sequences:
-            seq.df = seq.df[cols]
+            seq.data.df = seq.data.df[cols]
         return self._sequences
 
     def exclude_columns(self):
@@ -165,18 +133,15 @@ class SequenceGenerator:
             return self._sequences
 
         for seq in self._sequences:
-            seq.df = seq.df.drop(columns=self.exclude_cols_from_sequence)
+            seq.data.df = seq.data.df.drop(columns=self.exclude_cols_from_sequence)
         return self._sequences
 
-    def _make_sequence(self):
+    def make_sequence(self):
         self.slice_sequences()
         self.sliced_to_sequence_obj()
         self.filter_availability()
         self.handle_column_order()
         self.exclude_columns()
-
-    def make_sequence(self):
-        self._make_sequence()
         return self._sequences
 
     @staticmethod
@@ -186,9 +151,10 @@ class SequenceGenerator:
 
     def add_array_sequences(self):
         for seq in self._sequences:
-            seq.arr = seq.df.copy()
-            seq.arr = seq.arr.transpose()
-            seq.arr = self._reset_columns(seq.arr)
+            arr = seq.data.df.copy()
+            arr = arr.transpose()
+            arr = self._reset_columns(arr)
+            seq.data.arr = arr
         return self._sequences
 
     def get_sequences(self):
@@ -202,7 +168,7 @@ class SequenceGenerator:
         """
         # TODO Might be faster to use numpy reshape here - but we would have to deal with the column names then
         for seq in self._sequences:
-            seq.flat = seq.df.unstack().to_frame().T
+            seq.data.flat = seq.data.df.unstack().to_frame().T
         return self._sequences
 
     def cleanup(self):
