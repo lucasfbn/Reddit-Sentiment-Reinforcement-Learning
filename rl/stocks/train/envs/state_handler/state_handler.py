@@ -4,7 +4,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from preprocessing.sequences import Sequence
+from preprocessing.sequence import Sequence
 
 
 class StateHandler(ABC):
@@ -36,7 +36,7 @@ class StateHandler(ABC):
 class StateHandlerCNN(StateHandler):
 
     def get_state(self, sequence: Sequence):
-        return sequence.arr
+        return sequence.data.arr
 
     def extend_state(self, state, constant):
         state_columns = list(state.columns)
@@ -48,7 +48,7 @@ class StateHandlerCNN(StateHandler):
 class StateHandlerNN(StateHandler):
 
     def get_state(self, sequence):
-        return sequence.flat
+        return sequence.data.flat
 
     def extend_state(self, state: pd.DataFrame, constant):
         raise NotImplementedError
