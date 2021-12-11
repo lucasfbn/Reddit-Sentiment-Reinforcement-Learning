@@ -41,6 +41,7 @@ class Eval:
         for ticker in tqdm(self.ticker):
             ticker.evl.open_positions = self._eval_sequences(ticker.sequences)
 
-        _ = [ticker.sequences.drop_data() for ticker in self.ticker]
+        _ = [(ticker.sequences.drop_data(), ticker.sequences.backtrack())
+             for ticker in tqdm(self.ticker, descr="Backtracking")]
 
         return self.ticker

@@ -33,6 +33,8 @@ class Eval:
     buy_proba: float = None
     sell_proba: float = None
     reward: float = None
+    reward_backtracked: float = None
+    days_cash_bound: int = None
     open_positions: int = None
 
     def split_probas(self):
