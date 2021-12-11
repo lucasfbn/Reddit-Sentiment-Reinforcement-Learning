@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-class AggStats:
+class AggTickerEvl:
 
     def __init__(self, df: pd.DataFrame):
         self.df = df.select_dtypes(include="number")
@@ -48,3 +48,24 @@ class AggStats:
         cols = agg.columns.tolist()
         agg = agg[cols[-1:] + cols[:-1]]
         return agg, self._agg_to_json(agg)
+
+
+class AggSequencesEvl:
+
+    def __init__(self, df):
+        self.df = df
+
+    def agg(self):
+        # df = df[["action", "reward_backtracked", "buy_proba"]]
+        #
+        # import matplotlib.pyplot as plt
+        #
+        # # df.boxplot(column=["reward_backtracked"])
+        #
+        # pos = df[df["reward_backtracked"] > 0]
+        #
+        # print(pos["buy_proba"].median())
+        #
+        # neg = df[df["reward_backtracked"] < 0]
+        # print(neg["buy_proba"].median())
+        raise NotImplementedError

@@ -5,7 +5,7 @@ from mlflow_utils import setup_logger
 from stable_baselines3 import PPO
 
 import utils.paths
-from rl.stocks.eval.agg_stats import AggStats
+from rl.stocks.eval.agg_stats import AggTickerEvl
 from rl.stocks.eval.eval_ticker import Eval
 from rl.stocks.train.envs.env import EnvCNNExtended
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvEvaluation
@@ -31,7 +31,7 @@ def main(dataset_run_id, model_run_id, model_fn):
         evl_ticker = eval_env.eval_ticker()
 
         agg_evl_df = pd.DataFrame([{"ticker": ticker.name} | ticker.evl.to_dict() for ticker in evl_ticker])
-        agg_stats = AggStats(agg_evl_df)
+        agg_stats = AggTickerEvl(agg_evl_df)
         agg_stats_df, agg_stats_json = agg_stats.agg()
 
         log_file(evl_ticker, "evl_ticker.pkl")
