@@ -10,11 +10,11 @@ def ticker_list_to_df(ticker):
         for seq_id, seq in enumerate(ticker.sequences):
             seq_dict = dict(
                 ticker=ticker.name,
-                price=seq.price_raw,
-                date=seq.date,
-                tradeable=seq.tradeable,
-                action=seq.action,
-                action_probas=seq.action_probas,
+                price=seq.metadata.price_raw,
+                date=seq.metadata.date,
+                tradeable=seq.metadata.tradeable,
+                action=seq.evl.action,
+                action_probas=seq.evl.probas,
                 # hold=seq.action_probas["hold"],
                 # buy=seq.action_probas["buy"],
                 # sell=seq.action_probas["sell"],
@@ -23,8 +23,7 @@ def ticker_list_to_df(ticker):
             )
             dicts.append(seq_dict)
 
-    df = pd.DataFrame(dicts)
-    return df
+    return pd.DataFrame(dicts)
 
 
 def order_day_wise(ticker, df):

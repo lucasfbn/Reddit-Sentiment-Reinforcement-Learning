@@ -308,7 +308,7 @@ def test_assert_no_nan():
 def test_add_metric_rel_price_change():
     df = pd.DataFrame({"price": [1, 2, 3, 4, 5, 10]})
     ticker = Ticker(None, df)
-    result = add_metric_rel_price_change(ticker).run()
+    result = add_metric_rel_price_change(ticker, metric_name="price_rel_change").run()
     expected = pd.Series([0.0, 1.0, 0.5, 0.333333, 0.25, 1.0])
     assert_series_equal(result.df["price_rel_change"], expected, check_exact=False, check_names=False)
 
@@ -318,7 +318,7 @@ def test_scale_price_data():
     ticker = Ticker(None, df)
 
     # Without dropping
-    result = scale(ticker, price_data_columns=["price"], drop_unscaled_cols=False).run()
+    result = scale(ticker, cols_to_be_scaled=["price"], drop_unscaled_cols=False).run()
 
     expected = pd.DataFrame({"price": [1, 2, 3, 4, 5, 10],
                              "price_scaled": [0.00000, 0.11111, 0.22222, 0.333333, 0.444444, 1.00000]})
@@ -327,7 +327,7 @@ def test_scale_price_data():
     assert result[1] == ["price", "price_scaled"]
 
     # With dropping
-    result = scale(ticker, price_data_columns=["price"], drop_unscaled_cols=True).run()
+    result = scale(ticker, cols_to_be_scaled=["price"], drop_unscaled_cols=True).run()
 
     expected = pd.DataFrame({"price_scaled": [0.00000, 0.11111, 0.22222, 0.333333, 0.444444, 1.00000]})
 
@@ -354,17 +354,17 @@ def test_make_sequence():
     ]
 
     for r, e in zip(result.sequences, expected_flat_sequence):
-        r.flat.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
-        assert_frame_equal(r.flat, e, check_column_type=False)
+        r.data.flat.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
+        assert_frame_equal(r.data.flat, e, check_column_type=False)
 
     expected_arr_sequence = [
-        pd.DataFrame({"dummy": [1, 2, 3], "price": [10, 11, 12]}),
-        pd.DataFrame({"dummy": [2, 3, 4], "price": [11, 12, 13]}),
-        pd.DataFrame({"dummy": [3, 4, 5], "price": [12, 13, 14]})
+        pd.DataFrame({"dummy": [1, 2, 3], "price": [10, 11, 12]}).T,
+        pd.DataFrame({"dummy": [2, 3, 4], "price": [11, 12, 13]}).T,
+        pd.DataFrame({"dummy": [3, 4, 5], "price": [12, 13, 14]}).T
     ]
 
     for r, e in zip(result.sequences, expected_arr_sequence):
-        assert_frame_equal(r.arr.reset_index(drop=True), e)
+        assert_frame_equal(r.data.arr, e)
 
 
 def test_make_sequences_which():
@@ -376,22 +376,22 @@ def test_make_sequences_which():
                             price_column="price", which="flat").run()
 
     for r in result.sequences:
-        assert r.flat is not None
-        assert r.arr is None
+        assert r.data.flat is not None
+        assert r.data.arr is None
 
     result = make_sequences(ticker, 3, False, columns_to_be_excluded_from_sequences=["available", "tradeable"],
                             price_column="price", which="arr").run()
 
     for r in result.sequences:
-        assert r.flat is None
-        assert r.arr is not None
+        assert r.data.flat is None
+        assert r.data.arr is not None
 
     result = make_sequences(ticker, 3, False, columns_to_be_excluded_from_sequences=["available", "tradeable"],
                             price_column="price", which="all").run()
 
     for r in result.sequences:
-        assert r.flat is not None
-        assert r.arr is not None
+        assert r.data.flat is not None
+        assert r.data.arr is not None
 
 
 def test_remove_old_price_col_from_price_data_columns():
