@@ -1,7 +1,9 @@
 import pandas as pd
+
 from pandas.testing import assert_frame_equal
 
-from preprocessing.sequences import *
+from preprocessing.sequence_generator import SequenceGenerator
+from preprocessing.sequence import Sequence, Metadata
 
 
 def test_sequence_without_availability():
@@ -70,7 +72,7 @@ def test_sequence_with_availability():
     ]
 
     for r, e in zip(result, expected):
-        assert_frame_equal(r.df.reset_index(drop=True), e)
+        assert_frame_equal(r.data.df.reset_index(drop=True), e)
 
     # More not available dummies
     df = pd.DataFrame({"dummy": [1, 2, 3, 4, 5, 6, 7], "available": [False, False, False, True, True, True, True]})
@@ -90,7 +92,7 @@ def test_sequence_with_availability():
     ]
 
     for r, e in zip(result, expected):
-        assert_frame_equal(r.df.reset_index(drop=True), e.df)
+        assert_frame_equal(r.data.df.reset_index(drop=True), e.df)
 
 
 def test_flat_sequence():
@@ -111,7 +113,7 @@ def test_flat_sequence():
     ]
 
     for r, e in zip(result, expected):
-        r = r.flat
+        r = r.data.flat
         r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
         assert_frame_equal(r, e, check_column_type=False)
 
@@ -134,7 +136,7 @@ def test_arr_sequence():
     ]
 
     for r, e in zip(result, expected):
-        assert_frame_equal(r.arr.reset_index(drop=True), e.reset_index(drop=True))
+        assert_frame_equal(r.data.arr.reset_index(drop=True), e.reset_index(drop=True))
 
 
 def test_sequence_len_too_long():
@@ -165,7 +167,7 @@ def test_exclude_cols():
     ]
 
     for r, e in zip(result, expected):
-        assert_frame_equal(r.df.reset_index(drop=True), e)
+        assert_frame_equal(r.data.df.reset_index(drop=True), e)
 
 
 def test_flat_sequence_column_order():
@@ -191,7 +193,7 @@ def test_flat_sequence_column_order():
     ]
 
     for r, e in zip(result, expected):
-        r = r.flat
+        r = r.data.flat
         r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
         assert_frame_equal(r, e, check_column_type=False)
 
@@ -214,7 +216,7 @@ def test_flat_sequence_column_order():
     ]
 
     for r, e in zip(result, expected):
-        r = r.flat
+        r = r.data.flat
         r.columns = e.columns  # r uses multi-level index, e doesn't (doesn't matter for the comparison tho)
         assert_frame_equal(r, e, check_column_type=False)
 
@@ -250,20 +252,20 @@ def test_attributes():
 
     i = 0
     while i < len(result):
-        assert result[i].price == expected_price[i]
-        assert result[i].tradeable == expected_tradeable[i]
-        assert result[i].available == expected_available[i]
-        assert result[i].sentiment_data_available == expected_sentiment_data_available[i]
-        assert result[i].date == expected_date[i]
+        assert result[i].metadata.price == expected_price[i]
+        assert result[i].metadata.tradeable == expected_tradeable[i]
+        assert result[i].metadata.available == expected_available[i]
+        assert result[i].metadata.sentiment_data_available == expected_sentiment_data_available[i]
+        assert result[i].metadata.date == expected_date[i]
         i += 1
 
 
 def test_sort_sequences():
-    sequences = [Sequence(1, None, None, None, None, None, None),
-                 Sequence(4, None, None, None, None, None, None),
-                 Sequence(3, None, None, None, None, None, None),
-                 Sequence(2, None, None, None, None, None, None)]
+    sequences = [Sequence(metadata=Metadata(False, False, False, None, 1, None, None)),
+                 Sequence(metadata=Metadata(False, False, False, None, 2, None, None)),
+                 Sequence(metadata=Metadata(False, False, False, None, 3, None, None)),
+                 Sequence(metadata=Metadata(False, False, False, None, 4, None, None))]
 
-    sequences.sort(key=lambda x: x.price, reverse=False)
+    sequences.sort(key=lambda x: x.metadata.price, reverse=False)
     for i, seq in enumerate(sequences):
-        assert seq.price == i + 1
+        assert seq.metadata.price == i + 1
