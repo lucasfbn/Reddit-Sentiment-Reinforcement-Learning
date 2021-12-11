@@ -15,6 +15,37 @@ class Eval:
         return asdict(self)
 
 
+class Sequences:
+
+    def __init__(self):
+        self.lst = None
+
+    @property
+    def min_max_dates(self):
+        min_ = self.lst[0].metadata.date
+        max_ = self.lst[len(self.lst) - 1].metadata.date
+        return min_, max_
+
+    @property
+    def aggregated_rewards(self):
+        return sum(seq.evl.reward for seq in self.lst)
+
+    def evl_to_df(self):
+        return pd.DataFrame([seq.evl.to_dict() for seq in self.lst])
+
+    def metadata_to_df(self):
+        return pd.DataFrame([seq.metadata.to_dict() for seq in self.lst])
+
+    def to_df(self):
+        return pd.DataFrame([seq.evl.to_dict() | seq.metadata.to_dict() for seq in self.lst])
+
+    def drop_data(self):
+        _ = [seq.drop_data() for seq in self.lst]
+
+    def __iter__(self):
+        return iter(self.lst)
+
+
 class Ticker:
 
     def __init__(self, name, df=None):
@@ -22,22 +53,8 @@ class Ticker:
         self.name = name
         self.exclude = False
 
-        self.sequences = []
+        self.sequences = Sequences()
         self.evl = Eval()
 
-    def set_min_max_date(self):
-        self.evl.min_date = self.sequences[0].metadata.date
-        self.evl.max_date = self.sequences[len(self.sequences) - 1].metadata.date
-
-    def drop_sequence_data(self):
-        _ = [seq.drop_data() for seq in self.sequences]
-
-    def aggregate_rewards(self):
-        self.evl.reward = sum(seq.evl.reward for seq in self.sequences)
-        return self.evl.reward
-
-    def aggregate_sequence_eval(self):
-        return pd.DataFrame([seq.evl.to_dict() for seq in self.sequences])
-
     def __len__(self):
-        return len(self.sequences)
+        return len(self.sequences.lst)
