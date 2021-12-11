@@ -2,17 +2,14 @@ from tqdm import tqdm
 
 from rl.portfolio.eval.envs.sub_envs.trading import TradingSimulator
 from rl.portfolio.eval.envs.tracker.track import Tracker, EnvStateTracker
-from rl.utils.predict_proba import predict_proba
 from rl.portfolio.eval.envs.utils.utils import *
 
 
 class EvalEnv:
 
-    def __init__(self, ticker, pre_processor, training_env, model):
+    def __init__(self, ticker, pre_processor):
         self.ticker = ticker
         self.pre_processor = pre_processor
-        self.training_env = training_env
-        self.model = model
 
         self._trading_env = TradingSimulator()
 
@@ -28,19 +25,9 @@ class EvalEnv:
 
         for day, operations in tqdm(ordered_day_wise.items(), desc="Processing day"):
 
-            action_pairs = []
-
-            for operation in operations:
-                state = self.training_env.state_handler.forward(operation.sequence,
-                                                                self._trading_env.inventory_state(operation))
-
-                action_direct, _ = self.model.predict(state, deterministic=True)
-                action_own, proba = predict_proba(model=self.model, state=state)
-
-                assert int(action_direct) == action_own
-
-                action = action_own
-                action_pairs.append(dict(action=action, proba=proba, operation=operation))
+            action_pairs = [dict(action=operation.sequence.evl.action,
+                                 proba=operation.sequence.evl.probas,
+                                 operation=operation) for operation in operations]
 
             holds = [pair for pair in action_pairs if pair["action"] == 0]
             buys = [pair for pair in action_pairs if pair["action"] == 1]
