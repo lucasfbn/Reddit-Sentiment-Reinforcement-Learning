@@ -27,7 +27,7 @@ class BaseEnv(Env, ABC):
     def step(self, actions):
         curr_seq = self._data_iter.curr_sequence
 
-        reward = self._trading_env.handle(actions, curr_seq)
+        reward = self._trading_env.step(actions, curr_seq)
 
         next_sequence = self._data_iter.next_sequence()
         next_state = self.forward_state(next_sequence)
