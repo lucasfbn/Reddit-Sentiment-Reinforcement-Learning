@@ -6,26 +6,22 @@ class DataIterator:
 
         self.episode_end = False
         self.episode_count = 0
+        self.new_date = False
+
         self.curr_sequence = None
 
     def next_sequence(self):
-        self.curr_sequence = self._sequences[self._index]
+        next_sequence = self._sequences[self._index]
         self._index += 1
+
+        new_date = False
+        if self.curr_sequence is not None:
+            last_date = self.curr_sequence.metadata.date
+            new_date = last_date != next_sequence.metadata.date
 
         if self._index == len(self._sequences):
             self.episode_end = True
             self._index = 0
 
-        return self.curr_sequence
-
-
-di = DataIterator([1, 2, 3, 4, 5])
-di.next_sequence()
-
-for _ in range(15):
-    print(di.curr_sequence, di.episode_end)
-
-    if di.episode_end is True:
-        di.episode_end = False
-
-    di.next_sequence()
+        self.curr_sequence = next_sequence
+        return self.curr_sequence, new_date
