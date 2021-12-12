@@ -11,9 +11,12 @@ sequences = [
 
 def test_basecase():
     di = DataIterator(sequences)
-    assert di.next_sequence() == sequences[0]
-    assert di.is_new_date() == False
-    assert di.next_sequence() == sequences[1]
-    assert di.is_new_date() == False
-    assert di.next_sequence() == sequences[2]
-    assert di.is_new_date() == False and di.episode_end is True  # new_date() == False because of episode end
+
+    for _ in range(2):
+        di.episode_end = False
+        assert di.next_sequence() == sequences[0]
+        assert di.is_new_date() == False
+        assert di.next_sequence() == sequences[1]
+        assert di.is_new_date() == False
+        assert di.next_sequence() == sequences[2]
+        assert di.is_new_date() == False and di.episode_end  # new_date() == False because of episode end
