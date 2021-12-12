@@ -54,3 +54,6 @@ class Sequence:
 
     def drop_data(self):
         self.data = None
+
+    def to_dict(self):
+        return self.metadata.to_dict() | self.evl.to_dict()
