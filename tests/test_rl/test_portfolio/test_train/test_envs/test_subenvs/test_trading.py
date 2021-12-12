@@ -8,9 +8,6 @@ sequences = [
     MockObj(evl=MockObj(days_cash_bound=2,
                         reward_backtracked=-0.1),
             metadata=MockObj(name="B")),
-    MockObj(evl=MockObj(days_cash_bound=2,
-                        reward_backtracked=-0.4),
-            metadata=MockObj(name="C"))
 ]
 
 
