@@ -10,7 +10,7 @@ class Inventory:
     def inventory_state(self, sequence):
         return int(any(sequence.metadata.name == seq["seq"].metadata.name for seq in self._inv))
 
-    def update(self):
+    def _update(self):
         removed = []
         new_inv = []
 
@@ -21,7 +21,15 @@ class Inventory:
                 new_inv.append(item)
 
         self._inv = new_inv
-        return sum(item["seq"].evl.reward_backtracked for item in removed)
+
+        # 1 + ... because the reward only captures the profit. When we sell, however,
+        # we also get the initial inset, which is either higher or lower, depending on
+        # the profit
+        return sum((1 + item["seq"].evl.reward_backtracked) for item in removed)
+
+    def new_day(self):
+        self._day += 1
+        return self._update()
 
 
 class TradingSimulator:
@@ -35,10 +43,10 @@ class TradingSimulator:
     def inventory(self):
         return self._inventory
 
-    def new_date(self):
-        self._n_trades = self._inventory.update()
+    def new_day(self):
+        self._n_trades += self._inventory.new_day()
 
-    def handle(self, action, sequence):
+    def step(self, action, sequence):
 
         if action == 0:
             reward = 0
