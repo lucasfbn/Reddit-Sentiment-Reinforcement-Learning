@@ -6,7 +6,7 @@ from gym import Env, spaces
 from preprocessing.sequence import Sequence
 from rl.stocks.train.envs.state_handler.state_handler import StateHandlerCNN, StateHandlerNN
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
-from rl.stocks.train.envs.utils.data_iterator import DataIterator
+from rl.utils.data_iterator import DataIterator
 from rl.stocks.train.envs.utils.reward_counter import RewardCounter
 
 
