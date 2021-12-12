@@ -1,5 +1,5 @@
 from preprocessing.tasks import Ticker
-from rl.utils.data_iterator import DataIterator
+from rl.stocks.train.envs.utils.data_iterator import DataIterator
 
 
 def test_next_sequence():
