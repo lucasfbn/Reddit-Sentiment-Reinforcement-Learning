@@ -6,8 +6,8 @@ from preprocessing.sequence import Sequence, Metadata, Data
 class SequenceGenerator:
     date_col_name = "date_day_shifted"
 
-    def __init__(self, df: pd.DataFrame, sequence_len: int, include_available_days_only: bool, price_column: str = None,
-                 exclude_cols_from_sequence: list = []):
+    def __init__(self, df: pd.DataFrame, ticker_name: str, sequence_len: int, include_available_days_only: bool,
+                 price_column: str = None, exclude_cols_from_sequence: list = []):
         """
         Generates sequences from a given dataframe.
 
@@ -21,6 +21,7 @@ class SequenceGenerator:
              the final sequences and can therefore be dropped
         """
         self.df = df
+        self.ticker_name = ticker_name
         self.sequence_len = sequence_len
         self.include_available_days_only = include_available_days_only
         self.price_column = price_column
@@ -86,6 +87,7 @@ class SequenceGenerator:
 
         for slice in self._sliced:
             metadata = Metadata(
+                ticker_name=self.ticker_name,
                 available=self._add_availability(slice),
                 tradeable=self._add_tradeable(slice),
                 price=self._add_price(slice),
