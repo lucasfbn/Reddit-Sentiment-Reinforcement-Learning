@@ -10,6 +10,10 @@ class DataIterator:
         self.last_sequence = None
         self.curr_sequence = None
 
+    @property
+    def sequences(self):
+        return self._sequences
+
     def is_new_date(self):
         if self.last_sequence is None:
             return False
