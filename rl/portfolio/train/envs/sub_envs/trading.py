@@ -8,7 +8,7 @@ class Inventory:
         self._inv.append({"seq": sequence, "removal_day": self._day + sequence.evl.days_cash_bound})
 
     def inventory_state(self, sequence):
-        return int(any(sequence.metadata.name == seq["seq"].metadata.name for seq in self._inv))
+        return int(any(sequence.metadata.ticker_name == seq["seq"].metadata.ticker_name for seq in self._inv))
 
     def _update(self):
         removed = []
