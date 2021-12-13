@@ -1,11 +1,12 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 import numpy as np
 from gym import Env, spaces
 
+from preprocessing.sequence import Sequence
 from rl.portfolio.train.envs.sub_envs.trading import TradingSimulator
 from rl.portfolio.train.envs.utils.data_iterator import DataIterator
-from rl.stocks.train.envs.state_handler.state_handler import StateHandlerCNN, StateHandlerNN
+from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
 
 
 class BaseEnv(Env, ABC):
@@ -24,12 +25,33 @@ class BaseEnv(Env, ABC):
                                             high=np.ones(shape),
                                             dtype=np.float64)
 
+    @property
+    @abstractmethod
+    def state_handler(self):
+        pass
+
+    def forward_state(self, sequence: Sequence):
+        inventory_state = self._trading_env.inventory.inventory_state(sequence)
+        probability = sequence.evl.buy_proba
+        n_trades_left = self._trading_env.n_trades_left_scaled
+        return self.state_handler.forward(sequence, [inventory_state, probability, n_trades_left])
+
+    def _get_first_sequence(self):
+        return self._data_iter.sequences[0]
+
+    def _get_initial_observation_state_shape(self):
+        return self.forward_state(self._get_first_sequence()).shape
+
     def step(self, actions):
         curr_seq = self._data_iter.curr_sequence
 
         reward = self._trading_env.step(actions, curr_seq)
 
         next_sequence = self._data_iter.next_sequence()
+
+        if self._data_iter.is_new_date():
+            self._trading_env.new_day()
+
         next_state = self.forward_state(next_sequence)
 
         return next_state, reward, self._data_iter.episode_end, {}
