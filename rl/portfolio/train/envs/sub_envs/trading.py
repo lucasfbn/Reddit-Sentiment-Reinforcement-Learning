@@ -43,6 +43,7 @@ class TradingSimulator:
     def inventory(self):
         return self._inventory
 
+    @property
     def n_trades_scaled(self):
         return self._n_trades / self.N_START_TRADES if self._n_trades <= self.N_START_TRADES else 1.0
 

@@ -71,6 +71,6 @@ def test_n_trades_scaled():
 
     for i in range(7):
         ts._n_trades = i
-        result.append((i, ts.n_trades_scaled()))
+        result.append((i, ts.n_trades_scaled))
 
     assert result == expected
