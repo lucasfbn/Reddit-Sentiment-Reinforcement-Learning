@@ -568,7 +568,7 @@ def make_sequences(ticker: Ticker, sequence_length: int, include_available_days_
          NN uses the last column as an indicator of the current price.
         which: Which sequences to generate. Must be in ["all", "arr", "flat"]
     """
-    seq_gen = SequenceGenerator(df=ticker.df, sequence_len=sequence_length,
+    seq_gen = SequenceGenerator(df=ticker.df, ticker_name=ticker.name, sequence_len=sequence_length,
                                 include_available_days_only=include_available_days_only,
                                 exclude_cols_from_sequence=columns_to_be_excluded_from_sequences,
                                 price_column=price_column)
