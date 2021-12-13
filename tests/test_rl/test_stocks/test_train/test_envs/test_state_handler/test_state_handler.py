@@ -1,7 +1,7 @@
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-from rl.stocks.train.envs.state_handler.state_handler import StateHandlerCNN
+from rl.utils.state_handler import StateHandlerCNN
 
 
 def test_add_inventory_state():
