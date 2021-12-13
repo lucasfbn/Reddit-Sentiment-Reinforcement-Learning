@@ -1,13 +1,14 @@
 import pandas as pd
 
 from preprocessing.sequence import Sequence, Metadata, Data
+from preprocessing.ticker import Sequences
 
 
 class SequenceGenerator:
     date_col_name = "date_day_shifted"
 
-    def __init__(self, df: pd.DataFrame, ticker_name: str, sequence_len: int, include_available_days_only: bool,
-                 price_column: str = None, exclude_cols_from_sequence: list = []):
+    def __init__(self, df: pd.DataFrame, sequence_len: int, include_available_days_only: bool,
+                 price_column: str = None, exclude_cols_from_sequence: list = [], ticker_name: str = ""):
         """
         Generates sequences from a given dataframe.
 
@@ -138,12 +139,18 @@ class SequenceGenerator:
             seq.data.df = seq.data.df.drop(columns=self.exclude_cols_from_sequence)
         return self._sequences
 
+    def convert_to_sequences(self):
+        temp = Sequences()
+        temp.lst = self._sequences
+        self._sequences = temp
+
     def make_sequence(self):
         self.slice_sequences()
         self.sliced_to_sequence_obj()
         self.filter_availability()
         self.handle_column_order()
         self.exclude_columns()
+        self.convert_to_sequences()
         return self._sequences
 
     @staticmethod
