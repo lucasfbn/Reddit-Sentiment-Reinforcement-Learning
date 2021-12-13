@@ -60,3 +60,17 @@ def test_no_trades_left():
     ts.new_day()
     assert ts._n_trades == 1.5
     assert ts.step(1, sequences[0]) == 0.5
+
+
+def test_n_trades_scaled():
+    ts = TradingSimulator()
+    ts.N_START_TRADES = 5
+
+    expected = [(0, 0.0), (1, 0.2), (2, 0.4), (3, 0.6), (4, 0.8), (5, 1.0), (6, 1.0)]
+    result = []
+
+    for i in range(7):
+        ts._n_trades = i
+        result.append((i, ts.n_trades_scaled()))
+
+    assert result == expected
