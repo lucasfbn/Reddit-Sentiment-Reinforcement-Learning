@@ -17,7 +17,7 @@ class DataIterator:
     def is_new_date(self):
         if self.last_sequence is None:
             return False
-        return self.last_sequence.metadata.date == self.curr_sequence.metadata.date
+        return self.last_sequence.metadata.date != self.curr_sequence.metadata.date
 
     def next_sequence(self):
         self.last_sequence = self.curr_sequence
