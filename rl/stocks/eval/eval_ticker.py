@@ -17,7 +17,7 @@ class Eval:
 
         for seq in sequences:
             state = self.training_env_cls.state_handler.forward(seq,
-                                                                trading_env.inventory_state())
+                                                                [trading_env.inventory_state()])
             action, proba = predict_proba(self.model, state)
 
             if action == 0:
