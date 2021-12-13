@@ -74,6 +74,12 @@ class Sequences:
     def __iter__(self):
         return iter(self.lst)
 
+    def __len__(self):
+        return len(self.lst)
+
+    def __getitem__(self, item):
+        return self.lst[item]
+
 
 class Ticker:
 
