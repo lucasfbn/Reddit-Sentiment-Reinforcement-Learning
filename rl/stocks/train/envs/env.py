@@ -31,7 +31,7 @@ class BaseEnv(Env, ABC):
         pass
 
     def forward_state(self, sequence: Sequence):
-        return self.state_handler.forward(sequence, self.trading_env.inventory_state())
+        return self.state_handler.forward(sequence, [self.trading_env.inventory_state()])
 
     def _get_first_sequence(self):
         return self.data_iter.ticker[0].sequences[0]
