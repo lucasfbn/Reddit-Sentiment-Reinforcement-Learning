@@ -4,8 +4,8 @@ import random
 import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
-
 from preprocessing.sequences import Sequence
+
 from preprocessing.tasks import Ticker
 from rl.stocks.train.envs.env import EnvCNN, EnvNN
 

@@ -1,6 +1,7 @@
-from tests.utils import MockObj
-from rl.portfolio.train.envs.utils.data_iterator import DataIterator
 import pandas as pd
+
+from rl.portfolio.train.envs.utils.data_iterator import DataIterator
+from tests.utils import MockObj
 
 sequences = [
     MockObj(metadata=MockObj(date=pd.Period("2012-04-01"), id=0)),

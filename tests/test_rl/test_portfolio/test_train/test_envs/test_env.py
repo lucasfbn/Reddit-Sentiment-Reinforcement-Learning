@@ -1,8 +1,8 @@
-from rl.portfolio.train.envs.env import EnvCNNExtended
-import pickle as pkl
-from tests.utils import MockObj
 import pandas as pd
+
+from rl.portfolio.train.envs.env import EnvCNNExtended
 from rl.portfolio.train.envs.sub_envs.trading import TradingSimulator
+from tests.utils import MockObj
 
 data = [
     MockObj(evl=MockObj(buy_proba=0.9, reward_backtracked=1.0,
