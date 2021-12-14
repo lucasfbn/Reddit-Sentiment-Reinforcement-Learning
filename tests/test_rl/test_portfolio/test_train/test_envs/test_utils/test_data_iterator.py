@@ -17,6 +17,7 @@ def test_basecase():
         assert di.next_sequence() == sequences[0]
         assert di.is_new_date() == False
         assert di.next_sequence() == sequences[1]
-        assert di.is_new_date() == False
+        assert di.is_new_date() == True
         assert di.next_sequence() == sequences[2]
-        assert di.is_new_date() == False and di.episode_end  # new_date() == False because of episode end
+        assert di.is_new_date() == False # new_date() == False because of episode end
+        assert di.episode_end
