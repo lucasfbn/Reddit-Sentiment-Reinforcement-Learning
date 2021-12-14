@@ -20,7 +20,9 @@ class DataIterator:
         return self.last_sequence.metadata.date != self.curr_sequence.metadata.date
 
     def next_sequence(self):
-        self.last_sequence = self.curr_sequence
+        if self._index > 0:
+            self.last_sequence = self.curr_sequence
+
         self.curr_sequence = self._sequences[self._index]
         self._index += 1
 
