@@ -53,7 +53,7 @@ class TradingSimulator:
     def step(self, action, sequence):
 
         if action == 0:
-            reward = 0
+            reward = 0.0
 
         elif action == 1:
 
