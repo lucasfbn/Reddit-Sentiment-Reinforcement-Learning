@@ -14,21 +14,19 @@ class DataIterator:
     def sequences(self):
         return self._sequences
 
-    def is_new_date(self):
-        if self.last_sequence is None:
+    def _is_episode_end(self, index):
+        return index == len(self._sequences) - 1
+
+    @staticmethod
+    def _is_new_date(last, curr):
+        if last is None:
             return False
-        return self.last_sequence.metadata.date != self.curr_sequence.metadata.date
+        return last.metadata.date != curr.metadata.date
 
-    def next_sequence(self):
-        if self._index > 0:
-            self.last_sequence = self.curr_sequence
-
-        self.curr_sequence = self._sequences[self._index]
-        self._index += 1
-
-        if self._index == len(self._sequences):
-            self.episode_end = True
-            self.last_sequence = None
-            self._index = 0
-
-        return self.curr_sequence
+    def sequence_iter(self):
+        while True:
+            last = None
+            for i, seq in enumerate(self._sequences):
+                is_new_date = self._is_new_date(last, seq)
+                last = seq
+                yield seq, self._is_episode_end(i), is_new_date
