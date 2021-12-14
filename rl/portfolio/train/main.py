@@ -17,13 +17,12 @@ def main(data_run_id, eval_run_id):
     merged = merge_ticker(data, evl)
     all_sequences = hs.get_all_sequences(merged)
     all_sequences = hs.remove_invalid_sequences(all_sequences)
-    sorted_buys = hs.order_sequences_daywise(all_sequences)
 
-    total_timesteps_p_episode = len(sorted_buys)
+    total_timesteps_p_episode = len(all_sequences)
 
     episodes = 10
 
-    env = EnvCNNExtended(sorted_buys)
+    env = EnvCNNExtended(all_sequences)
 
     policy_kwargs = dict(
         features_extractor_class=CustomCNN,
