@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from random import shuffle
 
 import numpy as np
 from gym import Env, spaces
@@ -11,12 +12,12 @@ from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
 
 class BaseEnv(Env, ABC):
 
-    def __init__(self, buys):
+    def __init__(self, base_sequences):
         super().__init__()
 
-        self._buys = buys
+        self._base_sequences = base_sequences
 
-        self._data_iter = DataIterator(self._buys)
+        self._data_iter = DataIterator(self._base_sequences)
         self._curr_state_iter = self._data_iter.sequence_iter()
         self._next_state_iter = self._data_iter.sequence_iter()
 
@@ -63,6 +64,11 @@ class BaseEnv(Env, ABC):
         pass
 
     def reset(self):
+        shuffle(self._base_sequences)
+        self._data_iter = DataIterator(self._base_sequences)
+        self._curr_state_iter = self._data_iter.sequence_iter()
+        self._next_state_iter = self._data_iter.sequence_iter()
+
         next_sequence, _, _ = next(self._next_state_iter)
         state = self.forward_state(next_sequence)
         self._trading_env = TradingSimulator()
