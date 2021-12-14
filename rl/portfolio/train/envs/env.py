@@ -15,7 +15,10 @@ class BaseEnv(Env, ABC):
         super().__init__()
 
         self._buys = buys
-        self._sequence_iter = DataIterator(self._buys).sequence_iter()
+
+        self._data_iter = DataIterator(self._buys)
+        self._curr_state_iter = self._data_iter.sequence_iter()
+        self._next_state_iter = self._data_iter.sequence_iter()
 
         self._trading_env = TradingSimulator()
 
@@ -37,33 +40,30 @@ class BaseEnv(Env, ABC):
         return self.state_handler.forward(sequence, [inventory_state, probability, n_trades_left])
 
     def _get_first_sequence(self):
-        return self._sequence_iter.sequences[0]
+        return self._data_iter.sequences[0]
 
     def _get_initial_observation_state_shape(self):
         return self.forward_state(self._get_first_sequence()).shape
 
     def step(self, actions):
-        curr_seq = self._sequence_iter.curr_sequence
+        seq, episode_end, new_date = next(self._curr_state_iter)
 
-        reward = self._trading_env.step(actions, curr_seq)
-
-        next_sequence, is_episode_end, is_new_date = next(self._sequence_iter)
-
-        if is_new_date:
+        if new_date:
             self._trading_env.new_day()
+
+        reward = self._trading_env.step(actions, seq)
+
+        next_sequence, _, is_new_date = next(self._next_state_iter)
 
         next_state = self.forward_state(next_sequence)
 
-        return next_state, reward, is_episode_end, {}
+        return next_state, reward, episode_end, {}
 
     def close(self):
         pass
 
     def reset(self):
-        self._sequence_iter.episode_end = False
-        self._sequence_iter.episode_count += 1
-
-        next_sequence, _, _ = next(self._sequence_iter)
+        next_sequence, _, _ = next(self._next_state_iter)
         state = self.forward_state(next_sequence)
         self._trading_env = TradingSimulator()
         return state
