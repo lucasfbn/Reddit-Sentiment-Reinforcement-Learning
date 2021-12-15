@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from random import shuffle
-
+import logging
 import numpy as np
 from gym import Env, spaces
 
@@ -8,6 +8,8 @@ from preprocessing.sequence import Sequence
 from rl.portfolio.train.envs.sub_envs.trading import TradingSimulator
 from rl.portfolio.train.envs.utils.data_iterator import DataIterator
 from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
+
+log = logging.getLogger("root")
 
 
 class BaseEnv(Env, ABC):
@@ -53,6 +55,12 @@ class BaseEnv(Env, ABC):
             self._trading_env.new_day()
 
         reward = self._trading_env.step(actions, seq)
+        intermediate_episode_end = self._trading_env.trades_exhausted()
+
+        if not episode_end:
+            if episode_end != intermediate_episode_end:
+                log.debug("Forced episode end")
+            episode_end = intermediate_episode_end
 
         next_sequence, _, _ = next(self._next_state_iter)
 
