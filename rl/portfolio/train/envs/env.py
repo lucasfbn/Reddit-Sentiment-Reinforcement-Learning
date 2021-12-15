@@ -54,7 +54,7 @@ class BaseEnv(Env, ABC):
 
         reward = self._trading_env.step(actions, seq)
 
-        next_sequence, _, is_new_date = next(self._next_state_iter)
+        next_sequence, _, _ = next(self._next_state_iter)
 
         next_state = self.forward_state(next_sequence)
 
@@ -98,6 +98,9 @@ class EnvCNNExtended(EnvCNN):
 if __name__ == "__main__":
 
     import pickle as pkl
+    from mlflow_utils import base_logger
+
+    base_logger("DEBUG")
 
     with open("temp.pkl", "rb") as f:
         data = pkl.load(f)
