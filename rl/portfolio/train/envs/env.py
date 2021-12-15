@@ -15,9 +15,9 @@ class BaseEnv(Env, ABC):
     def __init__(self, base_sequences):
         super().__init__()
 
-        self._base_sequences = base_sequences
+        self._sequences = base_sequences
 
-        self._data_iter = DataIterator(self._base_sequences)
+        self._data_iter = DataIterator(self._sequences)
         self._curr_state_iter = self._data_iter.sequence_iter()
         self._next_state_iter = self._data_iter.sequence_iter()
 
@@ -63,9 +63,13 @@ class BaseEnv(Env, ABC):
     def close(self):
         pass
 
+    def _shuffle_sequences(self):
+        shuffle(self._sequences)
+        self._sequences = sorted(self._sequences, key=lambda seq: seq.metadata.date)
+
     def reset(self):
-        shuffle(self._base_sequences)
-        self._data_iter = DataIterator(self._base_sequences)
+        self._shuffle_sequences()
+        self._data_iter = DataIterator(self._sequences)
         self._curr_state_iter = self._data_iter.sequence_iter()
         self._next_state_iter = self._data_iter.sequence_iter()
 
@@ -89,3 +93,20 @@ class EnvCNN(BaseEnv):
 
 class EnvCNNExtended(EnvCNN):
     state_handler = StateHandlerCNN(extend=True)
+
+
+if __name__ == "__main__":
+
+    import pickle as pkl
+
+    with open("temp.pkl", "rb") as f:
+        data = pkl.load(f)
+
+    env = EnvCNNExtended(data)
+
+    state = env.reset()
+
+    for _ in range(100):
+        next_state, reward, episode_end, _ = env.step(env.action_space.sample())
+
+    env.close()
