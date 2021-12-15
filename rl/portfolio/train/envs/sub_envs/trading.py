@@ -62,6 +62,9 @@ class TradingSimulator:
     def n_trades_left_scaled(self):
         return self._n_trades / self.N_START_TRADES if self._n_trades <= self.N_START_TRADES else 1.0
 
+    def trades_exhausted(self):
+        return self._n_trades < 1
+
     def new_day(self):
         self._n_trades += self._inventory.new_day()
 
