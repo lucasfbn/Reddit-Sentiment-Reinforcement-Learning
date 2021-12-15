@@ -11,10 +11,10 @@ from utils.paths import mlflow_dir
 
 
 def main(data_run_id, eval_run_id):
-    init_mlflow(mlflow_dir, "Tests")
+    init_mlflow(mlflow_dir, "Training_Portfolio")
 
     with mlflow.start_run():
-        setup_logger("INFO")
+        # setup_logger("INFO")
 
         data = load_file(run_id=data_run_id, fn="ticker.pkl", experiment="Datasets")
         evl = load_file(run_id=eval_run_id, fn="evl_ticker.pkl", experiment="Eval_Stocks")
@@ -25,7 +25,7 @@ def main(data_run_id, eval_run_id):
 
         total_timesteps_p_episode = len(all_sequences)
 
-        episodes = 10
+        episodes = 1000
 
         env = EnvCNNExtended(all_sequences)
 
@@ -37,7 +37,8 @@ def main(data_run_id, eval_run_id):
         checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
                                                  save_path=(artifact_path() / "models").as_posix())
 
-        model = PPO('CnnPolicy', env, verbose=1, policy_kwargs=policy_kwargs)
+        model = PPO('CnnPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
+                    tensorboard_log=(artifact_path() / "tensorboard").as_posix())
         model.learn(episodes * total_timesteps_p_episode + 1, callback=[checkpoint_callback])
 
 
