@@ -10,7 +10,7 @@ class Inventory:
         self._day = 0
 
     def add(self, sequence):
-        log.debug(f"Added seq {sequence.metadata.ticker_name} to inv. "
+        log.debug(f"Added seq {sequence.metadata.ticker_name} to inv "
                   f"Removal date: {self._day + sequence.evl.days_cash_bound}")
         self._inv.append({"seq": sequence, "removal_day": self._day + sequence.evl.days_cash_bound})
 
@@ -18,14 +18,14 @@ class Inventory:
         return int(any(sequence.metadata.ticker_name == seq["seq"].metadata.ticker_name for seq in self._inv))
 
     def _update(self):
-        log.debug("Started inventory update.")
+        log.debug("Started inventory update")
 
         removed = []
         new_inv = []
 
         for item in self._inv:
             if item["removal_day"] == self._day:
-                log.debug(f"Seq {item['seq'].metadata.ticker_name} is removed.")
+                log.debug(f"Seq {item['seq'].metadata.ticker_name} is removed")
                 removed.append(item)
             else:
                 new_inv.append(item)
@@ -38,7 +38,7 @@ class Inventory:
         return sum((1 + item["seq"].evl.reward_backtracked) for item in removed)
 
     def new_day(self):
-        log.debug("Called new day.")
+        log.debug("Called new day")
         self._day += 1
         return self._update()
 
@@ -64,11 +64,11 @@ class TradingSimulator:
     def step(self, action, sequence):
 
         if action == 0:
-            log.debug("Action == 0.")
+            log.debug("Action == 0")
             reward = 0.0
 
         elif action == 1:
-            log.debug("Action == 1.")
+            log.debug("Action == 1")
 
             reward = sequence.evl.reward_backtracked
 
@@ -78,8 +78,8 @@ class TradingSimulator:
             else:
                 self._inventory.add(sequence)
                 self._n_trades -= 1
-                log.debug(f"\t Added seq {sequence.metadata.ticker_name} to inventory. "
-                          f"n_trades: {self._n_trades}.")
+                log.debug(f"\t Added seq {sequence.metadata.ticker_name} to inventory "
+                          f"n_trades: {self._n_trades}")
 
         else:
             raise ValueError("Invalid action.")
