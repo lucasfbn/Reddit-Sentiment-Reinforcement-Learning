@@ -1,6 +1,7 @@
 import mlflow
-from mlflow_utils import init_mlflow, load_file, setup_logger
+from mlflow_utils import init_mlflow, load_file, setup_logger, artifact_path
 from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import CheckpointCallback
 
 import rl.portfolio.train.envs.pre_process.handle_sequences as hs
 from rl.portfolio.train.envs.env import EnvCNNExtended
@@ -13,7 +14,7 @@ def main(data_run_id, eval_run_id):
     init_mlflow(mlflow_dir, "Tests")
 
     with mlflow.start_run():
-        setup_logger("DEBUG")
+        setup_logger("INFO")
 
         data = load_file(run_id=data_run_id, fn="ticker.pkl", experiment="Datasets")
         evl = load_file(run_id=eval_run_id, fn="evl_ticker.pkl", experiment="Eval_Stocks")
@@ -33,8 +34,11 @@ def main(data_run_id, eval_run_id):
             features_extractor_kwargs=dict(features_dim=128)
         )
 
-        model = PPO('CnnPolicy', env, verbose=0, policy_kwargs=policy_kwargs)
-        model.learn(episodes * total_timesteps_p_episode + 1)
+        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
+                                                 save_path=(artifact_path() / "models").as_posix())
+
+        model = PPO('CnnPolicy', env, verbose=1, policy_kwargs=policy_kwargs)
+        model.learn(episodes * total_timesteps_p_episode + 1, callback=[checkpoint_callback])
 
 
 main(data_run_id="0643613545e44e75b8017b9973598fb4", eval_run_id="f384f58217114433875eda44495272ad")
