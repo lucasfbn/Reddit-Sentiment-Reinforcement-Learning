@@ -1,4 +1,5 @@
 import logging
+from math import e
 
 log = logging.getLogger("root")
 
@@ -68,6 +69,10 @@ class TradingSimulator:
     def new_day(self):
         self._n_trades += self._inventory.new_day()
 
+    @staticmethod
+    def _discount_reward(reward, t):
+        return reward * e ** -(0.03 * t)
+
     def step(self, action, sequence):
 
         if action == 0:
@@ -87,6 +92,9 @@ class TradingSimulator:
                 self._n_trades -= 1
                 log.debug(f"\t Added seq {sequence.metadata.ticker_name} to inventory "
                           f"n_trades: {self._n_trades}")
+
+            if reward > 0:
+                reward = self._discount_reward(reward, sequence.evl.days_cash_bound)
 
         else:
             raise ValueError("Invalid action.")
