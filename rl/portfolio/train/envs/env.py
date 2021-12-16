@@ -1,6 +1,8 @@
-from abc import ABC, abstractmethod
-from random import shuffle
 import logging
+from abc import ABC, abstractmethod
+from random import randrange
+from random import shuffle
+
 import numpy as np
 from gym import Env, spaces
 
@@ -74,10 +76,11 @@ class BaseEnv(Env, ABC):
     def _shuffle_sequences(self):
         shuffle(self._sequences)
         self._sequences = sorted(self._sequences, key=lambda seq: seq.metadata.date)
+        return self._sequences[randrange(0, len(self._sequences)):]
 
     def reset(self):
-        self._shuffle_sequences()
-        self._data_iter = DataIterator(self._sequences)
+        sequences = self._shuffle_sequences()
+        self._data_iter = DataIterator(sequences)
         self._curr_state_iter = self._data_iter.sequence_iter()
         self._next_state_iter = self._data_iter.sequence_iter()
 
