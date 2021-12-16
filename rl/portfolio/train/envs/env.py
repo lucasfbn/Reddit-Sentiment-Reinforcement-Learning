@@ -62,7 +62,10 @@ class BaseEnv(Env, ABC):
         if not episode_end:
             if episode_end != intermediate_episode_end:
                 log.debug("Forced episode end")
+                reward -= 25
             episode_end = intermediate_episode_end
+        else:
+            reward += 25
 
         next_sequence, _, _ = next(self._next_state_iter)
 
