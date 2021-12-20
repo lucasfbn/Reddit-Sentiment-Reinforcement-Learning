@@ -23,13 +23,11 @@ class Sequences:
     def __init__(self):
         self.lst = None
 
-    @property
     def min_max_dates(self):
         min_ = self.lst[0].metadata.date
         max_ = self.lst[len(self.lst) - 1].metadata.date
         return min_, max_
 
-    @property
     def aggregated_rewards(self):
         return sum(seq.evl.reward for seq in self.lst)
 

@@ -17,7 +17,7 @@ class Eval:
 
         for seq in sequences:
             state = self.training_env_cls.state_handler.forward(seq,
-                                                                trading_env.inventory_state())
+                                                                [trading_env.inventory_state()])
             action, proba = predict_proba(self.model, state)
 
             if action == 0:
@@ -40,8 +40,9 @@ class Eval:
     def eval_ticker(self):
         for ticker in tqdm(self.ticker):
             ticker.evl.open_positions = self._eval_sequences(ticker.sequences)
-
-        _ = [(ticker.sequences.drop_data(), ticker.sequences.backtrack())
-             for ticker in tqdm(self.ticker, descr="Backtracking")]
+            ticker.evl.reward = ticker.sequences.aggregated_rewards()
+            ticker.evl.min_date, ticker.evl.max_date = ticker.sequences.min_max_dates()
+            ticker.sequences.drop_data()
+            ticker.sequences.backtrack()
 
         return self.ticker

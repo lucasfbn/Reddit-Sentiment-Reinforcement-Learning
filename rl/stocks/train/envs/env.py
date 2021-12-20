@@ -4,7 +4,7 @@ import numpy as np
 from gym import Env, spaces
 
 from preprocessing.sequence import Sequence
-from rl.stocks.train.envs.state_handler.state_handler import StateHandlerCNN, StateHandlerNN
+from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.envs.utils.data_iterator import DataIterator
 from rl.stocks.train.envs.utils.reward_counter import RewardCounter
@@ -31,7 +31,7 @@ class BaseEnv(Env, ABC):
         pass
 
     def forward_state(self, sequence: Sequence):
-        return self.state_handler.forward(sequence, self.trading_env.inventory_state())
+        return self.state_handler.forward(sequence, [self.trading_env.inventory_state()])
 
     def _get_first_sequence(self):
         return self.data_iter.ticker[0].sequences[0]
