@@ -9,6 +9,7 @@ from gym import Env, spaces
 from preprocessing.sequence import Sequence
 from rl.portfolio.train.envs.sub_envs.trading import TradingSimulator
 from rl.portfolio.train.envs.utils.data_iterator import DataIterator
+from rl.portfolio.train.envs.utils.forced_episode_reward_handler import ForcedEpisodeRewardHandler
 from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
 
 log = logging.getLogger("root")
@@ -24,6 +25,8 @@ class BaseEnv(Env, ABC):
         self._data_iter = DataIterator(self._sequences)
         self._curr_state_iter = self._data_iter.sequence_iter()
         self._next_state_iter = self._data_iter.sequence_iter()
+
+        self._forced_episode_end_handler: ForcedEpisodeRewardHandler = None
 
         self._trading_env = TradingSimulator()
 
@@ -50,6 +53,22 @@ class BaseEnv(Env, ABC):
     def _get_initial_observation_state_shape(self):
         return self.forward_state(self._get_first_sequence()).shape
 
+    def _check_forced_episode_end(self, total_episode_end, intermediate_episode_end, reward):
+
+        if total_episode_end:  # regular episode end
+            episode_end = True
+            reward += 25
+        else:
+            episode_end = intermediate_episode_end
+
+            if episode_end:  # e.g. forced episode end
+                neg_reward = self._forced_episode_end_handler.get_episode_end_reward(self._data_iter.episode)
+                reward -= neg_reward
+                log.debug(f"Forced episode end. Reduced reward by {neg_reward}. "
+                          f"Percentage of completed episodes: {self._data_iter.perc_completed_episodes}")
+
+        return episode_end, reward
+
     def step(self, actions):
         seq, episode_end, new_date = next(self._curr_state_iter)
 
@@ -59,17 +78,15 @@ class BaseEnv(Env, ABC):
         reward = self._trading_env.step(actions, seq)
         intermediate_episode_end = self._trading_env.trades_exhausted()
 
-        if not episode_end:
-            if episode_end != intermediate_episode_end:
-                log.debug("Forced episode end")
-                reward -= 25
-            episode_end = intermediate_episode_end
-        else:
-            reward += 25
+        episode_end, reward = self._check_forced_episode_end(episode_end,
+                                                             intermediate_episode_end,
+                                                             reward)
 
         next_sequence, _, _ = next(self._next_state_iter)
 
         next_state = self.forward_state(next_sequence)
+
+        self._data_iter.increment_episode()
 
         return next_state, reward, episode_end, {}
 
@@ -79,13 +96,17 @@ class BaseEnv(Env, ABC):
     def _shuffle_sequences(self):
         shuffle(self._sequences)
         self._sequences = sorted(self._sequences, key=lambda seq: seq.metadata.date)
-        return self._sequences[randrange(0, len(self._sequences)):]
+        start_index = randrange(0, len(self._sequences))
+        episode_sequences = self._sequences[start_index:]
+        return episode_sequences, start_index, len(episode_sequences)
 
     def reset(self):
-        sequences = self._shuffle_sequences()
+        sequences, start_index, end_index = self._shuffle_sequences()
         self._data_iter = DataIterator(sequences)
         self._curr_state_iter = self._data_iter.sequence_iter()
         self._next_state_iter = self._data_iter.sequence_iter()
+
+        self._forced_episode_end_handler = ForcedEpisodeRewardHandler(start_index, end_index)
 
         next_sequence, _, _ = next(self._next_state_iter)
         state = self.forward_state(next_sequence)
