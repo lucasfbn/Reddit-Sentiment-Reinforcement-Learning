@@ -39,7 +39,12 @@ def main(data_run_id, eval_run_id):
 
         model = PPO('CnnPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
                     tensorboard_log=(artifact_path() / "tensorboard").as_posix())
-        model.learn(episodes * total_timesteps_p_episode + 1, callback=[checkpoint_callback])
+        # model.learn(episodes * total_timesteps_p_episode + 1, callback=[checkpoint_callback])
+        model.learn(2000000, callback=[checkpoint_callback])
 
+        import os
+
+        os.system('shutdown -s')
+        
 
 main(data_run_id="0643613545e44e75b8017b9973598fb4", eval_run_id="f384f58217114433875eda44495272ad")
