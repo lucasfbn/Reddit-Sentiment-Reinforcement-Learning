@@ -63,7 +63,7 @@ class BaseEnv(Env, ABC):
 
             if episode_end:  # e.g. forced episode end
                 neg_reward = self._forced_episode_end_handler.get_episode_end_reward(self._data_iter.episode)
-                reward -= neg_reward
+                reward += neg_reward
                 log.debug(f"Forced episode end. Reduced reward by {neg_reward}. "
                           f"Percentage of completed episodes: {self._data_iter.perc_completed_episodes}")
 
@@ -98,15 +98,15 @@ class BaseEnv(Env, ABC):
         self._sequences = sorted(self._sequences, key=lambda seq: seq.metadata.date)
         start_index = randrange(0, len(self._sequences))
         episode_sequences = self._sequences[start_index:]
-        return episode_sequences, start_index, len(episode_sequences)
+        return episode_sequences, len(episode_sequences)
 
     def reset(self):
-        sequences, start_index, end_index = self._shuffle_sequences()
+        sequences, n_max_episodes = self._shuffle_sequences()
         self._data_iter = DataIterator(sequences)
         self._curr_state_iter = self._data_iter.sequence_iter()
         self._next_state_iter = self._data_iter.sequence_iter()
 
-        self._forced_episode_end_handler = ForcedEpisodeRewardHandler(start_index, end_index)
+        self._forced_episode_end_handler = ForcedEpisodeRewardHandler(n_max_episodes)
 
         next_sequence, _, _ = next(self._next_state_iter)
         state = self.forward_state(next_sequence)
@@ -131,7 +131,6 @@ class EnvCNNExtended(EnvCNN):
 
 
 if __name__ == "__main__":
-
     import pickle as pkl
     from mlflow_utils import base_logger
 
