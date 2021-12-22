@@ -35,6 +35,13 @@ class StateHandler(ABC):
         state = self.shape_state(state)
         return state
 
+    def cat_forward(self, sequence: Sequence, constant: list[Union[float, int, None]] = None):
+        seq_state = self.get_state(sequence)
+        seq_state = self.shape_state(seq_state)
+        cons_state = np.array(constant)
+
+        return {"timeseries": seq_state, "constants": cons_state}
+
 
 class StateHandlerCNN(StateHandler):
 
