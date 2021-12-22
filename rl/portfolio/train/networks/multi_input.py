@@ -10,7 +10,6 @@ class CustomCNN(BaseFeaturesExtractor):
         """
         Args:
             observation_space:
-            features_dim: Number of features extracted. This corresponds to the number of unit for the last layer.
         """
         super(CustomCNN, self).__init__(observation_space, features_dim=1)
 
