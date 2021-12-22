@@ -31,10 +31,18 @@ class BaseEnv(Env, ABC):
         self._trading_env = TradingSimulator()
 
         self.action_space = spaces.Discrete(2, )
-        shape = self._get_initial_observation_state_shape()
-        self.observation_space = spaces.Box(low=np.zeros(shape),
-                                            high=np.ones(shape),
-                                            dtype=np.float64)
+
+        timeseries_shape = (10, 14)
+        constants_shape = (3)
+
+        self.observation_space = spaces.Dict(
+            {"timeseries": spaces.Box(low=np.zeros(timeseries_shape),
+                                      high=np.ones(timeseries_shape),
+                                      dtype=np.float64),
+             "constants": spaces.Box(low=np.zeros(constants_shape),
+                                     high=np.ones(constants_shape),
+                                     dtype=np.float64)}
+        )
 
     @property
     @abstractmethod
@@ -45,13 +53,7 @@ class BaseEnv(Env, ABC):
         inventory_state = self._trading_env.inventory.inventory_state(sequence)
         probability = sequence.evl.buy_proba
         n_trades_left = self._trading_env.n_trades_left_scaled
-        return self.state_handler.forward(sequence, [inventory_state, probability, n_trades_left])
-
-    def _get_first_sequence(self):
-        return self._data_iter.sequences[0]
-
-    def _get_initial_observation_state_shape(self):
-        return self.forward_state(self._get_first_sequence()).shape
+        return self.state_handler.cat_forward(sequence, [inventory_state, probability, n_trades_left])
 
     def _check_forced_episode_end(self, total_episode_end, intermediate_episode_end, reward):
 
