@@ -4,14 +4,14 @@ import torch.nn as nn
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 
-class CustomCNN(BaseFeaturesExtractor):
+class Network(BaseFeaturesExtractor):
 
-    def __init__(self, observation_space: gym.spaces.Dict):
+    def __init__(self, observation_space: gym.spaces.Dict, features_dim):
         """
         Args:
             observation_space:
         """
-        super(CustomCNN, self).__init__(observation_space, features_dim=1)
+        super(Network, self).__init__(observation_space, features_dim=1)
 
         timeseries_obs = observation_space.spaces["timeseries"]
         constants_obs = observation_space.spaces["constants"]
@@ -44,8 +44,8 @@ class CustomCNN(BaseFeaturesExtractor):
         return network, out_shape
 
     def forward(self, observations: th.Tensor) -> th.Tensor:
-        timeseries_obs = th.as_tensor(observations["timeseries"][None]).float()
-        constants_obs = th.as_tensor(observations["constants"][None]).float()
+        timeseries_obs = th.as_tensor(observations["timeseries"]).float()
+        constants_obs = th.as_tensor(observations["constants"]).float()
         return th.cat([self.timeseries_extractor(timeseries_obs),
                        self.constants_extractor(constants_obs)], dim=1)
 
