@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 from preprocessing.sequence import Sequence
-from gym import spaces
 
 
 class StateHandler(ABC):
