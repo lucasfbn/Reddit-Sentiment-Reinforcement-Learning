@@ -49,7 +49,7 @@ class Inventory:
 
 
 class TradingSimulator:
-    N_START_TRADES = 20
+    N_START_TRADES = 40
 
     def __init__(self):
         self._inventory = Inventory()
