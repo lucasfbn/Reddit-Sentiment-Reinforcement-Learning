@@ -3,7 +3,7 @@ class DataIterator:
     def __init__(self, sequences):
         self._sequences = sequences
 
-        self.step = 0
+        self.steps = 0
 
     @property
     def sequences(self):
@@ -11,10 +11,10 @@ class DataIterator:
 
     @property
     def perc_completed_steps(self):
-        return self.step / len(self._sequences)
+        return self.steps / len(self._sequences)
 
     def step(self):
-        self.step += 1
+        self.steps += 1
 
     def _is_episode_end(self, index):
         return index == len(self._sequences) - 1
