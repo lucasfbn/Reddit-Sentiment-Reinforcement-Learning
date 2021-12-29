@@ -67,7 +67,7 @@ class BaseEnv(Env, ABC):
                 neg_reward = self._forced_episode_end_handler.get_episode_end_reward(self._data_iter.step)
                 reward += neg_reward
                 log.debug(f"Forced episode end. Reduced reward by {neg_reward}. "
-                          f"Percentage of completed episodes: {self._data_iter.perc_completed_episodes}")
+                          f"Percentage of completed episodes: {self._data_iter.perc_completed_steps}")
 
         return episode_end, reward
 
