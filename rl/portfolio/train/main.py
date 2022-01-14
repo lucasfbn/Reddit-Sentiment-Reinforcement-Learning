@@ -1,5 +1,5 @@
 import mlflow
-from mlflow_utils import init_mlflow, load_file, artifact_path
+from mlflow_utils import init_mlflow, load_file, artifact_path, log_file
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 
@@ -8,6 +8,7 @@ from rl.portfolio.train.envs.env import EnvCNNExtended
 from rl.portfolio.train.envs.pre_process.merge_ticker import merge_ticker
 from rl.portfolio.train.networks.multi_input import Network
 from utils.paths import mlflow_dir
+from rl.portfolio.train.callbacks.tracker import TrackCallback
 
 
 def main(data_run_id, eval_run_id):
@@ -36,15 +37,18 @@ def main(data_run_id, eval_run_id):
 
         checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
                                                  save_path=(artifact_path() / "models").as_posix())
+        track_callback = TrackCallback()
 
         model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
                     tensorboard_log=(artifact_path() / "tensorboard").as_posix())
         # model.learn(episodes * total_timesteps_p_episode + 1, callback=[checkpoint_callback])
-        model.learn(2000000, callback=[checkpoint_callback])
+        model.learn(4000000, callback=[checkpoint_callback, track_callback])
 
-        import os
+        log_file(fn="tracking_data", file=track_callback.data)
 
-        os.system('shutdown -s')
+        # import os
+        #
+        # os.system('shutdown -s')
 
 
 main(data_run_id="0643613545e44e75b8017b9973598fb4", eval_run_id="f384f58217114433875eda44495272ad")
