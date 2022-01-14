@@ -64,10 +64,10 @@ class BaseEnv(Env, ABC):
             episode_end = intermediate_episode_end
 
             if episode_end:  # e.g. forced episode end
-                neg_reward = self._forced_episode_end_handler.get_episode_end_reward(self._data_iter.episode)
+                neg_reward = self._forced_episode_end_handler.get_episode_end_reward(self._data_iter.steps)
                 reward += neg_reward
                 log.debug(f"Forced episode end. Reduced reward by {neg_reward}. "
-                          f"Percentage of completed episodes: {self._data_iter.perc_completed_episodes}")
+                          f"Percentage of completed episodes: {self._data_iter.perc_completed_steps}")
 
         return episode_end, reward
 
@@ -88,9 +88,17 @@ class BaseEnv(Env, ABC):
 
         next_state = self.forward_state(next_sequence)
 
-        self._data_iter.increment_episode()
+        self._data_iter.step()
 
-        return next_state, reward, episode_end, {}
+        return next_state, reward, episode_end, {"reward": reward,
+                                                 "episode_end": episode_end,
+                                                 "new_date": new_date,
+                                                 "intermediate_episode_end": intermediate_episode_end,
+                                                 "n_trades_left": self._trading_env.n_trades_left_scaled,
+                                                 "trades_exhausted": self._trading_env.trades_exhausted(),
+                                                 "completed_steps": self._data_iter.perc_completed_steps,
+                                                 "total_steps": len(self._data_iter.sequences),
+                                                 "current_steps": self._data_iter.steps}
 
     def close(self):
         pass

@@ -11,7 +11,7 @@ class Network(BaseFeaturesExtractor):
         Args:
             observation_space:
         """
-        super(Network, self).__init__(observation_space, features_dim=1)
+        super(Network, self).__init__(observation_space, features_dim=features_dim)
 
         timeseries_obs = observation_space.spaces["timeseries"]
         constants_obs = observation_space.spaces["constants"]
@@ -19,7 +19,8 @@ class Network(BaseFeaturesExtractor):
         self.timeseries_extractor, timeseries_out_shape = self._timeseries_extractor(timeseries_obs)
         self.constants_extractor, constants_out_shape = self._constants_extractor(constants_obs)
 
-        self._features_dim = constants_out_shape + timeseries_out_shape
+        self.out_layer = nn.Sequential(nn.Linear(constants_out_shape + timeseries_out_shape, features_dim),
+                                       nn.ReLU())
 
     def _constants_extractor(self, subspace):
         out_neurons = 16
@@ -46,8 +47,10 @@ class Network(BaseFeaturesExtractor):
     def forward(self, observations: th.Tensor) -> th.Tensor:
         timeseries_obs = th.as_tensor(observations["timeseries"]).float()
         constants_obs = th.as_tensor(observations["constants"]).float()
-        return th.cat([self.timeseries_extractor(timeseries_obs),
+
+        cat_ = th.cat([self.timeseries_extractor(timeseries_obs),
                        self.constants_extractor(constants_obs)], dim=1)
+        return self.out_layer(cat_)
 
 
 if __name__ == '__main__':
