@@ -80,6 +80,8 @@ class BaseEnv(Env, ABC):
         reward = self._trading_env.step(actions, seq)
         intermediate_episode_end = self._trading_env.trades_exhausted()
 
+        reward *= self._trading_env.n_trades_left_scaled
+
         episode_end, reward = self._check_forced_episode_end(episode_end,
                                                              intermediate_episode_end,
                                                              reward)
