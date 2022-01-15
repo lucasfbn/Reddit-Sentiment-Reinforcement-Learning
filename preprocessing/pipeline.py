@@ -1,11 +1,10 @@
 import wandb
-from utils.wandb_utils import log_artefact
 from simplepipeline import (Pipeline, get_pipeline, par_map, seq_map,
                             seq_map_unpack, set_pipeline)
 
-import utils.paths as paths
 from preprocessing.tasks import *
 from utils.util_funcs import update_check_key
+from utils.wandb_utils import load_artefact, log_artefact
 
 params = {
     "input_df": None,
@@ -113,10 +112,9 @@ def pipeline(**kwargs):
     ticker = seq_map(mark_short_sequences, ticker, min_sequence_len=params["min_sequence_len"]).run()
     ticker = remove_excluded_ticker(ticker).run()
 
-    log_artefact(ticker, "ticker.pkl", type="ticker")
+    log_artefact(ticker, "dataset.pkl", type="Datasets")
 
     params.pop("input_df")
-    wandb.log()
     wandb.log(params=params)
     wandb.log({"Executed tasks": get_pipeline().executed_tasks()})
     return ticker
@@ -124,9 +122,7 @@ def pipeline(**kwargs):
 
 def main():
     with wandb.init(project="Trendstuff", job_type="Datasets") as run:
-        df = run.use_artifact("lucasfbn/Trendstuff/data:v1", type="dataset").download()
-        df = load_file(run_id="79039ba283584f278acf101a27b2bd0e", fn="report.csv", experiment="Sentiment")
-        setup_logger("INFO")
+        df = load_artefact(run, fn="dataset.csv", version=0, type="Sentiment_Analysis")
         pipeline(input_df=df)
 
 
