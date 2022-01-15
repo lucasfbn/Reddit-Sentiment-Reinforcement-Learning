@@ -9,7 +9,7 @@ from rl.stocks.train.callbacks.callbacks import EpisodeEndCallback
 from rl.stocks.train.envs.env import EnvCNNExtended
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.networks.cnn_1d_tune import Networks, TuneableNetwork
-from utils.wandb_utils import load_file
+from utils.wandb_utils import load_artefact
 
 """
 https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html
@@ -19,7 +19,7 @@ https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html
 
 if __name__ == '__main__':
     with wandb.init(project="Trendstuff", group="RL_Stocks") as run:
-        data = load_file(run, "dataset.pkl", 0, "Dataset")
+        data = load_artefact(run, "dataset.pkl", 0, "Dataset")
 
         wandb.log(dict(ENABLE_TRANSACTION_COSTS=SimpleTradingEnvTraining.ENABLE_TRANSACTION_COSTS,
                        ENABLE_NEG_BUY_REWARD=SimpleTradingEnvTraining.ENABLE_NEG_BUY_REWARD,
