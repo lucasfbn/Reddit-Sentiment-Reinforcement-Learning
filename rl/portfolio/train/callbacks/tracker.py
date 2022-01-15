@@ -28,7 +28,13 @@ class Logger:
 
         d = dict(
             mean_reward=df["reward"].mean(),
-            median_reward=df["reward"].median()
+            median_reward=df["reward"].median(),
+            mean_reward_completed_steps=df["reward_completed_steps"].mean(),
+            median_reward_completed_steps=df["reward_completed_steps"].median(),
+            mean_reward_completed_steps_discounted=df["reward_completed_steps_discounted"].mean(),
+            median_reward_completed_steps_discounted=df["reward_completed_steps_discounted"].median(),
+            mean_total_reward=df["total_reward"].mean(),
+            median_total_reward=df["total_reward"].median()
         )
 
         episode_end_completed_steps = []
