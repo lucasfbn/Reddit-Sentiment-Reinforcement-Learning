@@ -14,7 +14,7 @@ from utils.wandb_utils import load_artefact, log_file
 
 
 def main():
-    with wandb.init(project="Trendstuff", group="RL_Portfolio") as run:
+    with wandb.init(project="Trendstuff", group="RL Portfolio Train") as run:
         wandb.tensorboard.patch(save=False)
 
         data = load_artefact(run, "dataset.pkl", 0, "Dataset")
@@ -41,8 +41,7 @@ def main():
 
         model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
                     tensorboard_log=(Path(run.dir) / "tensorboard").as_posix())
-        # model.learn(episodes * total_timesteps_p_episode + 1, callback=[checkpoint_callback])
-        model.learn(10000, callback=[WandbCallback(), checkpoint_callback, track_callback])
+        model.learn(2000000, callback=[WandbCallback(), checkpoint_callback, track_callback])
         log_file(track_callback.data, "tracking.pkl", run)
 
         # import os
