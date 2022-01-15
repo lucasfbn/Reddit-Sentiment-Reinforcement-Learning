@@ -1,7 +1,7 @@
-from stable_baselines3.common.callbacks import BaseCallback
-import pandas as pd
-import mlflow
 import numpy as np
+import pandas as pd
+import wandb
+from stable_baselines3.common.callbacks import BaseCallback
 
 
 class Episode:
@@ -49,7 +49,7 @@ class Logger:
         d["episode_end_trades_left_median"] = np.median(np.array(episode_end_trades_left))
         d["episode_end_forced_median"] = np.median(np.array(episode_end_forced))
 
-        mlflow.log_metrics(d)
+        wandb.log(d)
 
     def add(self, episode: Episode):
         self._episodes.append(episode)
