@@ -43,7 +43,7 @@ if __name__ == '__main__':
         for network, features_dim in networks:
             log_callback = EveryNTimesteps(n_steps=total_timesteps_p_episode, callback=EpisodeEndCallback())
             checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
-                                                     save_path=(Path(run.dir) / "models").as_posix())
+                                                     save_path=Path(Path(run.dir) / "models").as_posix())
 
             policy_kwargs = dict(
                 features_extractor_class=TuneableNetwork,
