@@ -3,7 +3,7 @@ from simplepipeline import seq_map
 
 from sentiment_analysis.tasks import *
 from utils.util_funcs import update_check_key
-from utils.wandb_utils import log_file
+from utils.wandb_utils import log_artefact
 
 params = {
     "gc_dump_fn": "gc_dump.csv",
@@ -30,9 +30,9 @@ def pipeline(**kwargs):
     params = update_check_key(params, kwargs)
 
     df = get_from_gc(params["start"], params["end"], params["check_duplicates"], params["fields_to_retrieve"]).run()
-    log_file(df, params["gc_dump_fn"], type="sentiment_analysis")
+    log_artefact(df, params["gc_dump_fn"], type="sentiment_analysis")
     gaps = retrieve_gaps(df).run()
-    log_file(gaps, "gaps.json", type="sentiment_analysis")
+    log_artefact(gaps, "gaps.json", type="sentiment_analysis")
     df = filter_removed(df, params["cols_to_check_if_removed"]).run()
     df = add_temporal_informations(df).run()
     df = filter_authors(df,
@@ -53,7 +53,7 @@ def pipeline(**kwargs):
     timespans = retrieve_timespans(flattened_ticker_df, params["relevant_timespan_cols"]).run()
     timespans = seq_map(aggregate_submissions_per_timespan, timespans).run()
     df = summarize_timespans(timespans).run()
-    log_file(df, "dataset.csv", type="sentiment_analysis")
+    log_artefact(df, "dataset.csv", type="sentiment_analysis")
     wandb.log(params=params)
     return df
 
