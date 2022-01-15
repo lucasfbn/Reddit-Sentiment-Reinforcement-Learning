@@ -1,11 +1,10 @@
-import mlflow
-from mlflow_utils import init_mlflow, load_file, log_file, setup_logger
+import wandb
 from simplepipeline import (Pipeline, get_pipeline, par_map, seq_map,
                             seq_map_unpack, set_pipeline)
 
-import utils.paths as paths
 from preprocessing.tasks import *
 from utils.util_funcs import update_check_key
+from utils.wandb_utils import load_artefact, log_artefact
 
 params = {
     "input_df": None,
@@ -77,7 +76,6 @@ def pipeline(**kwargs):
     ticker = seq_map(add_metric_rel_price_change, ticker, metric_name="price_rel_change").run()
     params["additional_metric_columns"].append("price_rel_change")
 
-    _ = log_file(ticker, "ticker.pkl")
     seq_map(assert_no_nan, ticker).run()
     ticker = seq_map(copy_unscaled_price, ticker).run()
 
@@ -114,19 +112,17 @@ def pipeline(**kwargs):
     ticker = seq_map(mark_short_sequences, ticker, min_sequence_len=params["min_sequence_len"]).run()
     ticker = remove_excluded_ticker(ticker).run()
 
-    log_file(ticker, "ticker.pkl")
+    log_artefact(ticker, "dataset.pkl", type="Datasets")
 
     params.pop("input_df")
-    mlflow.log_params(params=params)
-    mlflow.log_param("Executed tasks", get_pipeline().executed_tasks())
+    wandb.log(params=params)
+    wandb.log({"Executed tasks": get_pipeline().executed_tasks()})
     return ticker
 
 
 def main():
-    init_mlflow(paths.mlflow_dir, "Datasets")
-    with mlflow.start_run():
-        df = load_file(run_id="79039ba283584f278acf101a27b2bd0e", fn="report.csv", experiment="Sentiment")
-        setup_logger("INFO")
+    with wandb.init(project="Trendstuff", job_type="Datasets") as run:
+        df = load_artefact(run, fn="dataset.csv", version=0, type="Sentiment_Analysis")
         pipeline(input_df=df)
 
 

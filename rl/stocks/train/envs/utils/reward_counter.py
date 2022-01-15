@@ -1,4 +1,4 @@
-import mlflow
+import wandb
 
 
 class RewardCounter:
@@ -22,7 +22,7 @@ class RewardCounter:
             raise ValueError("Reward")
 
     def log(self, step):
-        mlflow.log_metric("full run reward", self.full, step=step)
-        mlflow.log_metric("n_even_rewards", self.even, step=step)
-        mlflow.log_metric("n_pos_rewards", self.pos, step=step)
-        mlflow.log_metric("n_neg_rewards", self.neg, step=step)
+        wandb.log("full run reward", self.full, step=step)
+        wandb.log("n_even_rewards", self.even, step=step)
+        wandb.log("n_pos_rewards", self.pos, step=step)
+        wandb.log("n_neg_rewards", self.neg, step=step)
