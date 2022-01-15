@@ -35,7 +35,7 @@ def main():
             features_extractor_kwargs=dict(features_dim=128)
         )
 
-        checkpoint_callback = CheckpointCallback(save_freq=1000,
+        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
                                                  save_path=Path(Path(run.dir) / "models").as_posix())
         track_callback = TrackCallback()
 
