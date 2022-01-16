@@ -79,23 +79,16 @@ class TrackCallback(BaseCallback):
         return pd.concat([ep.to_df() for ep in self.data])
 
     def _on_step(self) -> bool:
-        iteration = self.locals["iteration"]
-        n_steps = self.locals["n_steps"]
-
-        reward = self.locals["rewards"]
-        action = self.locals["actions"]
-        done = self.locals["dones"]
         infos = self.locals["infos"][0]
-
-        infos["sb3_iteration"] = iteration
-        infos["sb3_n_steps"] = n_steps
-        infos["sb3_reward"] = reward
-        infos["sb3_action"] = action
-        infos["sb3_done"] = done
+        infos["sb3_iteration"] = self.locals["iteration"]
+        infos["sb3_n_steps"] = self.locals["n_steps"]
+        infos["sb3_reward"] = self.locals["rewards"]
+        infos["sb3_action"] = self.locals["actions"]
+        infos["sb3_done"] = self.locals["dones"]
 
         self._curr_episode.data.append(infos)
 
-        if done:
+        if infos["sb3_done"]:
             self.data.append(self._curr_episode)
             self.mlflow_logger.add(self._curr_episode)
             self._curr_episode = Episode()
