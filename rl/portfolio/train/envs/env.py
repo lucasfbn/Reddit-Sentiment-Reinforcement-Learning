@@ -9,7 +9,7 @@ from gym import Env, spaces
 from preprocessing.sequence import Sequence
 from rl.portfolio.train.envs.sub_envs.trading import TradingSimulator
 from rl.portfolio.train.envs.utils.data_iterator import DataIterator
-from rl.portfolio.train.envs.utils.forced_episode_reward_handler import ForcedEpisodeRewardHandler
+from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
 
 log = logging.getLogger("root")
@@ -25,8 +25,6 @@ class BaseEnv(Env, ABC):
         self._data_iter = DataIterator(self._sequences)
         self._curr_state_iter = self._data_iter.sequence_iter()
         self._next_state_iter = self._data_iter.sequence_iter()
-
-        self._forced_episode_end_handler: ForcedEpisodeRewardHandler = None
 
         self._trading_env = TradingSimulator()
 
@@ -55,38 +53,28 @@ class BaseEnv(Env, ABC):
         n_trades_left = self._trading_env.n_trades_left_scaled
         return self.state_handler.cat_forward(sequence, [inventory_state, probability, n_trades_left])
 
-    def _check_forced_episode_end(self, total_episode_end, intermediate_episode_end, reward):
-
-        if total_episode_end:  # regular episode end
-            episode_end = True
-            reward += 25
-        else:
-            episode_end = intermediate_episode_end
-
-            if episode_end:  # e.g. forced episode end
-                neg_reward = self._forced_episode_end_handler.get_episode_end_reward(self._data_iter.steps)
-                reward += neg_reward
-                log.debug(f"Forced episode end. Reduced reward by {neg_reward}. "
-                          f"Percentage of completed episodes: {self._data_iter.perc_completed_steps}")
-
-        return episode_end, reward
-
     def step(self, actions):
         seq, episode_end, new_date = next(self._curr_state_iter)
 
         if new_date:
             self._trading_env.new_day()
 
-        reward = self._trading_env.step(actions, seq)
+        reward, success = self._trading_env.step(actions, seq)
 
         intermediate_episode_end = self._trading_env.trades_exhausted()
 
-        reward_completed_steps = reward + 25 * self._data_iter.perc_completed_steps
-        reward_completed_steps_discounted = reward_completed_steps * self._trading_env.n_trades_left_scaled
+        reward_handler = RewardHandler(base_reward=reward)
+        reward_handler.negate_if_no_success(success)
+        reward_handler.discount_cash_bound(seq.evl.days_cash_bound)
 
-        episode_end, total_reward = self._check_forced_episode_end(episode_end,
-                                                                   intermediate_episode_end,
-                                                                   reward_completed_steps_discounted)
+        reward_completed_steps = reward_handler.add_reward_completed_steps(self._data_iter.perc_completed_steps)
+        reward_discount_n_trades_left = reward_handler.discount_n_trades_left(self._trading_env.n_trades_left_scaled)
+
+        reward_handler.penalize_forced_episode_end(intermediate_episode_end)
+        reward_handler.reward_total_episode_end(episode_end)
+
+        total_reward = reward_handler.reward
+        episode_end = bool(max(int(intermediate_episode_end), int(episode_end)))
 
         next_sequence, _, _ = next(self._next_state_iter)
 
@@ -96,7 +84,7 @@ class BaseEnv(Env, ABC):
 
         return next_state, total_reward, episode_end, {"reward": reward,
                                                        "reward_completed_steps": reward_completed_steps,
-                                                       "reward_completed_steps_discounted": reward_completed_steps_discounted,
+                                                       "reward_discount_n_trades_left": reward_discount_n_trades_left,
                                                        "total_reward": total_reward,
                                                        "episode_end": episode_end,
                                                        "new_date": new_date,
@@ -122,8 +110,6 @@ class BaseEnv(Env, ABC):
         self._data_iter = DataIterator(sequences)
         self._curr_state_iter = self._data_iter.sequence_iter()
         self._next_state_iter = self._data_iter.sequence_iter()
-
-        self._forced_episode_end_handler = ForcedEpisodeRewardHandler(n_max_episodes)
 
         next_sequence, _, _ = next(self._next_state_iter)
         state = self.forward_state(next_sequence)
