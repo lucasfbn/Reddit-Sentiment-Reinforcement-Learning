@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import wandb
@@ -13,7 +14,7 @@ from rl.portfolio.train.networks.multi_input import Network
 from utils.wandb_utils import load_artefact, log_file
 
 
-def main():
+def train(shutdown=False):
     with wandb.init(project="Trendstuff", group="RL Portfolio Train") as run:
         wandb.tensorboard.patch(save=False)
 
@@ -41,12 +42,13 @@ def main():
 
         model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
                     tensorboard_log=(Path(run.dir) / "tensorboard").as_posix())
-        model.learn(2000000, callback=[WandbCallback(), checkpoint_callback, track_callback])
+        model.learn(1500000, callback=[WandbCallback(), checkpoint_callback, track_callback])
         log_file(track_callback.data, "tracking.pkl", run)
 
-        # import os
-        #
-        # os.system('shutdown -s')
+        if shutdown:
+            os.system('shutdown -s -t 600')
+
+        return track_callback.data
 
 
-main()
+train()
