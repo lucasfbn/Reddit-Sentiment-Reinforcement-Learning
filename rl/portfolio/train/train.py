@@ -12,6 +12,7 @@ from rl.portfolio.train.envs.env import EnvCNNExtended
 from rl.portfolio.train.envs.pre_process.merge_ticker import merge_ticker
 from rl.portfolio.train.networks.multi_input import Network
 from utils.wandb_utils import load_artefact, log_file
+from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 
 
 def train(shutdown=False):
@@ -31,6 +32,12 @@ def train(shutdown=False):
 
         env = EnvCNNExtended(all_sequences)
 
+        wandb.log(dict(
+            TOTAL_EPISODE_END_REWARD=RewardHandler.TOTAL_EPISODE_END_REWARD,
+            COMPLETED_STEPS_MAX_REWARD=RewardHandler.COMPLETED_STEPS_MAX_REWARD,
+            FORCED_EPISODE_END_PENALTY=RewardHandler.FORCED_EPISODE_END_PENALTY
+        ))
+        
         policy_kwargs = dict(
             features_extractor_class=Network,
             features_extractor_kwargs=dict(features_dim=128)
