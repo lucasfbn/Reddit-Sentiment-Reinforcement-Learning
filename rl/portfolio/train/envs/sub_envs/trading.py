@@ -69,11 +69,9 @@ class TradingSimulator:
     def new_day(self):
         self._n_trades += self._inventory.new_day()
 
-    @staticmethod
-    def _discount_reward(reward, t):
-        return reward * e ** -(0.03 * t)
-
     def step(self, action, sequence):
+
+        success = True
 
         if action == 0:
             log.debug("Action == 0")
@@ -85,19 +83,12 @@ class TradingSimulator:
             reward = sequence.evl.reward_backtracked
 
             if self._n_trades < 1:
-                reward *= -1 if reward > 0 else 2
-                log.debug("\t n_trades < 1. Reward will be altered.")
+                success = False
             else:
                 self._inventory.add(sequence)
                 self._n_trades -= 1
-                log.debug(f"\t Added seq {sequence.metadata.ticker_name} to inventory "
-                          f"n_trades: {self._n_trades}")
-
-            if reward > 0:
-                reward = self._discount_reward(reward, sequence.evl.days_cash_bound)
 
         else:
             raise ValueError("Invalid action.")
 
-        log.debug(f"\t Reward: {reward}")
-        return reward
+        return reward, success
