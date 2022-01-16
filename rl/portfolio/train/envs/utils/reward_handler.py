@@ -2,9 +2,9 @@ from math import e
 
 
 class RewardHandler:
-    COMPLETED_STEPS_MAX_REWARD = 25
+    COMPLETED_STEPS_MAX_REWARD = 3
     FORCED_EPISODE_END_PENALTY = 25
-    TOTAL_EPISODE_END_REWARD = 25
+    TOTAL_EPISODE_END_REWARD = 5
 
     def __init__(self, base_reward):
         self.reward = base_reward
