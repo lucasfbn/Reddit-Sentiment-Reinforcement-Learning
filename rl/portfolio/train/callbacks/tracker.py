@@ -31,8 +31,8 @@ class Logger:
             median_reward=df["reward"].median(),
             mean_reward_completed_steps=df["reward_completed_steps"].mean(),
             median_reward_completed_steps=df["reward_completed_steps"].median(),
-            mean_reward_completed_steps_discounted=df["reward_completed_steps_discounted"].mean(),
-            median_reward_completed_steps_discounted=df["reward_completed_steps_discounted"].median(),
+            mean_reward_discount_n_trades_left=df["reward_discount_n_trades_left"].mean(),
+            median_reward_discount_n_trades_left=df["reward_discount_n_trades_left"].median(),
             mean_total_reward=df["total_reward"].mean(),
             median_total_reward=df["total_reward"].median()
         )
