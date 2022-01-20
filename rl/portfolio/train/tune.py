@@ -42,13 +42,13 @@ if __name__ == "__main__":
         "TOTAL_EPISODE_END_REWARD": tune.randint(1, 6),
         "COMPLETED_STEPS_MAX_REWARD": tune.randint(1, 6)
     }
-    
+
     analysis = tune.run(
         objective,
         config=trial,
         mode="max",
         num_samples=25,
-        resources_per_trial={"cpu": 2}
+        resources_per_trial={"cpu": 4}
     )
 
     with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards", job_type="overview") as run:
