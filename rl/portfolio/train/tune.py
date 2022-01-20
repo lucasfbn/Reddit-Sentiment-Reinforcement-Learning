@@ -37,18 +37,19 @@ def objective(trial):
         tune.report(reward)
 
 
-trial = {
-    "TOTAL_EPISODE_END_REWARD": tune.randint(1, 6),
-    "COMPLETED_STEPS_MAX_REWARD": tune.randint(1, 6)
-}
+if __name__ == "__main__":
+    trial = {
+        "TOTAL_EPISODE_END_REWARD": tune.randint(1, 6),
+        "COMPLETED_STEPS_MAX_REWARD": tune.randint(1, 6)
+    }
+    
+    analysis = tune.run(
+        objective,
+        config=trial,
+        mode="max",
+        num_samples=25,
+        resources_per_trial={"cpu": 2}
+    )
 
-analysis = tune.run(
-    objective,
-    config=trial,
-    mode="max",
-    num_samples=25,
-    resources_per_trial={"cpu": 2}
-)
-
-with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards", job_type="overview") as run:
-    run.log({"overview_rl_portfolio_tune_rewards": wandb.Table(dataframe=analysis.results_df)})
+    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards", job_type="overview") as run:
+        run.log({"overview_rl_portfolio_tune_rewards": wandb.Table(dataframe=analysis.results_df)})
