@@ -1,3 +1,5 @@
+from collections import deque
+
 import numpy as np
 import pandas as pd
 import wandb
@@ -73,13 +75,17 @@ class TrackCallback(BaseCallback):
     def __init__(self, verbose=1):
         super(TrackCallback, self).__init__(verbose)
 
-        self.data = []
+        self._data = deque(maxlen=110)
         self._curr_episode = Episode()
 
-        self.mlflow_logger = Logger()
+        self.wandb_logger = Logger()
+
+    @property
+    def data(self):
+        return list(self._data)
 
     def to_df(self):
-        return pd.concat([ep.to_df() for ep in self.data])
+        return pd.concat([ep.to_df() for ep in self._data])
 
     def _on_step(self) -> bool:
         infos = self.locals["infos"][0]
@@ -92,8 +98,8 @@ class TrackCallback(BaseCallback):
         self._curr_episode.data.append(infos)
 
         if infos["sb3_done"]:
-            self.data.append(self._curr_episode)
-            self.mlflow_logger.add(self._curr_episode)
+            self._data.append(self._curr_episode)
+            self.wandb_logger.add(self._curr_episode)
             self._curr_episode = Episode()
 
         return True
