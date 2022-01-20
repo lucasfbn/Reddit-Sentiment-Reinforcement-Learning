@@ -15,47 +15,59 @@ from utils.wandb_utils import load_artefact, log_file
 from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 
 
-def train(shutdown=False):
-    with wandb.init(project="Trendstuff", group="RL Portfolio Train") as run:
+def load_data(data_version, evl_version):
+    with wandb.init(project="Trendstuff", group="Throwaway") as run:
+        data = load_artefact(run, "dataset.pkl", data_version, "Dataset")
+        evl = load_artefact(run, "evaluated.pkl", evl_version, "Eval_Stocks")
+
+    merged = merge_ticker(data, evl)
+    all_sequences = hs.get_all_sequences(merged)
+    all_sequences = hs.remove_invalid_sequences(all_sequences)
+
+    return all_sequences
+
+
+def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shutdown=False):
+    total_timesteps_p_episode = len(data)
+
+    wandb.log(dict(
+        TOTAL_EPISODE_END_REWARD=RewardHandler.TOTAL_EPISODE_END_REWARD,
+        COMPLETED_STEPS_MAX_REWARD=RewardHandler.COMPLETED_STEPS_MAX_REWARD,
+        FORCED_EPISODE_END_PENALTY=RewardHandler.FORCED_EPISODE_END_PENALTY
+    ))
+
+    policy_kwargs = dict(
+        features_extractor_class=network,
+        features_extractor_kwargs=features_extractor_kwargs
+    )
+
+    checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
+                                             save_path=Path(Path(run_dir) / "models").as_posix())
+    track_callback = TrackCallback()
+
+    model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
+                tensorboard_log=(Path(run_dir) / "tensorboard").as_posix())
+    model.learn(num_steps, callback=[WandbCallback(), checkpoint_callback, track_callback])
+
+    if shutdown:
+        os.system('shutdown -s -t 600')
+
+    return track_callback.data
+
+
+def main():
+    data = load_data(0, 0)
+
+    with wandb.init(project="Trendstuff", group="Tests") as run:
         wandb.tensorboard.patch(save=False)
 
-        data = load_artefact(run, "dataset.pkl", 0, "Dataset")
-        evl = load_artefact(run, "evaluated.pkl", 0, "Eval_Stocks")
+        env = EnvCNNExtended(data)
 
-        merged = merge_ticker(data, evl)
-        all_sequences = hs.get_all_sequences(merged)
-        all_sequences = hs.remove_invalid_sequences(all_sequences)
+        tracked_data = train(data, env, num_steps=1500000, run_dir=run.dir,
+                             network=Network, features_extractor_kwargs=dict(features_dim=128))
 
-        total_timesteps_p_episode = len(all_sequences)
-
-        episodes = 1000
-
-        env = EnvCNNExtended(all_sequences)
-
-        wandb.log(dict(
-            TOTAL_EPISODE_END_REWARD=RewardHandler.TOTAL_EPISODE_END_REWARD,
-            COMPLETED_STEPS_MAX_REWARD=RewardHandler.COMPLETED_STEPS_MAX_REWARD,
-            FORCED_EPISODE_END_PENALTY=RewardHandler.FORCED_EPISODE_END_PENALTY
-        ))
-        
-        policy_kwargs = dict(
-            features_extractor_class=Network,
-            features_extractor_kwargs=dict(features_dim=128)
-        )
-
-        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
-                                                 save_path=Path(Path(run.dir) / "models").as_posix())
-        track_callback = TrackCallback()
-
-        model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
-                    tensorboard_log=(Path(run.dir) / "tensorboard").as_posix())
-        model.learn(1500000, callback=[WandbCallback(), checkpoint_callback, track_callback])
-        log_file(track_callback.data, "tracking.pkl", run)
-
-        if shutdown:
-            os.system('shutdown -s -t 600')
-
-        return track_callback.data
+        log_file(tracked_data, "tracking.pkl", run)
 
 
-train()
+if __name__ == "__main__":
+    main()
