@@ -9,8 +9,11 @@ class Episode:
     def __init__(self):
         self.data = []
 
-    def to_df(self):
-        return pd.DataFrame(self.data)
+    def to_df(self, include_last=True):
+        if include_last:
+            return pd.DataFrame(self.data)
+        else:
+            return pd.DataFrame(self.data[:-1])
 
 
 class Logger:
