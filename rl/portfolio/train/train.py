@@ -47,7 +47,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shu
 
     model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
                 tensorboard_log=(Path(run_dir) / "tensorboard").as_posix())
-    model.learn(num_steps, callback=[WandbCallback(), checkpoint_callback, track_callback])
+    model.learn(num_steps, callback=[WandbCallback(), checkpoint_callback])
 
     if shutdown:
         os.system('shutdown -s -t 600')
