@@ -18,7 +18,7 @@ def objective(trial):
 
     env = EnvCNNExtended(data)
 
-    with wandb.init(project="Trendstuff", group="RL Portfolio Tune", job_type="reward values") as run:
+    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards", job_type="runs") as run:
         wandb.tensorboard.patch(save=False)
         wandb.log(trial)
 
@@ -49,3 +49,6 @@ analysis = tune.run(
     num_samples=25,
     resources_per_trial={"cpu": 2}
 )
+
+with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards", job_type="overview") as run:
+    run.log({"overview_rl_portfolio_tune_rewards": wandb.Table(dataframe=analysis.results_df)})
