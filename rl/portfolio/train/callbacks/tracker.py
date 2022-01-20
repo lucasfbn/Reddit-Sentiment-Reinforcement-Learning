@@ -75,7 +75,7 @@ class TrackCallback(BaseCallback):
     def __init__(self, verbose=1):
         super(TrackCallback, self).__init__(verbose)
 
-        self._data = deque(maxlen=110)
+        self._data = deque(maxlen=11)
         self._curr_episode = Episode()
 
         self.wandb_logger = Logger()

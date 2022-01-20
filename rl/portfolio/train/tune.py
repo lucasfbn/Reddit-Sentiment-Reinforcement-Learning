@@ -25,9 +25,9 @@ def objective(trial):
         tracked_data = train(data, env, num_steps=1500000, run_dir=run.dir,
                              network=Network, features_extractor_kwargs=dict(features_dim=128))
 
-        log_file(tracked_data, "tracking.pkl", run)
+        # log_file(tracked_data, "tracking.pkl", run)
 
-        last_n_episodes = pd.concat(e.to_df(include_last=False) for e in tracked_data[:-100])
+        last_n_episodes = pd.concat(e.to_df(include_last=False) for e in tracked_data[:-10])
         reward = last_n_episodes["reward"].median()
         reward_completed_steps = last_n_episodes["reward_completed_steps"].median()
         reward_discount_n_trades_left = last_n_episodes["reward_discount_n_trades"].median()
