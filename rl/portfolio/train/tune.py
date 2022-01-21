@@ -13,11 +13,11 @@ data = load_data(0, 0)
 
 def objective(trial):
     global data
-    RewardHandler.FLAT_REWARD = trial["FLAT_REWARD"]
 
     env = EnvCNNExtended(data)
+    env.NEG_REWARD = trial["NEG_REWARD"]
 
-    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 2", job_type="runs") as run:
+    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 3", job_type="runs") as run:
         wandb.tensorboard.patch(save=False)
         wandb.log(trial)
 
@@ -34,7 +34,7 @@ def objective(trial):
 
 if __name__ == "__main__":
     trial = {
-        "FLAT_REWARD": tune.grid_search([0.25, 0.5, 0.75, 1, 2, 3])
+        "NEG_REWARD": tune.grid_search([0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10])
     }
 
     analysis = tune.run(
@@ -44,6 +44,3 @@ if __name__ == "__main__":
         num_samples=1,
         resources_per_trial={"cpu": 2}
     )
-
-    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 2", job_type="overview") as run:
-        run.log({"overview_rl_portfolio_tune_rewards": wandb.Table(dataframe=analysis.results_df)})
