@@ -37,7 +37,8 @@ class Logger:
             mean_reward_flat=df["reward_flat"].mean(),
             median_reward_flat=df["reward_flat"].median(),
             mean_total_reward=df["total_reward"].mean(),
-            median_total_reward=df["total_reward"].median()
+            median_total_reward=df["total_reward"].median(),
+            ratio_execute=sum(df["sb3_action"] == 1) / len(df)
         )
 
         episode_end_completed_steps = []
