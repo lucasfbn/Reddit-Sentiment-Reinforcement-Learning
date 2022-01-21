@@ -31,9 +31,12 @@ class Logger:
         dfs = [ep.to_df() for ep in self._episodes]
         df = pd.concat(dfs)
 
+        df["sb3_action"] = df["sb3_action"].astype(int)
+
         d = dict(
             mean_reward=df["reward"].mean(),
             median_reward=df["reward"].median(),
+            ratio_execute=sum(df["sb3_action"] == 1) / len(df)
         )
 
         episode_end_completed_steps = []
