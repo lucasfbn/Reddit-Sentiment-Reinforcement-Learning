@@ -4,10 +4,10 @@ import numpy as np
 from gym import Env, spaces
 
 from preprocessing.sequence import Sequence
-from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.envs.utils.data_iterator import DataIterator
 from rl.stocks.train.envs.utils.reward_counter import RewardCounter
+from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
 
 
 class BaseEnv(Env, ABC):
@@ -20,10 +20,18 @@ class BaseEnv(Env, ABC):
         self.trading_env = SimpleTradingEnvTraining("init")
 
         self.action_space = spaces.Discrete(3, )
-        shape = self._get_initial_observation_state_shape()
-        self.observation_space = spaces.Box(low=np.zeros(shape),
-                                            high=np.ones(shape),
-                                            dtype=np.float64)
+
+        timeseries_shape = (10, 14)
+        constants_shape = (3)
+
+        self.observation_space = spaces.Dict(
+            {"timeseries": spaces.Box(low=np.zeros(timeseries_shape),
+                                      high=np.ones(timeseries_shape),
+                                      dtype=np.float64),
+             "constants": spaces.Box(low=np.zeros(constants_shape),
+                                     high=np.ones(constants_shape),
+                                     dtype=np.float64)}
+        )
 
     @property
     @abstractmethod
@@ -31,13 +39,7 @@ class BaseEnv(Env, ABC):
         pass
 
     def forward_state(self, sequence: Sequence):
-        return self.state_handler.forward(sequence, [self.trading_env.inventory_state()])
-
-    def _get_first_sequence(self):
-        return self.data_iter.ticker[0].sequences[0]
-
-    def _get_initial_observation_state_shape(self):
-        return self.forward_state(self._get_first_sequence()).shape
+        return self.state_handler.cat_forward(sequence, [self.trading_env.inventory_state()])
 
     def step(self, actions):
         price = self.data_iter.curr_sequence.metadata.price
