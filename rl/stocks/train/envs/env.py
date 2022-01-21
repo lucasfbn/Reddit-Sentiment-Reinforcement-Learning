@@ -6,7 +6,6 @@ from gym import Env, spaces
 from preprocessing.sequence import Sequence
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.envs.utils.data_iterator import DataIterator
-from rl.stocks.train.envs.utils.reward_counter import RewardCounter
 from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
 
 
@@ -16,7 +15,6 @@ class BaseEnv(Env, ABC):
         super().__init__()
 
         self.data_iter = DataIterator(ticker)
-        self.reward_counter = RewardCounter()
         self.trading_env = SimpleTradingEnvTraining("init")
 
         self.action_space = spaces.Discrete(3, )
@@ -59,12 +57,10 @@ class BaseEnv(Env, ABC):
         else:
             raise ValueError("Invalid action.")
 
-        self.reward_counter.add_reward(reward)
-
         next_sequence = self.data_iter.next_sequence()
         next_state = self.forward_state(next_sequence)
 
-        return next_state, reward, self.data_iter.is_episode_end(), {}
+        return next_state, reward, self.data_iter.is_episode_end(), {"reward": reward}
 
     def close(self):
         pass
@@ -78,10 +74,6 @@ class BaseEnv(Env, ABC):
         state = self.forward_state(next_sequence)
         self.trading_env = SimpleTradingEnvTraining(ticker_name=self.data_iter.curr_ticker.name)
         return state
-
-    def log(self):
-        self.reward_counter.log(step=self.data_iter.episode_count)
-        self.reward_counter = RewardCounter()
 
 
 class EnvNN(BaseEnv):
