@@ -21,7 +21,7 @@ def objective(trial):
         wandb.tensorboard.patch(save=False)
         wandb.log(trial)
 
-        tracked_data = train(data, env, num_steps=1000000, run_dir=run.dir,
+        tracked_data = train(data, env, num_steps=3000000, run_dir=run.dir,
                              network=Network, features_extractor_kwargs=dict(features_dim=128))
 
         # log_file(tracked_data, "tracking.pkl", run)
