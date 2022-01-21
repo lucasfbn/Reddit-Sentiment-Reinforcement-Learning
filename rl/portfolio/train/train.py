@@ -7,7 +7,8 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 from wandb.integration.sb3 import WandbCallback
 
 import rl.portfolio.train.envs.pre_process.handle_sequences as hs
-from rl.portfolio.train.callbacks.tracker import TrackCallback
+from rl.utils.callbacks.tracker import TrackCallback
+from rl.portfolio.train.callbacks.log import log_func
 from rl.portfolio.train.envs.env import EnvCNNExtended
 from rl.portfolio.train.envs.pre_process.merge_ticker import merge_ticker
 from rl.portfolio.train.networks.multi_input import Network
@@ -43,7 +44,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shu
 
     checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
                                              save_path=Path(Path(run_dir) / "models").as_posix())
-    track_callback = TrackCallback()
+    track_callback = TrackCallback(log_func=log_func())
 
     model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
                 tensorboard_log=(Path(run_dir) / "tensorboard").as_posix())
@@ -58,7 +59,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shu
 def main():
     data = load_data(0, 0)
 
-    with wandb.init(project="Trendstuff", group="Tests") as run:
+    with wandb.init(project="Trendstuff", group="Throwaway") as run:
         wandb.tensorboard.patch(save=False)
 
         env = EnvCNNExtended(data)
