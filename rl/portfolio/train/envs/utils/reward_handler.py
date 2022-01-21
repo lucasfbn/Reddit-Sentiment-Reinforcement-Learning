@@ -5,6 +5,8 @@ class RewardHandler:
     COMPLETED_STEPS_MAX_REWARD = 3
     FORCED_EPISODE_END_PENALTY = 25
     TOTAL_EPISODE_END_REWARD = 5
+    FLAT_REWARD = 0.05
+    I_DISCOUNT = 0.0065
 
     def __init__(self, base_reward):
         self.reward = base_reward
@@ -16,11 +18,11 @@ class RewardHandler:
 
     def discount_cash_bound(self, cash_bound):
         if self.reward > 0:
-            self.reward = self.reward * e ** -(0.03 * cash_bound)
+            self.reward = self.reward / (1 + self.I_DISCOUNT) ** cash_bound  # present value formula
         return self.reward
 
     def add_flat_reward(self):
-        self.reward += 0.05
+        self.reward += self.FLAT_REWARD
         return self.reward
 
     def add_reward_completed_steps(self, completed_steps_perc):
