@@ -5,11 +5,13 @@ from ray import tune
 from rl.stocks.train.envs.env import EnvCNNExtended
 from rl.stocks.train.networks.multi_input import Network
 from rl.stocks.train.train import train, load_data
+from ray.tune.suggest.optuna import OptunaSearch
 
-data = load_data(0)
+
+# data = load_data(0)
 
 
-def objective(trial):
+def objective_(trial):
     global data
 
     env = EnvCNNExtended(data)
@@ -42,10 +44,13 @@ if __name__ == "__main__":
         "net_arch": tune.choice([64, 128, 256])
     }
 
+    search_algorithm = OptunaSearch()
+
     analysis = tune.run(
         objective,
         config=trial,
         mode="max",
-        num_samples=1,
+        num_samples=10,
+        search_alg=search_algorithm,
         resources_per_trial={"cpu": 2}
     )
