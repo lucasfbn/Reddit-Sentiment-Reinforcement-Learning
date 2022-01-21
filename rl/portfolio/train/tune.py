@@ -30,7 +30,7 @@ def objective(trial):
         last_n_episodes = pd.concat(e.to_df(include_last=False) for e in tracked_data[:-10])
         reward = last_n_episodes["reward"].median()
         reward_completed_steps = last_n_episodes["reward_completed_steps"].median()
-        reward_discount_n_trades_left = last_n_episodes["reward_discount_n_trades"].median()
+        reward_discount_n_trades_left = last_n_episodes["reward_discount_n_trades_left"].median()
         wandb.log({"reward_n": reward,
                    "reward_completed_steps_n": reward_completed_steps,
                    "reward_discount_n_trades_left_n": reward_discount_n_trades_left})
