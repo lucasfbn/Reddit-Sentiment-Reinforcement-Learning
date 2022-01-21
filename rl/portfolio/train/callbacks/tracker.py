@@ -34,6 +34,7 @@ class Logger:
         d = dict(
             mean_reward=df["reward"].mean(),
             median_reward=df["reward"].median(),
+            sum_reward=df["reward"].sum(),
             mean_reward_flat=df["reward_flat"].mean(),
             median_reward_flat=df["reward_flat"].median(),
             mean_total_reward=df["total_reward"].mean(),
