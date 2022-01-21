@@ -69,8 +69,11 @@ if __name__ == '__main__':
                                  dtype=np.float64)}
     )
 
-    # print(obs_space.sample())
+    obs = obs_space.sample()
+    # Add batch dimension
+    obs["timeseries"] = np.expand_dims(obs["timeseries"], axis=0)
+    obs["constants"] = np.expand_dims(obs["constants"], axis=0)
 
-    model = CustomCNN(obs_space)
-    out = model(obs_space.sample())
+    model = Network(obs_space, 126)
+    out = model.forward(obs)
     print(out)
