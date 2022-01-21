@@ -52,7 +52,7 @@ class BaseEnv(Env, ABC):
         probability = sequence.evl.buy_proba
         n_trades_left = self._trading_env.n_trades_left_scaled
         trades_exhausted = self._trading_env.trades_exhausted()
-        return self.state_handler.cat_forward(sequence, [inventory_state, probability, n_trades_left, trades_exhausted])
+        return self.state_handler.forward(sequence, [inventory_state, probability, n_trades_left, trades_exhausted])
 
     def step(self, actions):
         seq, episode_end, new_date = next(self._curr_state_iter)
