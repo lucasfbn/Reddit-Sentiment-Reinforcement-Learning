@@ -22,7 +22,7 @@ class BaseEnv(Env, ABC):
         self.action_space = spaces.Discrete(3, )
 
         timeseries_shape = (10, 14)
-        constants_shape = (3)
+        constants_shape = (1)
 
         self.observation_space = spaces.Dict(
             {"timeseries": spaces.Box(low=np.zeros(timeseries_shape),
