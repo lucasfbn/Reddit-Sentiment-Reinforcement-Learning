@@ -39,7 +39,7 @@ class BaseEnv(Env, ABC):
         pass
 
     def forward_state(self, sequence: Sequence):
-        return self.state_handler.cat_forward(sequence, [self.trading_env.inventory_state()])
+        return self.state_handler.forward(sequence, [self.trading_env.inventory_state()])
 
     def step(self, actions):
         price = self.data_iter.curr_sequence.metadata.price
