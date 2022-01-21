@@ -17,7 +17,7 @@ def objective(trial):
     env = EnvCNNExtended(data)
     env.NEG_REWARD = trial["NEG_REWARD"]
 
-    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 3", job_type="runs") as run:
+    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 3_1", job_type="runs") as run:
         wandb.tensorboard.patch(save=False)
         wandb.log(trial)
 
