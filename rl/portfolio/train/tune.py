@@ -50,6 +50,3 @@ if __name__ == "__main__":
         num_samples=1,
         resources_per_trial={"cpu": 2}
     )
-
-    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 1", job_type="overview") as run:
-        run.log({"overview_rl_portfolio_tune_rewards": wandb.Table(dataframe=analysis.results_df)})
