@@ -26,7 +26,7 @@ def load_data(data_version):
     return data
 
 
-def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shutdown=False):
+def train(data, env, run_dir, network, policy_args, features_extractor_kwargs, num_steps, shutdown=False):
     len_sequences = [len(tck) for tck in data]
     max_timesteps = max(len_sequences)
     total_timesteps_p_episode = sum(len_sequences)
@@ -49,7 +49,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shu
                                              save_path=Path(Path(run_dir) / "models").as_posix())
 
     model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
-                tensorboard_log=(Path(run_dir) / "tensorboard").as_posix())
+                tensorboard_log=(Path(run_dir) / "tensorboard").as_posix(), **policy_args)
     model.learn(num_steps * total_timesteps_p_episode + 1, callback=[log_callback, checkpoint_callback])
 
     if shutdown:
