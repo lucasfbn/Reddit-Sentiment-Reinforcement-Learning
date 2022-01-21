@@ -47,7 +47,7 @@ if __name__ == "__main__":
         objective,
         config=trial,
         mode="max",
-        num_samples=25,
+        num_samples=1,
         resources_per_trial={"cpu": 2}
     )
 
