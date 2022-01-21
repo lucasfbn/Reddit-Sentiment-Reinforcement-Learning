@@ -16,6 +16,7 @@ log = logging.getLogger("root")
 
 
 class BaseEnv(Env, ABC):
+    NEG_REWARD = 5
 
     def __init__(self, base_sequences):
         super().__init__()
@@ -61,19 +62,11 @@ class BaseEnv(Env, ABC):
 
         reward, success = self._trading_env.step(actions, seq)
 
-        intermediate_episode_end = self._trading_env.trades_exhausted()
-
         reward_handler = RewardHandler()
+        reward = reward_handler.discount_cash_bound(reward, seq.evl.days_cash_bound)
 
-        reward_flat = reward_handler.negate_if_no_success(reward, success)
-        reward_flat = reward_handler.add_flat_reward(reward_flat)
-        reward_flat = reward_handler.discount_n_trades_left(reward_flat, self._trading_env.n_trades_left_scaled)
-
-        total_reward = reward + reward_flat
-        total_reward = reward_handler.penalize_forced_episode_end(total_reward, intermediate_episode_end)
-        total_reward = reward_handler.reward_total_episode_end(total_reward, episode_end)
-
-        episode_end = bool(max(int(intermediate_episode_end), int(episode_end)))
+        if self._trading_env.trades_exhausted():
+            reward -= self.NEG_REWARD
 
         next_sequence, _, _ = next(self._next_state_iter)
 
@@ -81,17 +74,14 @@ class BaseEnv(Env, ABC):
 
         self._data_iter.step()
 
-        return next_state, total_reward, episode_end, {"reward": reward,
-                                                       "reward_flat": reward_flat,
-                                                       "total_reward": total_reward,
-                                                       "episode_end": episode_end,
-                                                       "new_date": new_date,
-                                                       "intermediate_episode_end": intermediate_episode_end,
-                                                       "n_trades_left": self._trading_env.n_trades_left_scaled,
-                                                       "trades_exhausted": self._trading_env.trades_exhausted(),
-                                                       "completed_steps": self._data_iter.perc_completed_steps,
-                                                       "total_steps": len(self._data_iter.sequences),
-                                                       "current_steps": self._data_iter.steps}
+        return next_state, reward, episode_end, {"reward": reward,
+                                                 "episode_end": episode_end,
+                                                 "new_date": new_date,
+                                                 "n_trades_left": self._trading_env.n_trades_left_scaled,
+                                                 "trades_exhausted": self._trading_env.trades_exhausted(),
+                                                 "completed_steps": self._data_iter.perc_completed_steps,
+                                                 "total_steps": len(self._data_iter.sequences),
+                                                 "current_steps": self._data_iter.steps}
 
     def close(self):
         pass
