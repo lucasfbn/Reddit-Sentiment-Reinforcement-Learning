@@ -48,10 +48,10 @@ def _default_log_func(x, y):
 
 class TrackCallback(BaseCallback):
 
-    def __init__(self, verbose=1, buffer_max_len=11, episodes_log_interval=10, log_func: Callable = _default_log_func):
+    def __init__(self, verbose=1, episodes_log_interval=10, log_func: Callable = _default_log_func):
         super(TrackCallback, self).__init__(verbose)
 
-        self._data = deque(maxlen=buffer_max_len)
+        self._data = deque(maxlen=episodes_log_interval + 1)
         self._curr_episode = Episode()
 
         self.wandb_logger = Logger(episodes_log_interval, log_func)
