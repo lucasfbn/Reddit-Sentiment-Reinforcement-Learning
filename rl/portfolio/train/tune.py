@@ -40,7 +40,7 @@ def objective(trial):
 if __name__ == "__main__":
     trial = {
         "TOTAL_EPISODE_END_REWARD": tune.grid_search(list(range(5, 11))),
-        "COMPLETED_STEPS_MAX_REWARD": tune.grid_search(list(range(1, 6)))
+        "COMPLETED_STEPS_MAX_REWARD": tune.grid_search(list(range(1, 11)))
     }
 
     analysis = tune.run(
