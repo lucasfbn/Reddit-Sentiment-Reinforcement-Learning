@@ -48,7 +48,7 @@ if __name__ == "__main__":
         config=trial,
         mode="max",
         num_samples=25,
-        resources_per_trial={"cpu": 5}
+        resources_per_trial={"cpu": 2}
     )
 
     with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 1", job_type="overview") as run:
