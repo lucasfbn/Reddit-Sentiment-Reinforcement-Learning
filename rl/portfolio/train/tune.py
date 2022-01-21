@@ -18,11 +18,11 @@ def objective(trial):
 
     env = EnvCNNExtended(data)
 
-    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards", job_type="runs") as run:
+    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 1", job_type="runs") as run:
         wandb.tensorboard.patch(save=False)
         wandb.log(trial)
 
-        tracked_data = train(data, env, num_steps=1500000, run_dir=run.dir,
+        tracked_data = train(data, env, num_steps=1000000, run_dir=run.dir,
                              network=Network, features_extractor_kwargs=dict(features_dim=128))
 
         # log_file(tracked_data, "tracking.pkl", run)
@@ -39,7 +39,7 @@ def objective(trial):
 
 if __name__ == "__main__":
     trial = {
-        "TOTAL_EPISODE_END_REWARD": tune.grid_search(list(range(1, 6))),
+        "TOTAL_EPISODE_END_REWARD": tune.grid_search(list(range(5, 11))),
         "COMPLETED_STEPS_MAX_REWARD": tune.grid_search(list(range(1, 6)))
     }
 
@@ -51,5 +51,5 @@ if __name__ == "__main__":
         resources_per_trial={"cpu": 5}
     )
 
-    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards", job_type="overview") as run:
+    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 1", job_type="overview") as run:
         run.log({"overview_rl_portfolio_tune_rewards": wandb.Table(dataframe=analysis.results_df)})
