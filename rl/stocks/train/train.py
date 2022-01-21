@@ -55,6 +55,8 @@ def train(data, env, run_dir, network, policy_args, features_extractor_kwargs, n
     if shutdown:
         os.system('shutdown -s -t 600')
 
+    return model
+
 
 def main():
     data = load_data(0)
