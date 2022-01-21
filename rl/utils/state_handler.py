@@ -23,18 +23,6 @@ class StateHandler(ABC):
     def shape_state(self, state: pd.DataFrame) -> np.ndarray:
         return np.asarray(state).astype('float32')
 
-    def forward(self, sequence: Sequence, constant: list[Union[float, int, None]] = None):
-        state = self.get_state(sequence)
-        if self.extend:
-            if constant is None:
-                raise ValueError("Unable to extend with constant=None. Please specify constant.")
-
-            for c in constant:
-                state = self.extend_state(state, c)
-
-        state = self.shape_state(state)
-        return state
-
     def cat_forward(self, sequence: Sequence, constant: list[Union[float, int, None]] = None):
         seq_state = self.get_state(sequence)
         seq_state = self.shape_state(seq_state)
