@@ -3,13 +3,13 @@ from pathlib import Path
 
 import wandb
 from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import (CheckpointCallback,
-                                                EveryNTimesteps)
+from stable_baselines3.common.callbacks import CheckpointCallback
 
-from rl.stocks.train.callbacks.callbacks import EpisodeEndCallback
+from rl.stocks.train.callbacks.log import log_func
 from rl.stocks.train.envs.env import EnvCNNExtended
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.networks.multi_input import Network
+from rl.utils.callbacks.tracker import TrackCallback
 from utils.wandb_utils import load_artefact
 
 """
@@ -44,13 +44,13 @@ def train(data, env, run_dir, network, policy_args, features_extractor_kwargs, n
         features_extractor_kwargs=features_extractor_kwargs
     )
 
-    log_callback = EveryNTimesteps(n_steps=total_timesteps_p_episode, callback=EpisodeEndCallback())
     checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
                                              save_path=Path(Path(run_dir) / "models").as_posix())
+    track_callback = TrackCallback(episodes_log_interval=len(data), log_func=log_func)
 
     model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
                 tensorboard_log=(Path(run_dir) / "tensorboard").as_posix(), **policy_args)
-    model.learn(num_steps * total_timesteps_p_episode + 1, callback=[log_callback, checkpoint_callback])
+    model.learn(num_steps * total_timesteps_p_episode + 1, callback=[track_callback, checkpoint_callback])
 
     if shutdown:
         os.system('shutdown -s -t 600')
