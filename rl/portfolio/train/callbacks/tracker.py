@@ -36,6 +36,7 @@ class Logger:
         d = dict(
             mean_reward=df["reward"].mean(),
             median_reward=df["reward"].median(),
+            sum_reward=df["reward"].sum(),
             ratio_execute=sum(df["sb3_action"] == 1) / len(df)
         )
 
