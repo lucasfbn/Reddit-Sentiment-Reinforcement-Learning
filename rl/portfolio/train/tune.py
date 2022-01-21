@@ -13,12 +13,11 @@ data = load_data(0, 0)
 
 def objective(trial):
     global data
-    RewardHandler.TOTAL_EPISODE_END_REWARD = trial["TOTAL_EPISODE_END_REWARD"]
-    RewardHandler.COMPLETED_STEPS_MAX_REWARD = trial["COMPLETED_STEPS_MAX_REWARD"]
+    RewardHandler.FLAT_REWARD = trial["FLAT_REWARD"]
 
     env = EnvCNNExtended(data)
 
-    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 1", job_type="runs") as run:
+    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 2", job_type="runs") as run:
         wandb.tensorboard.patch(save=False)
         wandb.log(trial)
 
@@ -29,27 +28,22 @@ def objective(trial):
 
         last_n_episodes = pd.concat(e.to_df(include_last=False) for e in tracked_data[:-10])
         reward = last_n_episodes["reward"].median()
-        reward_completed_steps = last_n_episodes["reward_completed_steps"].median()
-        reward_discount_n_trades_left = last_n_episodes["reward_discount_n_trades_left"].median()
-        wandb.log({"reward_n": reward,
-                   "reward_completed_steps_n": reward_completed_steps,
-                   "reward_discount_n_trades_left_n": reward_discount_n_trades_left})
+        wandb.log({"reward_n": reward})
         tune.report(reward)
 
 
 if __name__ == "__main__":
     trial = {
-        "TOTAL_EPISODE_END_REWARD": tune.grid_search(list(range(5, 11))),
-        "COMPLETED_STEPS_MAX_REWARD": tune.grid_search(list(range(1, 6)))
+        "FLAT_REWARD": tune.grid_search([0.25, 0.5, 0.75, 1, 2, 3])
     }
 
     analysis = tune.run(
         objective,
         config=trial,
         mode="max",
-        num_samples=25,
+        num_samples=1,
         resources_per_trial={"cpu": 2}
     )
 
-    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 1", job_type="overview") as run:
+    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 2", job_type="overview") as run:
         run.log({"overview_rl_portfolio_tune_rewards": wandb.Table(dataframe=analysis.results_df)})
