@@ -19,6 +19,10 @@ class RewardHandler:
             self.reward = self.reward * e ** -(0.03 * cash_bound)
         return self.reward
 
+    def add_flat_reward(self):
+        self.reward += 0.05
+        return self.reward
+
     def add_reward_completed_steps(self, completed_steps_perc):
         self.reward += self.COMPLETED_STEPS_MAX_REWARD * completed_steps_perc
         return self.reward
