@@ -2,9 +2,7 @@ from math import e
 
 
 class RewardHandler:
-    COMPLETED_STEPS_MAX_REWARD = 3
     FORCED_EPISODE_END_PENALTY = 25
-    TOTAL_EPISODE_END_REWARD = 5
     FLAT_REWARD = 1
     I_DISCOUNT = 0.0065
 
