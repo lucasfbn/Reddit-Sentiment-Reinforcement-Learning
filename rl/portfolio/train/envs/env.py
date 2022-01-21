@@ -31,7 +31,7 @@ class BaseEnv(Env, ABC):
         self.action_space = spaces.Discrete(2, )
 
         timeseries_shape = (10, 14)
-        constants_shape = (3)
+        constants_shape = (4)
 
         self.observation_space = spaces.Dict(
             {"timeseries": spaces.Box(low=np.zeros(timeseries_shape),
@@ -51,7 +51,8 @@ class BaseEnv(Env, ABC):
         inventory_state = self._trading_env.inventory.inventory_state(sequence)
         probability = sequence.evl.buy_proba
         n_trades_left = self._trading_env.n_trades_left_scaled
-        return self.state_handler.cat_forward(sequence, [inventory_state, probability, n_trades_left])
+        trades_exhausted = self._trading_env.trades_exhausted()
+        return self.state_handler.cat_forward(sequence, [inventory_state, probability, n_trades_left, trades_exhausted])
 
     def step(self, actions):
         seq, episode_end, new_date = next(self._curr_state_iter)
