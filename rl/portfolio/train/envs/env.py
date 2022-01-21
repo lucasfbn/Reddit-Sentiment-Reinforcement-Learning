@@ -65,7 +65,6 @@ class BaseEnv(Env, ABC):
         intermediate_episode_end = self._trading_env.trades_exhausted()
 
         reward_handler = RewardHandler()
-        reward = reward_handler.negate_if_no_success(reward, success)
         reward = reward_handler.discount_cash_bound(reward, seq.evl.days_cash_bound)
 
         reward_completed_steps = reward_handler.add_reward_completed_steps(reward, self._data_iter.perc_completed_steps)
