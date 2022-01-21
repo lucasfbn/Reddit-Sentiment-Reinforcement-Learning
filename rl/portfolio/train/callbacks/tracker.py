@@ -34,10 +34,6 @@ class Logger:
         d = dict(
             mean_reward=df["reward"].mean(),
             median_reward=df["reward"].median(),
-            mean_reward_flat=df["reward_flat"].mean(),
-            median_reward_flat=df["reward_flat"].median(),
-            mean_total_reward=df["total_reward"].mean(),
-            median_total_reward=df["total_reward"].median()
         )
 
         episode_end_completed_steps = []
@@ -48,15 +44,12 @@ class Logger:
             last_entry = ep.data[len(ep.data) - 1]
             episode_end_completed_steps.append(last_entry["completed_steps"])
             episode_end_trades_left.append(last_entry["n_trades_left"])
-            episode_end_forced.append(last_entry["intermediate_episode_end"])
 
         d["episode_end_completed_steps_mean"] = np.mean(np.array(episode_end_completed_steps))
         d["episode_end_trades_left_mean"] = np.mean(np.array(episode_end_trades_left))
-        d["episode_end_forced_mean"] = np.mean(np.array(episode_end_forced))
 
         d["episode_end_completed_steps_median"] = np.median(np.array(episode_end_completed_steps))
         d["episode_end_trades_left_median"] = np.median(np.array(episode_end_trades_left))
-        d["episode_end_forced_median"] = np.median(np.array(episode_end_forced))
 
         wandb.log(d)
 
