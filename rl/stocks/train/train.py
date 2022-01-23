@@ -5,11 +5,10 @@ import wandb
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 
-from rl.stocks.train.callbacks.log import log_func
+from rl.stocks.train.callbacks.log import LogCallback
 from rl.stocks.train.envs.env import EnvCNN
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.networks.multi_input import Network
-from rl.utils.callbacks.tracker import TrackCallback
 from utils.wandb_utils import load_artefact
 
 """
@@ -47,7 +46,7 @@ def train(data, env, run_dir, network, policy_args, features_extractor_kwargs, n
 
     checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
                                              save_path=Path(Path(run_dir) / "models").as_posix())
-    track_callback = TrackCallback(episodes_log_interval=len(data), log_func=log_func)
+    track_callback = LogCallback(episodes_log_interval=len(data))
 
     callbacks = [track_callback]
     if model_checkpoints:
