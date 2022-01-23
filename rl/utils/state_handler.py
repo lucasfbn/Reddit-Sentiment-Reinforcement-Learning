@@ -13,10 +13,6 @@ class StateHandler(ABC):
     def get_state(self, sequence: Sequence) -> pd.DataFrame:
         pass
 
-    @abstractmethod
-    def extend_state(self, state: pd.DataFrame, constant: Union[float, int, None]) -> pd.DataFrame:
-        pass
-
     def shape_state(self, state: pd.DataFrame) -> np.ndarray:
         return np.asarray(state).astype('float32')
 
