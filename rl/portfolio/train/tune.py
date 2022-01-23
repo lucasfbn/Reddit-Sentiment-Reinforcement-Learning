@@ -2,7 +2,7 @@ import pandas as pd
 import wandb
 from ray import tune
 
-from rl.portfolio.train.envs.env import EnvCNNExtended
+from rl.portfolio.train.envs.env import EnvCNN
 from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.portfolio.train.networks.multi_input import Network
 from rl.portfolio.train.train import train, load_data
@@ -15,7 +15,7 @@ def objective(trial):
     RewardHandler.TOTAL_EPISODE_END_REWARD = trial["TOTAL_EPISODE_END_REWARD"]
     RewardHandler.COMPLETED_STEPS_MAX_REWARD = trial["COMPLETED_STEPS_MAX_REWARD"]
 
-    env = EnvCNNExtended(data)
+    env = EnvCNN(data)
 
     with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 2", job_type="runs") as run:
         wandb.tensorboard.patch(save=False)

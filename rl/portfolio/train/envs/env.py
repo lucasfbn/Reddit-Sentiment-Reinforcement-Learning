@@ -118,11 +118,11 @@ class BaseEnv(Env, ABC):
         return state
 
 
-class EnvNNExtended(BaseEnv):
+class EnvNN(BaseEnv):
     state_handler = StateHandlerNN()
 
 
-class EnvCNNExtended(BaseEnv):
+class EnvCNN(BaseEnv):
     state_handler = StateHandlerCNN()
 
 
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     with open("temp.pkl", "rb") as f:
         data = pkl.load(f)
 
-    env = EnvCNNExtended(data)
+    env = EnvCNN(data)
 
     state = env.reset()
 
