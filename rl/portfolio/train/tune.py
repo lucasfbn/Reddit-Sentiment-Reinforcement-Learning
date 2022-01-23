@@ -6,14 +6,14 @@ from rl.portfolio.train.envs.env import EnvCNNExtended
 from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.portfolio.train.networks.multi_input import Network
 from rl.portfolio.train.train import train, load_data
-from utils.wandb_utils import log_file
 
 data = load_data(0, 0)
 
 
 def objective(trial):
     global data
-    RewardHandler.FLAT_REWARD = trial["FLAT_REWARD"]
+    RewardHandler.TOTAL_EPISODE_END_REWARD = trial["TOTAL_EPISODE_END_REWARD"]
+    RewardHandler.COMPLETED_STEPS_MAX_REWARD = trial["COMPLETED_STEPS_MAX_REWARD"]
 
     env = EnvCNNExtended(data)
 
@@ -34,7 +34,8 @@ def objective(trial):
 
 if __name__ == "__main__":
     trial = {
-        "FLAT_REWARD": tune.grid_search([0.25, 0.5, 0.75, 1, 2, 3])
+        "TOTAL_EPISODE_END_REWARD": tune.grid_search(list(range(5, 11))),
+        "COMPLETED_STEPS_MAX_REWARD": tune.grid_search(list(range(1, 11)))
     }
 
     analysis = tune.run(
@@ -44,6 +45,3 @@ if __name__ == "__main__":
         num_samples=1,
         resources_per_trial={"cpu": 2}
     )
-
-    with wandb.init(project="Trendstuff", group="RL Portfolio Tune Rewards 2", job_type="overview") as run:
-        run.log({"overview_rl_portfolio_tune_rewards": wandb.Table(dataframe=analysis.results_df)})
