@@ -28,7 +28,7 @@ def load_data(data_version, evl_version):
     return all_sequences
 
 
-def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shutdown=False):
+def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shutdown=False, model_checkpoints=False):
     total_timesteps_p_episode = len(data)
 
     wandb.log(dict(
@@ -44,11 +44,15 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shu
 
     checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
                                              save_path=Path(Path(run_dir) / "models").as_posix())
-    track_callback = TrackCallback(log_func=log_func())
+    track_callback = TrackCallback(log_func=log_func)
+
+    callbacks = [WandbCallback(), track_callback]
+    if model_checkpoints:
+        callbacks.append(checkpoint_callback)
 
     model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
                 tensorboard_log=(Path(run_dir) / "tensorboard").as_posix())
-    model.learn(num_steps, callback=[WandbCallback(), checkpoint_callback, track_callback])
+    model.learn(num_steps, callback=callbacks)
 
     if shutdown:
         os.system('shutdown -s -t 600')
