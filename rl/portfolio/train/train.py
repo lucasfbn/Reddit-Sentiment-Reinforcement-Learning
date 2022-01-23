@@ -7,13 +7,12 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 from wandb.integration.sb3 import WandbCallback
 
 import rl.portfolio.train.envs.pre_process.handle_sequences as hs
-from rl.utils.callbacks.tracker import TrackCallback
-from rl.portfolio.train.callbacks.log import log_func
+from rl.portfolio.train.callbacks.log import LogCallback
 from rl.portfolio.train.envs.env import EnvCNN
 from rl.portfolio.train.envs.pre_process.merge_ticker import merge_ticker
+from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.portfolio.train.networks.multi_input import Network
 from utils.wandb_utils import load_artefact, log_file
-from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 
 
 def load_data(data_version, evl_version):
@@ -44,9 +43,8 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shu
 
     checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
                                              save_path=Path(Path(run_dir) / "models").as_posix())
-    track_callback = TrackCallback(log_func=log_func)
 
-    callbacks = [WandbCallback(), track_callback]
+    callbacks = [WandbCallback(), LogCallback(10)]
     if model_checkpoints:
         callbacks.append(checkpoint_callback)
 
@@ -57,7 +55,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shu
     if shutdown:
         os.system('shutdown -s -t 600')
 
-    return track_callback.data
+    return model
 
 
 def main():
