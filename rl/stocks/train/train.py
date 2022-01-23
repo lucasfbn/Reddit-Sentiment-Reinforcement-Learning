@@ -6,7 +6,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 from rl.stocks.train.callbacks.log import log_func
-from rl.stocks.train.envs.env import EnvCNNExtended
+from rl.stocks.train.envs.env import EnvCNN
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.networks.multi_input import Network
 from rl.utils.callbacks.tracker import TrackCallback
@@ -69,7 +69,7 @@ def main():
     with wandb.init(project="Trendstuff", group="Throwaway") as run:
         wandb.tensorboard.patch(save=False)
 
-        env = EnvCNNExtended(data)
+        env = EnvCNN(data)
 
         train(data, env, num_steps=15, run_dir=run.dir,
               network=Network, features_extractor_kwargs=dict(features_dim=128))
