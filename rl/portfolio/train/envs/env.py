@@ -118,19 +118,11 @@ class BaseEnv(Env, ABC):
         return state
 
 
-class EnvNN(BaseEnv):
-    state_handler = StateHandlerNN(extend=False)
-
-
-class EnvNNExtended(EnvNN):
+class EnvNNExtended(BaseEnv):
     state_handler = StateHandlerNN(extend=True)
 
 
-class EnvCNN(BaseEnv):
-    state_handler = StateHandlerCNN(extend=False)
-
-
-class EnvCNNExtended(EnvCNN):
+class EnvCNNExtended(BaseEnv):
     state_handler = StateHandlerCNN(extend=True)
 
 
