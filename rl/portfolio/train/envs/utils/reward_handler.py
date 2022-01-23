@@ -1,7 +1,7 @@
 class RewardHandler:
-    COMPLETED_STEPS_MAX_REWARD = 3
+    COMPLETED_STEPS_MAX_REWARD = 9
     FORCED_EPISODE_END_PENALTY = 25
-    TOTAL_EPISODE_END_REWARD = 5
+    TOTAL_EPISODE_END_REWARD = 8
     I_DISCOUNT = 0.0065
 
     def negate_if_no_success(self, reward, success):
