@@ -1,6 +1,6 @@
 import pandas as pd
 
-from rl.portfolio.train.envs.env import EnvCNNExtended
+from rl.portfolio.train.envs.env import EnvCNN
 from rl.portfolio.train.envs.sub_envs.trading import TradingSimulator
 from tests.utils import MockObj
 
@@ -33,7 +33,7 @@ data = [
 
 
 def test_reward_0_action():
-    env = EnvCNNExtended(data)
+    env = EnvCNN(data)
     _ = env.reset()
 
     actions = [0, 0, 0, 0]
@@ -44,7 +44,7 @@ def test_reward_0_action():
 
 
 def test_reward_1_action():
-    env = EnvCNNExtended(data)
+    env = EnvCNN(data)
     TradingSimulator.N_START_TRADES = 999
     _ = env.reset()
 
@@ -56,7 +56,7 @@ def test_reward_1_action():
 
 
 def test_reward_no_trades_left():
-    env = EnvCNNExtended(data)
+    env = EnvCNN(data)
     TradingSimulator.N_START_TRADES = 0.9
     _ = env.reset()
 
@@ -70,7 +70,7 @@ def test_reward_no_trades_left():
 
 
 def test_episode_ends():
-    env = EnvCNNExtended(data)
+    env = EnvCNN(data)
 
     _ = env.reset()
 
@@ -102,7 +102,7 @@ def test_inventory_states():
                 data=MockObj(arr=pd.DataFrame({"dummy": [1]}))),
     ]
 
-    env = EnvCNNExtended(test_data)
+    env = EnvCNN(test_data)
 
     _ = env.reset()
 

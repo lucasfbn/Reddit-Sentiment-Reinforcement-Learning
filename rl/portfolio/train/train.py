@@ -9,7 +9,7 @@ from wandb.integration.sb3 import WandbCallback
 import rl.portfolio.train.envs.pre_process.handle_sequences as hs
 from rl.utils.callbacks.tracker import TrackCallback
 from rl.portfolio.train.callbacks.log import log_func
-from rl.portfolio.train.envs.env import EnvCNNExtended
+from rl.portfolio.train.envs.env import EnvCNN
 from rl.portfolio.train.envs.pre_process.merge_ticker import merge_ticker
 from rl.portfolio.train.networks.multi_input import Network
 from utils.wandb_utils import load_artefact, log_file
@@ -66,7 +66,7 @@ def main():
     with wandb.init(project="Trendstuff", group="Throwaway") as run:
         wandb.tensorboard.patch(save=False)
 
-        env = EnvCNNExtended(data)
+        env = EnvCNN(data)
 
         tracked_data = train(data, env, num_steps=1500000, run_dir=run.dir,
                              network=Network, features_extractor_kwargs=dict(features_dim=128))
