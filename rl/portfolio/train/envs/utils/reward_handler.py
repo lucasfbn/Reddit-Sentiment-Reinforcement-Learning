@@ -1,11 +1,7 @@
-from math import e
-
-
 class RewardHandler:
     COMPLETED_STEPS_MAX_REWARD = 3
     FORCED_EPISODE_END_PENALTY = 25
     TOTAL_EPISODE_END_REWARD = 5
-    FLAT_REWARD = 1
     I_DISCOUNT = 0.0065
 
     def negate_if_no_success(self, reward, success):
@@ -16,10 +12,6 @@ class RewardHandler:
     def discount_cash_bound(self, reward, cash_bound):
         if reward > 0:
             reward = reward / (1 + self.I_DISCOUNT) ** cash_bound  # present value formula
-        return reward
-
-    def add_flat_reward(self, reward):
-        reward += self.FLAT_REWARD
         return reward
 
     def add_reward_completed_steps(self, reward, completed_steps_perc):

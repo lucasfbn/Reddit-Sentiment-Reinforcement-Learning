@@ -65,13 +65,14 @@ class BaseEnv(Env, ABC):
         intermediate_episode_end = self._trading_env.trades_exhausted()
 
         reward_handler = RewardHandler()
+        reward = reward_handler.discount_cash_bound(reward, seq.evl.days_cash_bound)
 
-        reward_flat = reward_handler.negate_if_no_success(reward, success)
-        reward_flat = reward_handler.add_flat_reward(reward_flat)
-        reward_flat = reward_handler.discount_n_trades_left(reward_flat, self._trading_env.n_trades_left_scaled)
+        reward_completed_steps = reward_handler.add_reward_completed_steps(reward, self._data_iter.perc_completed_steps)
+        reward_discount_n_trades_left = reward_handler.discount_n_trades_left(reward_completed_steps,
+                                                                              self._trading_env.n_trades_left_scaled)
 
-        total_reward = reward + reward_flat
-        total_reward = reward_handler.penalize_forced_episode_end(total_reward, intermediate_episode_end)
+        total_reward = reward_handler.penalize_forced_episode_end(reward_discount_n_trades_left,
+                                                                  intermediate_episode_end)
         total_reward = reward_handler.reward_total_episode_end(total_reward, episode_end)
 
         episode_end = bool(max(int(intermediate_episode_end), int(episode_end)))
@@ -83,7 +84,8 @@ class BaseEnv(Env, ABC):
         self._data_iter.step()
 
         return next_state, total_reward, episode_end, {"reward": reward,
-                                                       "reward_flat": reward_flat,
+                                                       "reward_completed_steps": reward_completed_steps,
+                                                       "reward_discount_n_trades_left": reward_discount_n_trades_left,
                                                        "total_reward": total_reward,
                                                        "episode_end": episode_end,
                                                        "new_date": new_date,
