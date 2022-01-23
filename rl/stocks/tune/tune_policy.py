@@ -2,7 +2,7 @@ import pandas as pd
 import wandb
 from ray import tune
 
-from rl.stocks.train.envs.env import EnvCNNExtended
+from rl.stocks.train.envs.env import EnvCNN
 from rl.stocks.train.networks.multi_input import Network
 from rl.stocks.train.train import train, load_data
 from ray.tune.suggest.optuna import OptunaSearch
@@ -14,7 +14,7 @@ from ray.tune.suggest.optuna import OptunaSearch
 def objective_(trial):
     global data
 
-    env = EnvCNNExtended(data)
+    env = EnvCNN(data)
 
     with wandb.init(project="Trendstuff", group="RL Stock Tune Policy 1", job_type="runs") as run:
         wandb.tensorboard.patch(save=False)

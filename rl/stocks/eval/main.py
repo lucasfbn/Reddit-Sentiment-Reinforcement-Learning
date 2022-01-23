@@ -7,7 +7,7 @@ from stable_baselines3 import PPO
 import utils.paths
 from rl.stocks.eval.agg_stats import AggTickerEvl
 from rl.stocks.eval.eval_ticker import Eval
-from rl.stocks.train.envs.env import EnvCNNExtended
+from rl.stocks.train.envs.env import EnvCNN
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvEvaluation
 
 
@@ -17,7 +17,7 @@ def main(dataset_run_id, model_run_id, model_fn):
     with mlflow.start_run():
         data = load_file(run_id=dataset_run_id, fn="ticker.pkl", experiment="Datasets")
 
-        training_env = EnvCNNExtended
+        training_env = EnvCNN
         trading_env = SimpleTradingEnvEvaluation
 
         model_path = (
