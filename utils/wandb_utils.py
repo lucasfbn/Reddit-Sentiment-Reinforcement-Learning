@@ -6,6 +6,9 @@ import tempfile
 from pathlib import Path
 import os
 
+NAME = "lucasfbn"
+PROJECT = "Trendstuff"
+
 
 class Handler:
     def load(self, fp):
@@ -95,3 +98,27 @@ def load_artefact(run, fn, version, type):
 
     handler = _get_handler(fn)
     return handler.load(path)
+
+
+def get_histories(ids, col):
+    api = wandb.Api()
+
+    r = []
+
+    for id_ in ids:
+        run = api.run(f"{NAME}/{PROJECT}/{id_}")
+        history = run.history(samples=9999999)
+        df = history[col]
+        df = df.dropna()
+        df = df.reset_index(drop=True)
+        r.append((id_, df))
+
+    return r
+
+
+def log_to_summary(run, d: dict):
+    summary = run.summary
+
+    for key, value in d.items():
+        summary[key] = value
+        
