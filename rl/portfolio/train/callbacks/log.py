@@ -1,8 +1,12 @@
+import numpy as np
+
+
 def log_func(full_df, episode_end_df):
     return dict(
         mean_reward=full_df["reward"].mean(),
         median_reward=full_df["reward"].median(),
         sum_reward=full_df["reward"].sum(),
+        auc_reward=np.trapz(full_df["reward"].to_numpy(), dx=1),
         mean_reward_flat=full_df["reward_flat"].mean(),
         median_reward_flat=full_df["reward_flat"].median(),
         mean_total_reward=full_df["total_reward"].mean(),
