@@ -9,9 +9,6 @@ from preprocessing.sequence import Sequence
 
 class StateHandler(ABC):
 
-    def __init__(self, extend):
-        self.extend = extend
-
     @abstractmethod
     def get_state(self, sequence: Sequence) -> pd.DataFrame:
         pass
@@ -36,17 +33,8 @@ class StateHandlerCNN(StateHandler):
     def get_state(self, sequence: Sequence):
         return sequence.data.arr
 
-    def extend_state(self, state, constant):
-        state_columns = list(state.columns)
-        constant_list = [constant for _ in range(len(state_columns))]
-        new_state_row = pd.DataFrame([constant_list], columns=state_columns)
-        return state.append(new_state_row)
-
 
 class StateHandlerNN(StateHandler):
 
     def get_state(self, sequence):
         return sequence.data.flat
-
-    def extend_state(self, state: pd.DataFrame, constant):
-        raise NotImplementedError
