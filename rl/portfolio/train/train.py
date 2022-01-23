@@ -12,7 +12,7 @@ from rl.portfolio.train.envs.env import EnvCNN
 from rl.portfolio.train.envs.pre_process.merge_ticker import merge_ticker
 from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.portfolio.train.networks.multi_input import Network
-from utils.wandb_utils import load_artefact, log_file
+from utils.wandb_utils import load_artefact, log_file, log_to_summary
 
 
 def load_data(data_version, evl_version):
@@ -30,11 +30,11 @@ def load_data(data_version, evl_version):
 def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shutdown=False, model_checkpoints=False):
     total_timesteps_p_episode = len(data)
 
-    wandb.log(dict(
+    summary = dict(
         TOTAL_EPISODE_END_REWARD=RewardHandler.TOTAL_EPISODE_END_REWARD,
         COMPLETED_STEPS_MAX_REWARD=RewardHandler.COMPLETED_STEPS_MAX_REWARD,
         FORCED_EPISODE_END_PENALTY=RewardHandler.FORCED_EPISODE_END_PENALTY
-    ))
+    )
 
     policy_kwargs = dict(
         features_extractor_class=network,
@@ -55,7 +55,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shu
     if shutdown:
         os.system('shutdown -s -t 600')
 
-    return model
+    return model, summary
 
 
 def main():
@@ -66,10 +66,10 @@ def main():
 
         env = EnvCNN(data)
 
-        tracked_data = train(data, env, num_steps=1500000, run_dir=run.dir,
-                             network=Network, features_extractor_kwargs=dict(features_dim=128))
+        model, summary = train(data, env, num_steps=1500000, run_dir=run.dir,
+                               network=Network, features_extractor_kwargs=dict(features_dim=128))
 
-        log_file(tracked_data, "tracking.pkl", run)
+        log_to_summary(run, summary)
 
 
 if __name__ == "__main__":
