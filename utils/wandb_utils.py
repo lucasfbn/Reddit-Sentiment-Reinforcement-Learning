@@ -117,8 +117,5 @@ def get_histories(ids, col):
 
 
 def log_to_summary(run, d: dict):
-    summary = run.summary
-
     for key, value in d.items():
-        summary[key] = value
-        
+        run.summary[key] = value
