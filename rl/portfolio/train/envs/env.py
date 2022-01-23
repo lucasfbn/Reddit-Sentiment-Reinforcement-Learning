@@ -119,11 +119,11 @@ class BaseEnv(Env, ABC):
 
 
 class EnvNNExtended(BaseEnv):
-    state_handler = StateHandlerNN(extend=True)
+    state_handler = StateHandlerNN()
 
 
 class EnvCNNExtended(BaseEnv):
-    state_handler = StateHandlerCNN(extend=True)
+    state_handler = StateHandlerCNN()
 
 
 if __name__ == "__main__":
