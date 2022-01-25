@@ -1,7 +1,7 @@
 import orjson
 
-from preprocessing.sequence import Eval as SequenceEval
-from preprocessing.sequence import Sequence, Metadata, Data
+from dataset_handler.classes.sequence import Eval as SequenceEval
+from dataset_handler.classes.sequence import Sequence, Metadata, Data
 from preprocessing.ticker import Eval as TickerEval
 from preprocessing.ticker import Ticker, Sequences
 

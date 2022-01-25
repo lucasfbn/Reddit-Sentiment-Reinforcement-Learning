@@ -6,7 +6,7 @@ from random import shuffle
 import numpy as np
 from gym import Env, spaces
 
-from preprocessing.sequence import Sequence
+from dataset_handler.classes.sequence import Sequence
 from rl.portfolio.train.envs.sub_envs.trading import TradingSimulator
 from rl.portfolio.train.envs.utils.data_iterator import DataIterator
 from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
