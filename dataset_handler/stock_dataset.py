@@ -67,13 +67,16 @@ class StockDataset:
 
 
 class StockDatasetWandb(StockDataset):
+    ARTIFACT_FN = "dataset"
+    ARTIFACT_TYPE = "dataset"
+    PATH_APPENDIX = "artefacts/dataset"
 
     def __init__(self, run, version):
-        super().__init__(self._get_root(run, fn="dataset", version=version, type="dataset"))
+        super().__init__(self._get_root(run, fn=self.ARTIFACT_FN, version=version, type=self.ARTIFACT_TYPE))
 
     def _get_root(self, run, fn, version, type):
         art = run.use_artifact(f'{run.entity}/{run.project}/{fn}:v{version}', type=type)
-        return Path(art.download(root=os.getenv("WANDB_DIR") + "artefacts/dataset"))
+        return Path(art.download(root=os.getenv("WANDB_DIR") + self.PATH_APPENDIX))
 
     def wandb_load(self, load_data=False):
         self.load_meta()
@@ -85,7 +88,7 @@ class StockDatasetWandb(StockDataset):
             self.root = Path(tmpdirname)
             self.dump(dump_data=log_data)
 
-            art = wandb.Artifact("dataset", type="dataset")
+            art = wandb.Artifact(self.ARTIFACT_FN, type=self.ARTIFACT_TYPE)
             art.add_file((self.root / self.META_FN).as_posix())
 
             if log_data:
