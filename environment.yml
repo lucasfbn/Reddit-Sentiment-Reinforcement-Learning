@@ -20,6 +20,7 @@ dependencies:
     - tqdm
     - wandb
     - yfinance
-    - tables==3.6.1
+    - h5py
+    - orjson
 variables:
   WANDB_DIR: F:/wandb/
