@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+import pandas as pd
 import wandb
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
@@ -23,6 +24,8 @@ def load_data(meta_run_id, dataset_version):
 
     all_sequences = hs.get_all_sequences(data)
     all_sequences = hs.remove_invalid_sequences(all_sequences)
+    for seq in all_sequences:
+        seq.metadata.date = pd.Period(seq.metadata.date)
 
     return all_sequences
 
