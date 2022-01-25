@@ -36,8 +36,8 @@ class Eval:
     days_cash_bound: int = None
     open_positions: int = None
 
-    def split_probas(self):
-        self.hold_proba, self.buy_proba, self.sell_proba = self.probas
+    def split_probas(self, probas):
+        self.hold_proba, self.buy_proba, self.sell_proba = probas
 
     def to_dict(self):
         return asdict(self)
