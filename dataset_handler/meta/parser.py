@@ -1,5 +1,4 @@
 import orjson
-import pandas as pd
 
 from preprocessing.sequence import Eval as SequenceEval
 from preprocessing.sequence import Sequence, Metadata, Data
