@@ -2,9 +2,10 @@ import wandb
 from simplepipeline import (Pipeline, get_pipeline, par_map, seq_map,
                             seq_map_unpack, set_pipeline)
 
+from dataset_handler.stock_dataset import StockDatasetWandb
 from preprocessing.tasks import *
 from utils.util_funcs import update_check_key
-from utils.wandb_utils import load_artefact, log_artefact
+from utils.wandb_utils import load_artefact
 
 params = {
     "input_df": None,
@@ -112,7 +113,9 @@ def pipeline(**kwargs):
     ticker = seq_map(mark_short_sequences, ticker, min_sequence_len=params["min_sequence_len"]).run()
     ticker = remove_excluded_ticker(ticker).run()
 
-    log_artefact(ticker, "dataset.pkl", type="Datasets")
+    dataset = StockDatasetWandb()
+    dataset.data = ticker
+    dataset.log_as_artifact(log_data=True)
 
     params.pop("input_df")
     wandb.log(params=params)
