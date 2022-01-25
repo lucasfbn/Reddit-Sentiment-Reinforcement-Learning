@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from gym import Env, spaces
 
-from preprocessing.sequence import Sequence
+from dataset_handler.classes.sequence import Sequence
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.envs.utils.data_iterator import DataIterator
 from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN

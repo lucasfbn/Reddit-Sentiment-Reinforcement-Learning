@@ -5,11 +5,11 @@ import wandb
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 
+from dataset_handler.stock_dataset import StockDatasetWandb
 from rl.stocks.train.callbacks.log import LogCallback
 from rl.stocks.train.envs.env import EnvCNN
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.networks.multi_input import Network
-from utils.wandb_utils import load_artefact
 
 """
 https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html
@@ -20,7 +20,8 @@ https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html
 
 def load_data(data_version):
     with wandb.init(project="Trendstuff", group="Throwaway") as run:
-        data = load_artefact(run, "dataset.pkl", data_version, "Dataset")
+        data = StockDatasetWandb(run, data_version)
+        data.wandb_load(load_data=True)
 
     return data
 
@@ -70,7 +71,7 @@ def main():
 
         env = EnvCNN(data)
 
-        train(data, env, num_steps=15, run_dir=run.dir,
+        train(data, env, num_steps=15, run_dir=run.dir, policy_args={},
               network=Network, features_extractor_kwargs=dict(features_dim=128))
 
 
