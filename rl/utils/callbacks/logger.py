@@ -1,7 +1,22 @@
 import pandas as pd
 import wandb
 
-from rl.utils.callbacks.base import Callback, Episode
+from rl.utils.callbacks.base import Callback
+
+
+class Episode:
+
+    def __init__(self):
+        self.data = []
+
+    def to_df(self, include_last=True):
+        if include_last:
+            return pd.DataFrame(self.data)
+        else:
+            return pd.DataFrame(self.data[:-1])
+
+    def __len__(self):
+        return len(self.data)
 
 
 class BaseLogCallback(Callback):
