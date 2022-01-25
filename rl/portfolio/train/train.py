@@ -7,21 +7,21 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 from wandb.integration.sb3 import WandbCallback
 
 import rl.portfolio.train.envs.pre_process.handle_sequences as hs
+from dataset_handler.stock_dataset import StockDatasetWandb
 from rl.portfolio.train.callbacks.log import LogCallback
 from rl.portfolio.train.envs.env import EnvCNN
-from rl.portfolio.train.envs.pre_process.merge_ticker import merge_ticker
 from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.portfolio.train.networks.multi_input import Network
-from utils.wandb_utils import load_artefact, log_file, log_to_summary
+from utils.wandb_utils import log_to_summary
 
 
-def load_data(data_version, evl_version):
+def load_data(meta_run_id, dataset_version):
     with wandb.init(project="Trendstuff", group="Throwaway") as run:
-        data = load_artefact(run, "dataset.pkl", data_version, "Dataset")
-        evl = load_artefact(run, "evaluated.pkl", evl_version, "Eval_Stocks")
+        data = StockDatasetWandb()
+        data.wandb_load_meta_file(meta_run_id, run)
+        data.wandb_load_data(run, dataset_version)
 
-    merged = merge_ticker(data, evl)
-    all_sequences = hs.get_all_sequences(merged)
+    all_sequences = hs.get_all_sequences(data)
     all_sequences = hs.remove_invalid_sequences(all_sequences)
 
     return all_sequences
@@ -59,7 +59,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shu
 
 
 def main():
-    data = load_data(0, 0)
+    data = load_data("2d2742q1", 0)
 
     with wandb.init(project="Trendstuff", group="Throwaway") as run:
         wandb.tensorboard.patch(save=False)

@@ -28,7 +28,6 @@ class Metadata:
 @dataclass
 class Eval:
     action: int = None
-    probas: list = None
     hold_proba: float = None
     buy_proba: float = None
     sell_proba: float = None

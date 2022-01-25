@@ -9,7 +9,7 @@ from preprocessing.price_data.stock_prices import StockPrices
 from preprocessing.price_data.stock_prices import (MissingDataException,
                                                    OldDataException)
 from preprocessing.sequence_generator import SequenceGenerator
-from preprocessing.ticker import Ticker
+from dataset_handler.classes.ticker import Ticker
 
 date_col = "date"
 date_day_col = "date_day"
