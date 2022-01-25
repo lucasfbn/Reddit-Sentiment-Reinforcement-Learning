@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Union, List
 
 import numpy as np
 import pandas as pd
@@ -16,7 +16,7 @@ class StateHandler(ABC):
     def shape_state(self, state: pd.DataFrame) -> np.ndarray:
         return np.asarray(state).astype('float32')
 
-    def forward(self, sequence: Sequence, constant: list[Union[float, int, None]] = None):
+    def forward(self, sequence: Sequence, constant: List[Union[float, int, None]] = None):
         seq_state = self.get_state(sequence)
         seq_state = self.shape_state(seq_state)
         cons_state = np.array(constant)
