@@ -14,51 +14,42 @@ class StockDataset:
     META_FN = "meta.json"
     DATA_FN = "data.h5"
 
-    def __init__(self, root):
-        self.root = Path(root)
-
-        self._meta_parser = None
-        self._meta_saver = None
-        self._data_parser = None
-        self._data_saver = None
-
+    def __init__(self):
         self._data = None
 
     @property
     def data(self):
         return self._data
 
-    def dump(self, dump_data=True):
-        meta_saver = MetaSaver(self.root / self.META_FN)
+    def dump(self, root, dump_data=True):
+        root = Path(root)
+
+        meta_saver = MetaSaver(root / self.META_FN)
         meta_saver.dump(self._data)
 
         if dump_data:
-            data_saver = DataSaver(self.root / self.DATA_FN)
+            data_saver = DataSaver(root / self.DATA_FN)
             data_saver.dump_multiple(self._data)
             data_saver.close()
 
-    def load_meta(self):
-        if self._meta_parser is None:
-            self._meta_parser = MetaParser(self.root / self.META_FN)
+    def load_meta(self, root):
+        root = Path(root)
 
-        self._data = self._meta_parser.parse()
+        meta_parser = MetaParser(root / self.META_FN)
+        self._data = meta_parser.parse()
 
-    def _init_parser(self):
-        if self._data_parser is None:
-            self._data_parser = DataParser(self.root / self.DATA_FN)
+    def load_data(self, root):
+        root = Path(root)
 
-    def _close_parser(self):
-        if self._data_parser is not None:
-            self._data_parser.close()
+        data_parser = DataParser(root / self.DATA_FN)
+        self._data = data_parser.parse_multiple(self._data)
+        data_parser.close()
 
-    def load_data(self):
-        self._init_parser()
-        self._data = self._data_parser.parse_multiple(self._data)
-        self._close_parser()
+    def load(self, root):
+        root = Path(root)
 
-    def load(self):
-        self.load_meta()
-        self.load_data()
+        self.load_meta(root)
+        self.load_data(root)
 
     def __len__(self):
         return len(self._data)
