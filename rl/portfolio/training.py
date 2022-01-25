@@ -13,6 +13,7 @@ from rl.portfolio.train.callbacks.log import LogCallback
 from rl.portfolio.train.envs.env import EnvCNN
 from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.portfolio.train.networks.multi_input import Network
+from rl.portfolio.eval.callbacks.eval import EvalCallback
 from utils.wandb_utils import log_to_summary
 
 
@@ -30,7 +31,8 @@ def load_data(meta_run_id, dataset_version):
     return all_sequences
 
 
-def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shutdown=False, model_checkpoints=False):
+def train(data, env, run_dir, network, features_extractor_kwargs, num_steps,
+          run_eval=True, shutdown=False, model_checkpoints=False):
     total_timesteps_p_episode = len(data)
 
     summary = dict(
@@ -44,12 +46,15 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps, shu
         features_extractor_kwargs=features_extractor_kwargs
     )
 
-    checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
-                                             save_path=Path(Path(run_dir) / "models").as_posix())
-
     callbacks = [WandbCallback(), LogCallback(10)]
     if model_checkpoints:
+        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
+                                                 save_path=Path(Path(run_dir) / "models").as_posix())
         callbacks.append(checkpoint_callback)
+    if run_eval:
+        eval_callback = EvalCallback(10, data, env.data_iter.__class__, env.state_handler.__class__,
+                                     env.trading_env.__class__)
+        callbacks.append(eval_callback)
 
     model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
                 tensorboard_log=(Path(run_dir) / "tensorboard").as_posix())
