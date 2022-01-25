@@ -43,6 +43,14 @@ class Eval:
         return asdict(self)
 
 
+@dataclass
+class Portfolio:
+    execute: bool = False
+
+    def to_dict(self):
+        return asdict(self)
+
+
 class Sequence:
 
     def __init__(self, index: int = None, data: Data = None, metadata: Metadata = None, evl: Eval = None):
@@ -50,6 +58,7 @@ class Sequence:
         self.data = data
         self.metadata = metadata
         self.evl = Eval() if evl is None else evl
+        self.portfolio = Portfolio()
 
     def drop_data(self):
         self.data = None

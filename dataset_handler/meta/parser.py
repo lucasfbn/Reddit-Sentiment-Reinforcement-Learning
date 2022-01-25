@@ -2,7 +2,7 @@ import orjson
 from tqdm import tqdm
 
 from dataset_handler.classes.sequence import Eval as SequenceEval
-from dataset_handler.classes.sequence import Sequence, Metadata, Data
+from dataset_handler.classes.sequence import Sequence, Metadata, Data, Portfolio
 from dataset_handler.classes.ticker import Eval as TickerEval
 from dataset_handler.classes.ticker import Ticker, Sequences
 
@@ -27,6 +27,9 @@ class Parser:
 
             seq.evl = SequenceEval()
             seq.evl.__dict__.update(dic_seq["evl"])
+
+            seq.portfolio = Portfolio()
+            seq.portfolio.__dict__.update(dic_seq.get("portfolio", {}))  # Backwards compatibility
 
             sequences.append(seq)
 

@@ -14,7 +14,8 @@ class Saver:
             evl=obj.evl.to_dict(),
             sequences=[{"index": seq.index,
                         "metadata": seq.metadata.to_dict(),
-                        "evl": seq.evl.to_dict()}
+                        "evl": seq.evl.to_dict(),
+                        "portfolio": seq.portfolio.to_dict()}
                        for seq in obj.sequences]
         )
 
