@@ -5,7 +5,7 @@ from ray import tune
 from rl.portfolio.train.envs.env import EnvCNN
 from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.portfolio.train.networks.multi_input import Network
-from rl.portfolio.train.train import train, load_data
+from rl.portfolio.train import train, load_data
 
 data = load_data(0, 0)
 

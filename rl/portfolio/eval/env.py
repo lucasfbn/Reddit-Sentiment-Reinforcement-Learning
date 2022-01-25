@@ -49,7 +49,7 @@ class EvalEnv:
 if __name__ == '__main__':
     from rl.portfolio.train.envs.sub_envs.trading import TradingSimulator
     from rl.utils.state_handler import StateHandlerCNN
-    from rl.portfolio.train.train import load_data
+    from rl.portfolio.train import load_data
     from rl.portfolio.train.envs.utils.data_iterator import DataIterator
 
     data = load_data("2d2742q1", 0)
