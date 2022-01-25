@@ -46,6 +46,7 @@ class Eval:
 @dataclass
 class Portfolio:
     execute: bool = False
+    proba_execute: float = None
 
     def to_dict(self):
         return asdict(self)
