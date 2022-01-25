@@ -1,7 +1,7 @@
 import pandas as pd
 
-from preprocessing.sequence import Sequence, Metadata, Data
-from preprocessing.ticker import Sequences
+from dataset_handler.classes.sequence import Sequence, Metadata, Data
+from dataset_handler.classes.ticker import Sequences
 
 
 class SequenceGenerator:
