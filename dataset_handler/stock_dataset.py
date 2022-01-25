@@ -15,34 +15,34 @@ class StockDataset:
     DATA_FN = "data.h5"
 
     def __init__(self):
-        self._data = None
+        self.data = None
 
     @property
     def data(self):
-        return self._data
+        return self.data
 
     def dump(self, root, dump_data=True):
         root = Path(root)
 
         meta_saver = MetaSaver(root / self.META_FN)
-        meta_saver.dump(self._data)
+        meta_saver.dump(self.data)
 
         if dump_data:
             data_saver = DataSaver(root / self.DATA_FN)
-            data_saver.dump_multiple(self._data)
+            data_saver.dump_multiple(self.data)
             data_saver.close()
 
     def load_meta(self, root):
         root = Path(root)
 
         meta_parser = MetaParser(root / self.META_FN)
-        self._data = meta_parser.parse()
+        self.data = meta_parser.parse()
 
     def load_data(self, root):
         root = Path(root)
 
         data_parser = DataParser(root / self.DATA_FN)
-        self._data = data_parser.parse_multiple(self._data)
+        self.data = data_parser.parse_multiple(self.data)
         data_parser.close()
 
     def load(self, root):
@@ -52,13 +52,13 @@ class StockDataset:
         self.load_data(root)
 
     def __len__(self):
-        return len(self._data)
+        return len(self.data)
 
     def __getitem__(self, idx):
-        return self._data[idx]
+        return self.data[idx]
 
     def __iter__(self):
-        yield from self._data
+        yield from self.data
 
 
 class StockDatasetWandb(StockDataset):
