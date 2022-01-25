@@ -2,8 +2,8 @@ import orjson
 
 from dataset_handler.classes.sequence import Eval as SequenceEval
 from dataset_handler.classes.sequence import Sequence, Metadata, Data
-from preprocessing.ticker import Eval as TickerEval
-from preprocessing.ticker import Ticker, Sequences
+from dataset_handler.classes.ticker import Eval as TickerEval
+from dataset_handler.classes.ticker import Ticker, Sequences
 
 
 class Parser:
