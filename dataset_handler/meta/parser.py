@@ -1,4 +1,5 @@
 import orjson
+from tqdm import tqdm
 
 from dataset_handler.classes.sequence import Eval as SequenceEval
 from dataset_handler.classes.sequence import Sequence, Metadata, Data
@@ -49,6 +50,5 @@ class Parser:
     def parse(self):
         with open(self.fp, "rb") as f:
             data = orjson.loads(f.read())
-        print(1)
 
-        return [self._parse_single(dic) for dic in data]
+        return [self._parse_single(dic) for dic in tqdm(data, desc="Loading")]
