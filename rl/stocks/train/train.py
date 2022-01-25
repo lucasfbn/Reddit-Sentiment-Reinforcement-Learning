@@ -20,8 +20,8 @@ https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html
 
 def load_data(data_version):
     with wandb.init(project="Trendstuff", group="Throwaway") as run:
-        data = StockDatasetWandb(run, data_version)
-        data.wandb_load(load_data=True)
+        data = StockDatasetWandb()
+        data.wandb_load(run, data_version)
 
     return data
 
