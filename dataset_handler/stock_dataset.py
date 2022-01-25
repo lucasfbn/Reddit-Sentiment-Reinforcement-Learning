@@ -66,53 +66,64 @@ class StockDatasetWandb(StockDataset):
     ARTIFACT_TYPE = "dataset"
     PATH_APPENDIX = "artefacts/dataset"
 
-    def __init__(self, run, version, root=None):
-
-        if root is None:
-            root = self._get_root(run, fn=self.ARTIFACT_FN, version=version, type=self.ARTIFACT_TYPE)
-
-        super().__init__(root)
-
     def _get_root(self, run, fn, version, type):
         art = run.use_artifact(f'{run.entity}/{run.project}/{fn}:v{version}', type=type)
         return Path(art.download(root=os.getenv("WANDB_DIR") + self.PATH_APPENDIX))
 
-    def wandb_load(self, load_data=False):
-        self.load_meta()
-        if load_data:
-            self.load_data()
+    def wandb_load_meta_file(self, run_id, run):
+        path = Path(wandb.restore(name=self.META_FN, run_path=f'{run.entity}/{run.project}/{run_id}').name)
+        path = path.parent  # because wandb adds the filename to the path
+        self.load_meta(path)
+
+    def wandb_load_data(self, run, version):
+        root = self._get_root(run, fn=self.ARTIFACT_FN, version=version, type=self.ARTIFACT_TYPE)
+        self.load_data(root)
+
+    def wandb_load(self, run, version):
+        root = self._get_root(run, fn=self.ARTIFACT_FN, version=version, type=self.ARTIFACT_TYPE)
+        self.load_meta(root)
+        self.load_data(root)
 
     def log_as_artifact(self, log_data=False):
         with tempfile.TemporaryDirectory() as tmpdirname:
-            self.root = Path(tmpdirname)
-            self.dump(dump_data=log_data)
+            root = Path(tmpdirname)
+            self.dump(root, dump_data=log_data)
 
             art = wandb.Artifact(self.ARTIFACT_FN, type=self.ARTIFACT_TYPE)
-            art.add_file((self.root / self.META_FN).as_posix())
+            art.add_file((root / self.META_FN).as_posix())
 
             if log_data:
-                art.add_file((self.root / self.DATA_FN).as_posix())
+                art.add_file((root / self.DATA_FN).as_posix())
 
             wandb.log_artifact(art)
 
     def log_as_file(self, run, log_data=False):
-        self.root = Path(run.dir)
-        self.dump(log_data)
+        root = Path(run.dir)
+        self.dump(root, log_data)
 
 
 if __name__ == "__main__":
     def non_wandb_usage():
-        dataset = StockDataset(r"F:\wandb\artefacts\dataset")
-        dataset.load_meta()
-        dataset.load_data()
-        dataset.dump(dump_data=True)
+        root = r"F:\wandb\artefacts\dataset"
+        dataset = StockDataset()
+        dataset.load_meta(root)
+        dataset.load_data(root)
+        # or
+        # dataset.load(root)
+        dataset.dump(root, dump_data=True)
 
 
     def wandb_usage():
-        with wandb.init(project="Trendstuff", group="Datasets") as run:
-            dataset = StockDatasetWandb(run, 0)
-            dataset.wandb_load()
-            # # dataset.log_as_file(run, log_data=True)
+        with wandb.init(project="TestsProject", group="Datasets") as run:
+            dataset = StockDatasetWandb()
+            dataset.wandb_load_meta_file("3e5jwups", run=run)
+            dataset.wandb_load_data(run, 0)
+
+            # or
+            # dataset.wandb_load(run, 0)
+
+            # dataset.log_as_file(run)
+            # dataset.log_as_file(run, log_data=True)
             # dataset.log_as_artifact(log_data=True)
             print(dataset[0])
 
