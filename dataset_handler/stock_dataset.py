@@ -67,7 +67,8 @@ class StockDatasetWandb(StockDataset):
         return Path(art.download(root=os.getenv("WANDB_DIR") + self.PATH_APPENDIX))
 
     def wandb_load_meta_file(self, run_id, run):
-        path = Path(wandb.restore(name=self.META_FN, run_path=f'{run.entity}/{run.project}/{run_id}').name)
+        path = Path(wandb.restore(name=self.META_FN, run_path=f'{run.entity}/{run.project}/{run_id}',
+                                  root=os.getenv("WANDB_DIR") + "files").name)
         path = path.parent  # because wandb adds the filename to the path
         self.load_meta(path)
 
