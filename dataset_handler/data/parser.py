@@ -1,5 +1,5 @@
-import pandas as pd
 import h5py
+import pandas as pd
 
 
 class Parser:
