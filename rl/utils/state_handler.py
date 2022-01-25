@@ -4,7 +4,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from preprocessing.sequence import Sequence
+from dataset_handler.classes.sequence import Sequence
 
 
 class StateHandler(ABC):

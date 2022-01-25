@@ -3,7 +3,7 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 
 from preprocessing.sequence_generator import SequenceGenerator
-from preprocessing.sequence import Sequence, Metadata
+from dataset_handler.classes.sequence import Sequence, Metadata
 
 
 def test_sequence_without_availability():
