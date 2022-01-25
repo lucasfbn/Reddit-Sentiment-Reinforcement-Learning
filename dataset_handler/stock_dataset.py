@@ -128,4 +128,12 @@ if __name__ == "__main__":
             print(dataset[0])
 
 
-    wandb_usage()
+    def convert():
+        with wandb.init(project="Trendstuff", group="Eval Stocks") as run:
+            dataset = StockDatasetWandb()
+            dataset.load_meta(".")
+            dataset.log_as_file(run)
+
+
+    # wandb_usage()
+    convert()
