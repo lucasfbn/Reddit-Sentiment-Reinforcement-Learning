@@ -11,8 +11,6 @@ pd.options.mode.chained_assignment = None
 class Eval:
     reward: float = None
     open_positions: int = None
-    min_date: datetime = None
-    max_date: datetime = None
 
     def to_dict(self):
         return asdict(self)
@@ -81,9 +79,9 @@ class Sequences:
 
 class Ticker:
 
-    def __init__(self, name, df=None):
-        self.df = df
-        self.name = name
+    def __init__(self, ):
+        self.df = None
+        self.name = None
         self.exclude = False
 
         self.sequences = Sequences()
