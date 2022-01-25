@@ -9,11 +9,11 @@ from wandb.integration.sb3 import WandbCallback
 
 import rl.portfolio.train.envs.pre_process.handle_sequences as hs
 from dataset_handler.stock_dataset import StockDatasetWandb
+from rl.portfolio.eval.callbacks.eval import EvalCallback
 from rl.portfolio.train.callbacks.log import LogCallback
 from rl.portfolio.train.envs.env import EnvCNN
 from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.portfolio.train.networks.multi_input import Network
-from rl.portfolio.eval.callbacks.eval import EvalCallback
 from utils.wandb_utils import log_to_summary
 
 
