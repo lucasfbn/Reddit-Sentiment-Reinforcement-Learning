@@ -17,10 +17,6 @@ class StockDataset:
     def __init__(self):
         self.data = None
 
-    @property
-    def data(self):
-        return self.data
-
     def dump(self, root, dump_data=True):
         root = Path(root)
 
