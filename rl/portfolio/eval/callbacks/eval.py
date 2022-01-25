@@ -1,7 +1,7 @@
 import wandb
 
-from rl.utils.callbacks.base import Callback
 from rl.portfolio.eval.env import EvalEnv
+from rl.utils.callbacks.base import Callback
 
 
 class EvalCallback(Callback):
