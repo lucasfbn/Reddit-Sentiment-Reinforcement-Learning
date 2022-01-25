@@ -26,7 +26,7 @@ class BaseEnv(Env, ABC):
         self._curr_state_iter = self.data_iter.sequence_iter()
         self._next_state_iter = self.data_iter.sequence_iter()
 
-        self._trading_env = TradingSimulator()
+        self.trading_env = TradingSimulator()
 
         self.action_space = spaces.Discrete(2, )
 
@@ -48,28 +48,28 @@ class BaseEnv(Env, ABC):
         pass
 
     def forward_state(self, sequence: Sequence):
-        inventory_state = self._trading_env.inventory.inventory_state(sequence)
+        inventory_state = self.trading_env.inventory.inventory_state(sequence)
         probability = sequence.evl.buy_proba
-        n_trades_left = self._trading_env.n_trades_left_scaled
-        trades_exhausted = self._trading_env.trades_exhausted()
+        n_trades_left = self.trading_env.n_trades_left_scaled
+        trades_exhausted = self.trading_env.trades_exhausted()
         return self.state_handler.forward(sequence, [inventory_state, probability, n_trades_left, trades_exhausted])
 
     def step(self, actions):
         seq, episode_end, new_date = next(self._curr_state_iter)
 
         if new_date:
-            self._trading_env.new_day()
+            self.trading_env.new_day()
 
-        reward, success = self._trading_env.step(actions, seq)
+        reward, success = self.trading_env.step(actions, seq)
 
-        intermediate_episode_end = self._trading_env.trades_exhausted()
+        intermediate_episode_end = self.trading_env.trades_exhausted()
 
         reward_handler = RewardHandler()
         reward = reward_handler.discount_cash_bound(reward, seq.evl.days_cash_bound)
 
         reward_completed_steps = reward_handler.add_reward_completed_steps(reward, self.data_iter.perc_completed_steps)
         reward_discount_n_trades_left = reward_handler.discount_n_trades_left(reward_completed_steps,
-                                                                              self._trading_env.n_trades_left_scaled)
+                                                                              self.trading_env.n_trades_left_scaled)
 
         total_reward = reward_handler.penalize_forced_episode_end(reward_discount_n_trades_left,
                                                                   intermediate_episode_end)
@@ -90,8 +90,8 @@ class BaseEnv(Env, ABC):
                                                        "episode_end": episode_end,
                                                        "new_date": new_date,
                                                        "intermediate_episode_end": intermediate_episode_end,
-                                                       "n_trades_left": self._trading_env.n_trades_left_scaled,
-                                                       "trades_exhausted": self._trading_env.trades_exhausted(),
+                                                       "n_trades_left": self.trading_env.n_trades_left_scaled,
+                                                       "trades_exhausted": self.trading_env.trades_exhausted(),
                                                        "completed_steps": self.data_iter.perc_completed_steps,
                                                        "total_steps": len(self.data_iter.sequences),
                                                        "current_steps": self.data_iter.steps}
@@ -114,7 +114,7 @@ class BaseEnv(Env, ABC):
 
         next_sequence, _, _ = next(self._next_state_iter)
         state = self.forward_state(next_sequence)
-        self._trading_env = TradingSimulator()
+        self.trading_env = TradingSimulator()
         return state
 
 
