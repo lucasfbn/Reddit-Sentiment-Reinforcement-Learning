@@ -56,6 +56,10 @@ class StockDataset:
         self._data = self._data_parser.parse_multiple(self._data)
         self._close_parser()
 
+    def load(self):
+        self.load_meta()
+        self.load_data()
+
     def __len__(self):
         return len(self._data)
 
@@ -71,8 +75,12 @@ class StockDatasetWandb(StockDataset):
     ARTIFACT_TYPE = "dataset"
     PATH_APPENDIX = "artefacts/dataset"
 
-    def __init__(self, run, version):
-        super().__init__(self._get_root(run, fn=self.ARTIFACT_FN, version=version, type=self.ARTIFACT_TYPE))
+    def __init__(self, run, version, root=None):
+
+        if root is None:
+            root = self._get_root(run, fn=self.ARTIFACT_FN, version=version, type=self.ARTIFACT_TYPE)
+
+        super().__init__(root)
 
     def _get_root(self, run, fn, version, type):
         art = run.use_artifact(f'{run.entity}/{run.project}/{fn}:v{version}', type=type)
@@ -110,8 +118,12 @@ if __name__ == "__main__":
 
 
     def wandb_usage():
-        with wandb.init(project="TestsProject", group="Throwaway") as run:
+        with wandb.init(project="Trendstuff", group="Datasets") as run:
             dataset = StockDatasetWandb(run, 0)
             dataset.wandb_load()
             # # dataset.log_as_file(run, log_data=True)
             # dataset.log_as_artifact(log_data=True)
+            print(dataset[0])
+
+
+    wandb_usage()
