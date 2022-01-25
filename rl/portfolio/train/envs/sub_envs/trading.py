@@ -56,6 +56,10 @@ class TradingSimulator:
         self._n_trades = self.N_START_TRADES
 
     @property
+    def n_trades(self):
+        return self._n_trades
+
+    @property
     def inventory(self):
         return self._inventory
 
