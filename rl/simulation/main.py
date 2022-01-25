@@ -1,8 +1,8 @@
 import mlflow
 from mlflow_utils import init_mlflow, load_file, log_file
 
-from rl.portfolio.eval.envs.env import EvalEnv
-from rl.portfolio.eval.envs.pre_process.pre_process import PreProcessor
+from rl.simulation.envs.env import EvalEnv
+from rl.simulation.envs.pre_process.pre_process import PreProcessor
 from utils.paths import mlflow_dir
 
 

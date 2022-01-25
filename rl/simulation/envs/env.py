@@ -1,8 +1,8 @@
 from tqdm import tqdm
 
-from rl.portfolio.eval.envs.sub_envs.trading import TradingSimulator
-from rl.portfolio.eval.envs.tracker.track import Tracker, EnvStateTracker
-from rl.portfolio.eval.envs.utils.utils import *
+from rl.simulation.envs.sub_envs.trading import TradingSimulator
+from rl.simulation.envs.tracker.track import Tracker, EnvStateTracker
+from rl.simulation.envs.utils.utils import *
 
 
 class EvalEnv:
