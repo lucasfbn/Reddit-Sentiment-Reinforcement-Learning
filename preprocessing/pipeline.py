@@ -121,7 +121,7 @@ def pipeline(**kwargs):
 
 
 def main():
-    with wandb.init(project="Trendstuff", job_type="Datasets") as run:
+    with wandb.init(project="Trendstuff", group="Datasets") as run:
         df = load_artefact(run, fn="dataset.csv", version=0, type="Sentiment_Analysis")
         pipeline(input_df=df)
 
