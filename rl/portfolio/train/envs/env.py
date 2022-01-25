@@ -22,9 +22,9 @@ class BaseEnv(Env, ABC):
 
         self._sequences = base_sequences
 
-        self._data_iter = DataIterator(self._sequences)
-        self._curr_state_iter = self._data_iter.sequence_iter()
-        self._next_state_iter = self._data_iter.sequence_iter()
+        self.data_iter = DataIterator(self._sequences)
+        self._curr_state_iter = self.data_iter.sequence_iter()
+        self._next_state_iter = self.data_iter.sequence_iter()
 
         self._trading_env = TradingSimulator()
 
@@ -67,7 +67,7 @@ class BaseEnv(Env, ABC):
         reward_handler = RewardHandler()
         reward = reward_handler.discount_cash_bound(reward, seq.evl.days_cash_bound)
 
-        reward_completed_steps = reward_handler.add_reward_completed_steps(reward, self._data_iter.perc_completed_steps)
+        reward_completed_steps = reward_handler.add_reward_completed_steps(reward, self.data_iter.perc_completed_steps)
         reward_discount_n_trades_left = reward_handler.discount_n_trades_left(reward_completed_steps,
                                                                               self._trading_env.n_trades_left_scaled)
 
@@ -81,7 +81,7 @@ class BaseEnv(Env, ABC):
 
         next_state = self.forward_state(next_sequence)
 
-        self._data_iter.step()
+        self.data_iter.step()
 
         return next_state, total_reward, episode_end, {"reward": reward,
                                                        "reward_completed_steps": reward_completed_steps,
@@ -92,9 +92,9 @@ class BaseEnv(Env, ABC):
                                                        "intermediate_episode_end": intermediate_episode_end,
                                                        "n_trades_left": self._trading_env.n_trades_left_scaled,
                                                        "trades_exhausted": self._trading_env.trades_exhausted(),
-                                                       "completed_steps": self._data_iter.perc_completed_steps,
-                                                       "total_steps": len(self._data_iter.sequences),
-                                                       "current_steps": self._data_iter.steps}
+                                                       "completed_steps": self.data_iter.perc_completed_steps,
+                                                       "total_steps": len(self.data_iter.sequences),
+                                                       "current_steps": self.data_iter.steps}
 
     def close(self):
         pass
@@ -108,9 +108,9 @@ class BaseEnv(Env, ABC):
 
     def reset(self):
         sequences, n_max_episodes = self._shuffle_sequences()
-        self._data_iter = DataIterator(sequences)
-        self._curr_state_iter = self._data_iter.sequence_iter()
-        self._next_state_iter = self._data_iter.sequence_iter()
+        self.data_iter = DataIterator(sequences)
+        self._curr_state_iter = self.data_iter.sequence_iter()
+        self._next_state_iter = self.data_iter.sequence_iter()
 
         next_sequence, _, _ = next(self._next_state_iter)
         state = self.forward_state(next_sequence)
