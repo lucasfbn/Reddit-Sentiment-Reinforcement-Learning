@@ -116,7 +116,7 @@ def test_inventory_states():
 
     for i, action in enumerate(actions):
         next_state, reward, episode_end, _ = env.step(action)
-        inv = env._trading_env.inventory
+        inv = env.trading_env.inventory
         inv_state_A = inv.inventory_state(A)
         inv_state_B = inv.inventory_state(B)
 
