@@ -79,7 +79,7 @@ def main():
 
         env = EnvCNN(data)
 
-        model, summary = train(data, env, num_steps=3000000, run_dir=run.dir,
+        model, summary = train(data, env, num_steps=500000, run_dir=run.dir,
                                network=Network, features_extractor_kwargs=dict(features_dim=128))
 
         log_to_summary(run, summary)
