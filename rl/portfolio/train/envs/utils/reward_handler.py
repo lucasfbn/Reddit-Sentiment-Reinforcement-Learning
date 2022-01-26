@@ -19,7 +19,9 @@ class RewardHandler:
         return reward
 
     def discount_n_trades_left(self, reward, n_trades_left_perc):
-        return (n_trades_left_perc * reward) ** 1.4
+        if reward > 0:
+            return (n_trades_left_perc * reward) ** 1.4
+        return reward
 
     def penalize_forced_episode_end(self, reward, forced_episode_end):
         if forced_episode_end:
