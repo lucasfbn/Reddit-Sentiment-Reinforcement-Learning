@@ -67,8 +67,8 @@ class BaseEnv(Env, ABC):
         reward_handler = RewardHandler()
         reward = reward_handler.discount_cash_bound(reward, seq.evl.days_cash_bound)
 
-        # reward_completed_steps = reward_handler.add_reward_completed_steps(reward, self.data_iter.perc_completed_steps)
-        reward_discount_n_trades_left = reward_handler.discount_n_trades_left(reward,
+        reward_completed_steps = reward_handler.add_reward_completed_steps(reward, self.data_iter.perc_completed_steps)
+        reward_discount_n_trades_left = reward_handler.discount_n_trades_left(reward_completed_steps,
                                                                               self.trading_env.n_trades_left_scaled)
 
         total_reward = reward_handler.penalize_forced_episode_end(reward_discount_n_trades_left,
