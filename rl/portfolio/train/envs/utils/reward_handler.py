@@ -15,7 +15,7 @@ class RewardHandler:
         return reward
 
     def add_reward_completed_steps(self, reward, completed_steps_perc):
-        reward += self.COMPLETED_STEPS_MAX_REWARD * completed_steps_perc
+        reward * completed_steps_perc
         return reward
 
     def discount_n_trades_left(self, reward, n_trades_left_perc):
