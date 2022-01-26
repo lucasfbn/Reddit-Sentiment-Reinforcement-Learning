@@ -11,8 +11,6 @@ class LogCallback(BaseLogCallback):
             median_reward=full_df["reward"].median(),
             sum_reward=full_df["reward"].sum(),
             auc_reward=np.trapz(full_df["reward"].to_numpy(), dx=1),
-            mean_reward_completed_steps=full_df["reward_completed_steps"].mean(),
-            median_reward_completed_steps=full_df["reward_completed_steps"].median(),
             mean_reward_discount_n_trades_left=full_df["reward_discount_n_trades_left"].mean(),
             median_reward_discount_n_trades_left=full_df["reward_discount_n_trades_left"].median(),
             mean_total_reward=full_df["total_reward"].mean(),
