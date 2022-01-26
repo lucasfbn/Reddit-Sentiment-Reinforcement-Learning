@@ -56,7 +56,7 @@ class BaseLogCallback(Callback):
         base_metrics = self._base_metrics(full_df, episode_end_df)
         additional_metrics = self.metrics(full_df, episode_end_df)
 
-        wandb.log(base_metrics | additional_metrics, step=self.num_timesteps)
+        wandb.log(base_metrics | additional_metrics | dict(global_step=self.num_timesteps))
 
     def metrics(self, full_df, episode_end_df):
         return {}
