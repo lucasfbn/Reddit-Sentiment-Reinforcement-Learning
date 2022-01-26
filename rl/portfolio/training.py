@@ -58,7 +58,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps,
         eval_callback = EvalCallback(data, env.data_iter.__class__, env.state_handler.__class__,
                                      env.trading_env.__class__)
 
-        eval_callback_event = EveryNTimesteps(n_steps=10000, callback=eval_callback)
+        eval_callback_event = EveryNTimesteps(n_steps=25000, callback=eval_callback)
         callbacks.append(eval_callback_event)
 
     model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
@@ -79,7 +79,7 @@ def main():
 
         env = EnvCNN(data)
 
-        model, summary = train(data, env, num_steps=1500000, run_dir=run.dir,
+        model, summary = train(data, env, num_steps=3000000, run_dir=run.dir,
                                network=Network, features_extractor_kwargs=dict(features_dim=128))
 
         log_to_summary(run, summary)
