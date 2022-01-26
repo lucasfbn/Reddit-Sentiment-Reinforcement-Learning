@@ -4,7 +4,7 @@ from pathlib import Path
 import pandas as pd
 import wandb
 from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.callbacks import CheckpointCallback, EveryNTimesteps
 from wandb.integration.sb3 import WandbCallback
 
 import rl.portfolio.train.envs.pre_process.handle_sequences as hs
@@ -25,8 +25,11 @@ def load_data(meta_run_id, dataset_version):
 
     all_sequences = hs.get_all_sequences(data)
     all_sequences = hs.remove_invalid_sequences(all_sequences)
+
     for seq in all_sequences:
         seq.metadata.date = pd.Period(seq.metadata.date)
+
+    all_sequences = sorted(all_sequences, key=lambda seq: seq.metadata.date)
 
     return all_sequences
 
@@ -52,9 +55,11 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps,
                                                  save_path=Path(Path(run_dir) / "models").as_posix())
         callbacks.append(checkpoint_callback)
     if run_eval:
-        eval_callback = EvalCallback(10, data, env.data_iter.__class__, env.state_handler.__class__,
+        eval_callback = EvalCallback(data, env.data_iter.__class__, env.state_handler.__class__,
                                      env.trading_env.__class__)
-        callbacks.append(eval_callback)
+
+        eval_callback_event = EveryNTimesteps(n_steps=10000, callback=eval_callback)
+        callbacks.append(eval_callback_event)
 
     model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
                 tensorboard_log=(Path(run_dir) / "tensorboard").as_posix())
