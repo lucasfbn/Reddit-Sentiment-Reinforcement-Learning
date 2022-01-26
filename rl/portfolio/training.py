@@ -74,7 +74,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps,
 def main():
     data = load_data("2d2742q1", 0)
 
-    with wandb.init(project="Trendstuff", group="Throwaway") as run:
+    with wandb.init(project="Trendstuff", group="RL Portfolio Reward Function") as run:
         wandb.tensorboard.patch(save=False)
 
         env = EnvCNN(data)
