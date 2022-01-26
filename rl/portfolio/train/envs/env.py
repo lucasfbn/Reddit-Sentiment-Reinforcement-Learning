@@ -100,8 +100,6 @@ class BaseEnv(Env, ABC):
         pass
 
     def _shuffle_sequences(self):
-        shuffle(self._sequences)
-        self._sequences = sorted(self._sequences, key=lambda seq: seq.metadata.date)
         start_index = randrange(0, len(self._sequences))
         episode_sequences = self._sequences[start_index:]
         return episode_sequences, len(episode_sequences)
