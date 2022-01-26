@@ -1,10 +1,27 @@
 import wandb
 
+from stable_baselines3.common.callbacks import EveryNTimesteps, BaseCallback
 from rl.portfolio.eval.env import EvalEnv
 from rl.utils.callbacks.base import Callback
 
 
-class EvalCallback(Callback):
+class EvalCallback(BaseCallback):
+    def __init__(self, data, data_iter_cls, state_handler_cls, trading_env_cls):
+        super().__init__()
+        self.data = data
+        self.trading_env_cls = trading_env_cls
+        self.state_handler_cls = state_handler_cls
+        self.data_iter_cls = data_iter_cls
+
+    def _on_step(self):
+        data_iter = self.data_iter_cls(self.data).sequence_iter()
+        eval_env = EvalEnv(self.model, data_iter, self.state_handler_cls, self.trading_env_cls)
+        profit = eval_env.eval()
+        print(profit)
+        wandb.log(dict(eval_profit=profit))
+
+
+class EvalCallbackEpisodes(Callback):
 
     def __init__(self, episodes_log_interval, skip_for_first_n_intervals, data,
                  data_iter_cls, state_handler_cls, trading_env_cls):
@@ -26,4 +43,4 @@ class EvalCallback(Callback):
             eval_env = EvalEnv(self.model, data_iter, self.state_handler_cls, self.trading_env_cls)
             profit = eval_env.eval()
             print(profit)
-            wandb.log(dict(eval_profit=profit))
+            wandb.log(dict(eval_profit=profit), step=self.num_timesteps)
