@@ -1,6 +1,6 @@
 class RewardHandler:
     COMPLETED_STEPS_MAX_REWARD = 9
-    FORCED_EPISODE_END_PENALTY = 25
+    FORCED_EPISODE_END_PENALTY = 0
     TOTAL_EPISODE_END_REWARD = 8
     I_DISCOUNT = 0.0065
 
@@ -19,8 +19,7 @@ class RewardHandler:
         return reward
 
     def discount_n_trades_left(self, reward, n_trades_left_perc):
-        reward *= n_trades_left_perc
-        return reward
+        return (n_trades_left_perc * reward) ** 1.4
 
     def penalize_forced_episode_end(self, reward, forced_episode_end):
         if forced_episode_end:
