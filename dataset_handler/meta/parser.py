@@ -12,7 +12,7 @@ class Parser:
     def __init__(self, fp):
         self.fp = fp
 
-    def _parse_sequences(self, dic_sequences):
+    def _parse_sequences(self, ticker_name, dic_sequences):
         sequences = []
 
         for dic_seq in dic_sequences:
@@ -23,6 +23,7 @@ class Parser:
 
             seq.metadata = Metadata()
             seq.metadata.__dict__.update(dic_seq["metadata"])
+            seq.metadata.ticker_name = ticker_name
             # seq.metadata.date = pd.Period(seq.metadata.date) # Performance
 
             seq.evl = SequenceEval()
@@ -45,7 +46,7 @@ class Parser:
         ticker.evl = evl
 
         sequences = Sequences()
-        sequences.lst = self._parse_sequences(dic["sequences"])
+        sequences.lst = self._parse_sequences(dic["name"], dic["sequences"])
         ticker.sequences = sequences
 
         return ticker
