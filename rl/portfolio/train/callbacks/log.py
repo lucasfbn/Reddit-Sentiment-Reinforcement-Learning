@@ -16,6 +16,7 @@ class LogCallback(BaseLogCallback):
             mean_total_reward=full_df["total_reward"].mean(),
             median_total_reward=full_df["total_reward"].median(),
             ratio_execute=sum(full_df["sb3_action"] == 1) / len(full_df),
+            inv_ratio=full_df["inv_ratio"].mean(),
             episode_end_completed_steps_mean=episode_end_df["completed_steps"].mean(),
             episode_end_trades_left_mean=episode_end_df["n_trades_left"].mean(),
             episode_end_forced_mean=episode_end_df["intermediate_episode_end"].mean(),

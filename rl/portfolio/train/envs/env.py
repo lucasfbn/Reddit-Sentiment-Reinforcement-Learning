@@ -96,6 +96,7 @@ class BaseEnv(Env, ABC):
                                                        "total_reward": total_reward,
                                                        "episode_end": episode_end,
                                                        "new_date": new_date,
+                                                       "inv_ratio": inv_ratio,
                                                        "intermediate_episode_end": intermediate_episode_end,
                                                        "n_trades_left": self.trading_env.n_trades_left_scaled,
                                                        "trades_exhausted": self.trading_env.trades_exhausted(),
