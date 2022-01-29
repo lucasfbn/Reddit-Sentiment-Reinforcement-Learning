@@ -20,7 +20,8 @@ class EvalEnv:
         probability = seq.evl.buy_proba
         n_trades_left = env.n_trades_left_scaled
         trades_exhausted = env.trades_exhausted()
-        return inventory_state, probability, n_trades_left, trades_exhausted
+        inv_len = env.inventory.inv_len()
+        return inventory_state, probability, inv_len
 
     def eval(self):
         state_handler = self._state_handler_cls()

@@ -49,7 +49,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps,
         features_extractor_kwargs=features_extractor_kwargs
     )
 
-    callbacks = [WandbCallback(), LogCallback(10)]
+    callbacks = [WandbCallback(), LogCallback(1)]
     if model_checkpoints:
         checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
                                                  save_path=Path(Path(run_dir) / "models").as_posix())
