@@ -49,3 +49,12 @@ class RewardHandler:
         if total_episode_end:
             reward += self.TOTAL_EPISODE_END_REWARD
         return reward
+
+    def penalize_ratio(self, x):
+        k = 0.8
+        x = self.min_max_scaler(0, 1, x, -1, 1)
+        normalized_sigmoid = (x - k * x) / (k - 2 * k * abs(x) + 1)
+        return abs(normalized_sigmoid)
+
+    def min_max_scaler(self, min_, max_, x, a, b):
+        return a + (((x - min_) * (b - a)) / (max_ - min_))
