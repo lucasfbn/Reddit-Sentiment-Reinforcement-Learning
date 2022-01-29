@@ -51,7 +51,8 @@ class RewardHandler:
         return reward
 
     def penalize_ratio(self, x):
-        k = 0.8
+        # https://dhemery.github.io/DHE-Modules/technical/sigmoid/#normalized
+        k = 0.5
         x = self.min_max_scaler(0, 1, x, -1, 1)
         normalized_sigmoid = (x - k * x) / (k - 2 * k * abs(x) + 1)
         return abs(normalized_sigmoid)
