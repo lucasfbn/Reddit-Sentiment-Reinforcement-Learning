@@ -4,6 +4,22 @@ class RewardHandler:
     TOTAL_EPISODE_END_REWARD = 25
     I_DISCOUNT = 0.0065
 
+    def inv_trades_ratio(self, inv_len, n_trades):
+        inv_ratio = inv_len / (inv_len + n_trades)
+        trades_ratio = 1 - inv_ratio
+        return inv_ratio, trades_ratio
+
+    def discount_0_action_penatly(self, inv_len, n_trades):
+        base = -.05
+        inv_ratio, trades_ratio = self.inv_trades_ratio(inv_len, n_trades)
+        return trades_ratio * base
+
+    def scale_n_trades(self, start_n_trades, n_trades):
+        max_multiplier = 6
+        min_ = 0
+        max_ = int(max_multiplier * start_n_trades)
+        return (n_trades - min_) / (max_ - min_)
+
     def negate_if_no_success(self, reward, success):
         if not success:
             reward *= -1 if reward > 0 else 2
@@ -15,7 +31,8 @@ class RewardHandler:
         return reward
 
     def add_reward_completed_steps(self, reward, completed_steps_perc):
-        reward * completed_steps_perc
+        if reward > 0:
+            reward * completed_steps_perc
         return reward
 
     def discount_n_trades_left(self, reward, n_trades_left_perc):

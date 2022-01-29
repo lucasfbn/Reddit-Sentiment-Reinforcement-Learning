@@ -31,7 +31,7 @@ class BaseEnv(Env, ABC):
         self.action_space = spaces.Discrete(2, )
 
         timeseries_shape = (10, 14)
-        constants_shape = (4)
+        constants_shape = (3)
 
         self.observation_space = spaces.Dict(
             {"timeseries": spaces.Box(low=np.zeros(timeseries_shape),
@@ -52,7 +52,8 @@ class BaseEnv(Env, ABC):
         probability = sequence.evl.buy_proba
         n_trades_left = self.trading_env.n_trades_left_scaled
         trades_exhausted = self.trading_env.trades_exhausted()
-        return self.state_handler.forward(sequence, [inventory_state, probability, n_trades_left, trades_exhausted])
+        inv_len = self.trading_env.inventory.inv_len()
+        return self.state_handler.forward(sequence, [inventory_state, probability, inv_len])
 
     def step(self, actions):
         seq, episode_end, new_date = next(self._curr_state_iter)
@@ -67,15 +68,22 @@ class BaseEnv(Env, ABC):
         reward_handler = RewardHandler()
         # reward = reward_handler.discount_cash_bound(reward, seq.evl.days_cash_bound)
 
-        reward_completed_steps = reward_handler.add_reward_completed_steps(reward, self.data_iter.perc_completed_steps)
+        if actions == 0:
+            total_reward = reward + reward_handler.discount_0_action_penatly(
+                inv_len=self.trading_env.inventory.inv_len(),
+                n_trades=self.trading_env.n_trades)
+        else:
+            total_reward = reward
+
+        # reward_completed_steps = reward_handler.add_reward_completed_steps(reward, self.data_iter.perc_completed_steps)
         # reward_discount_n_trades_left = reward_handler.discount_n_trades_left(reward_completed_steps,
         #                                                                       self.trading_env.n_trades_left_scaled)
 
-        total_reward = reward_handler.penalize_forced_episode_end(reward_completed_steps,
-                                                                  intermediate_episode_end)
-        total_reward = reward_handler.reward_total_episode_end(total_reward, episode_end)
-
-        episode_end = bool(max(int(intermediate_episode_end), int(episode_end)))
+        # total_reward = reward_handler.penalize_forced_episode_end(reward_completed_steps,
+        #                                                           intermediate_episode_end)
+        # total_reward = reward_handler.reward_total_episode_end(total_reward, episode_end)
+        #
+        # episode_end = bool(max(int(intermediate_episode_end), int(episode_end)))
 
         next_sequence, _, _ = next(self._next_state_iter)
 
