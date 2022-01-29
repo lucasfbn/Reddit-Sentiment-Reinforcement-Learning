@@ -73,7 +73,7 @@ class BaseEnv(Env, ABC):
                                                        n_trades=self.trading_env.n_trades)
         factor = reward_handler.penalize_ratio(inv_ratio)
 
-        total_reward = reward - (penalty_base * factor)
+        total_reward = reward + (penalty_base * factor)
 
         # reward_completed_steps = reward_handler.add_reward_completed_steps(reward, self.data_iter.perc_completed_steps)
         # reward_discount_n_trades_left = reward_handler.discount_n_trades_left(reward_completed_steps,
