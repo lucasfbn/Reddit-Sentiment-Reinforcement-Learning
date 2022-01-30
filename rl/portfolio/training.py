@@ -38,11 +38,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps,
           run_eval=True, shutdown=False, model_checkpoints=False):
     total_timesteps_p_episode = len(data)
 
-    summary = dict(
-        TOTAL_EPISODE_END_REWARD=RewardHandler.TOTAL_EPISODE_END_REWARD,
-        COMPLETED_STEPS_MAX_REWARD=RewardHandler.COMPLETED_STEPS_MAX_REWARD,
-        FORCED_EPISODE_END_PENALTY=RewardHandler.FORCED_EPISODE_END_PENALTY
-    )
+    summary = {}
 
     policy_kwargs = dict(
         features_extractor_class=network,
