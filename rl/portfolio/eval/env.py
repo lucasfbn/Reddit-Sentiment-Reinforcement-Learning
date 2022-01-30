@@ -14,13 +14,17 @@ class EvalEnv:
         self._trading_env_cls = trading_env_cls
         self._model = model
 
-    @staticmethod
-    def _get_variable_input(seq, env):
+    def _get_variable_input(self, seq, env):
         inventory_state = env.inventory.inventory_state(seq)
         probability = seq.evl.buy_proba
-        n_trades_left = env.n_trades_left_scaled
-        trades_exhausted = env.trades_exhausted()
-        return inventory_state, probability, n_trades_left, trades_exhausted
+        inv_ratio, trades_ratio = self._inv_trades_ratio(env)
+        return inventory_state, probability, inv_ratio, trades_ratio
+
+    def _inv_trades_ratio(self, env):
+        inv_len = env.inventory.inv_len()
+        inv_ratio = inv_len / (inv_len + env.n_trades)
+        trades_ratio = 1 - inv_ratio
+        return inv_ratio, trades_ratio
 
     def eval(self):
         state_handler = self._state_handler_cls()

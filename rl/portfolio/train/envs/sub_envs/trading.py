@@ -10,6 +10,9 @@ class Inventory:
         self._inv = []
         self._day = 0
 
+    def inv_len(self):
+        return len(self._inv)
+
     def add(self, sequence):
         log.debug(f"Added seq {sequence.metadata.ticker_name} to inv "
                   f"Removal date: {self._day + sequence.evl.days_cash_bound}")
