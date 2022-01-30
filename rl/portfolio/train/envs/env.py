@@ -81,6 +81,7 @@ class BaseEnv(Env, ABC):
         return next_state, total_reward, episode_end, {"reward": reward,
                                                        "total_reward": total_reward,
                                                        "episode_end": episode_end,
+                                                       "inv_ratio": inv_ratio,
                                                        "new_date": new_date,
                                                        "n_trades_left": self.trading_env.n_trades_left_scaled,
                                                        "trades_exhausted": self.trading_env.trades_exhausted(),
