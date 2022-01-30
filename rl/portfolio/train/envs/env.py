@@ -53,7 +53,8 @@ class BaseEnv(Env, ABC):
         n_trades_left = self.trading_env.n_trades_left_scaled
         trades_exhausted = self.trading_env.trades_exhausted()
         inv_len = self.trading_env.inventory.inv_len()
-        return self.state_handler.forward(sequence, [inventory_state, probability, inv_len])
+        trades_ratio = self.trading_env.n_trades / (self.trading_env.n_trades + self.trading_env.inventory.inv_len())
+        return self.state_handler.forward(sequence, [inventory_state, probability, trades_ratio])
 
     def step(self, actions):
         seq, episode_end, new_date = next(self._curr_state_iter)
