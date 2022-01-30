@@ -16,9 +16,8 @@ class EvalCallback(BaseCallback):
     def _on_step(self):
         data_iter = self.data_iter_cls(self.data).sequence_iter()
         eval_env = EvalEnv(self.model, data_iter, self.state_handler_cls, self.trading_env_cls)
-        profit = eval_env.eval()
-        print(profit)
-        wandb.log(dict(eval_profit=profit, global_step=self.num_timesteps))
+        eval_metrics = eval_env.eval()
+        wandb.log(eval_metrics | dict(global_step=self.num_timesteps))
 
 
 class EvalCallbackEpisodes(Callback):
@@ -41,6 +40,5 @@ class EvalCallbackEpisodes(Callback):
         else:
             data_iter = self.data_iter_cls(self.data).sequence_iter()
             eval_env = EvalEnv(self.model, data_iter, self.state_handler_cls, self.trading_env_cls)
-            profit = eval_env.eval()
-            print(self.num_timesteps)
-            wandb.log(dict(eval_profit=profit, global_step=self.num_timesteps))
+            eval_metrics = eval_env.eval()
+            wandb.log(eval_metrics | dict(global_step=self.num_timesteps))
