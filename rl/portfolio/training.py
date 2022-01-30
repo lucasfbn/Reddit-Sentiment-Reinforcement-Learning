@@ -12,7 +12,6 @@ from dataset_handler.stock_dataset import StockDatasetWandb
 from rl.portfolio.eval.callbacks.eval import EvalCallback
 from rl.portfolio.train.callbacks.log import LogCallback
 from rl.portfolio.train.envs.env import EnvCNN
-from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.portfolio.train.networks.multi_input import Network
 from utils.wandb_utils import log_to_summary
 
