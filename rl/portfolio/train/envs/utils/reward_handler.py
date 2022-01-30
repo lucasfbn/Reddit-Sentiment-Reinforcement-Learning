@@ -13,7 +13,7 @@ class RewardHandler:
 
     def penalize_func(self, x):
         if x <= 0.2:
-            return 1 - (x / 0.3) ** 0.4
+            return 1 - (x / 0.2) ** 0.4
         elif 0.2 < x <= 0.25:
             return 0
         elif 0.25 < x <= 1.0:
