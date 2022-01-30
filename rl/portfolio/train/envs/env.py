@@ -69,9 +69,9 @@ class BaseEnv(Env, ABC):
         # reward = reward_handler.discount_cash_bound(reward, seq.evl.days_cash_bound)
 
         penalty_base = -5.0
-        inv_ratio, _ = reward_handler.inv_trades_ratio(inv_len=self.trading_env.inventory.inv_len(),
-                                                       n_trades=self.trading_env.n_trades)
-        factor = reward_handler.penalize_ratio(inv_ratio)
+        inv_ratio, trades_ratio = reward_handler.inv_trades_ratio(inv_len=self.trading_env.inventory.inv_len(),
+                                                                  n_trades=self.trading_env.n_trades)
+        factor = reward_handler.go(trades_ratio)
 
         total_reward = reward + (penalty_base * factor)
 
