@@ -89,8 +89,9 @@ class RewardHandler:
 
     def go1(self, x):
         if x <= 0.3:
-            return 1 - (x / 0.3)
-        elif 0.3 < x <= 0.4:
+            return 1 - (x / 0.3) ** 0.4
+        elif 0.3 < x <= 0.35:
             return 0
-        elif 0.4 < x <= 1.0:
-            return 1.67 * x - 0.67
+        elif 0.35 < x <= 1.0:
+            x = self.min_max_scaler(0.35, 1.0, x, 0, 1)
+            return x ** 1.4

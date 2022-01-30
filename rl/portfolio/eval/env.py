@@ -24,7 +24,7 @@ class EvalEnv:
 
         trades_ratio = env.n_trades / (env.n_trades + env.inventory.inv_len())
         inv_ratio = 1 - trades_ratio
-        return inventory_state, probability, inv_ratio
+        return inventory_state, probability, inv_ratio, trades_ratio
 
     def eval(self):
         state_handler = self._state_handler_cls()
