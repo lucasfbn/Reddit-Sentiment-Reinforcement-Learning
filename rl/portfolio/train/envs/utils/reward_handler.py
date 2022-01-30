@@ -73,13 +73,13 @@ class RewardHandler:
             p2 = np.array([0.0, 1.0])
             bezier = (1 - x) ** 2 * p0 + 2 * (1 - x) * x * p1 + x ** 2 * p2
             return bezier[1]
-        elif 0.3 < x <= 0.6:
+        elif 0.3 < x <= 0.4:
             return 0.0
-        elif 0.6 < x <= 1.0:
-            x = self.min_max_scaler(0.6, 1.0, x, 0, 1)
-            p0 = np.array([0.6, 0.0])
-            p1 = np.array([0.9, 0.0])
-            p2 = np.array([1.0, 0.0])
+        elif 0.4 < x <= 1.0:
+            x = self.min_max_scaler(0.4, 1.0, x, 0, 1)
+            p0 = np.array([0.4, 0.0])
+            p1 = np.array([0.7, 0.0])
+            p2 = np.array([0.8, 0.0])
             p3 = np.array([1.0, 1.0])
             bezier = (-p0 + 3 * p1 - 3 * p2 + p3) * x ** 3 + (3 * p0 - 6 * p1 + 3 * p2) * x ** 2 + (
                     -3 * p0 + 3 * p1) * x + p0
