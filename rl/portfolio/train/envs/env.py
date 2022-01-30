@@ -1,7 +1,5 @@
-import logging
 from abc import ABC, abstractmethod
 from random import randrange
-from random import shuffle
 
 import numpy as np
 from gym import Env, spaces
@@ -12,7 +10,6 @@ from rl.portfolio.train.envs.utils.data_iterator import DataIterator
 from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
 
-log = logging.getLogger("root")
 
 
 class BaseEnv(Env, ABC):
