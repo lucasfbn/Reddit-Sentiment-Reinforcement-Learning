@@ -53,8 +53,10 @@ class BaseEnv(Env, ABC):
         n_trades_left = self.trading_env.n_trades_left_scaled
         trades_exhausted = self.trading_env.trades_exhausted()
         inv_len = self.trading_env.inventory.inv_len()
+        inv_ratio = self.trading_env.inventory.inv_len() / (
+                    self.trading_env.n_trades + self.trading_env.inventory.inv_len())
         trades_ratio = self.trading_env.n_trades / (self.trading_env.n_trades + self.trading_env.inventory.inv_len())
-        return self.state_handler.forward(sequence, [inventory_state, probability, trades_ratio])
+        return self.state_handler.forward(sequence, [inventory_state, probability, inv_ratio])
 
     def step(self, actions):
         seq, episode_end, new_date = next(self._curr_state_iter)
@@ -72,7 +74,7 @@ class BaseEnv(Env, ABC):
         penalty_base = -5.0
         inv_ratio, trades_ratio = reward_handler.inv_trades_ratio(inv_len=self.trading_env.inventory.inv_len(),
                                                                   n_trades=self.trading_env.n_trades)
-        factor = reward_handler.go1(trades_ratio)
+        factor = reward_handler.penalize_ratio(inv_ratio)
 
         total_reward = reward + (penalty_base * factor)
 
