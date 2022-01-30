@@ -86,3 +86,11 @@ class RewardHandler:
             return bezier[1]
         else:
             raise ValueError
+
+    def go1(self, x):
+        if x <= 0.3:
+            return 1 - (x / 0.3)
+        elif 0.3 < x <= 0.4:
+            return 0
+        elif 0.4 < x <= 1.0:
+            return 1.67 * x - 0.67

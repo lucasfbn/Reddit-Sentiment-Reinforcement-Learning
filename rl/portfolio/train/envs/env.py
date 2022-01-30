@@ -72,7 +72,7 @@ class BaseEnv(Env, ABC):
         penalty_base = -5.0
         inv_ratio, trades_ratio = reward_handler.inv_trades_ratio(inv_len=self.trading_env.inventory.inv_len(),
                                                                   n_trades=self.trading_env.n_trades)
-        factor = reward_handler.go(trades_ratio)
+        factor = reward_handler.go1(trades_ratio)
 
         total_reward = reward + (penalty_base * factor)
 
