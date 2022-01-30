@@ -27,13 +27,15 @@ class EvalEnv:
         state_handler = self._state_handler_cls()
         env = self._trading_env_cls()
 
+        actions = []
+
         for seq, episode_end, new_date in self._data_iter:
 
             if new_date:
                 env.new_day()
 
             state = state_handler.forward(seq, [*self._get_variable_input(seq, env)])
-            action, _ = self._model.predict(state, deterministic=True)
+            # action, _ = self._model.predict(state, deterministic=True)
             action, probas = predict_proba(self._model, state)
 
             env.step(action, seq)
@@ -41,10 +43,15 @@ class EvalEnv:
             seq.portfolio.execute = action
             seq.portfolio.proba_execute = probas[1]
 
+            actions.append(action)
+
             if episode_end:
                 break
 
-        return env.n_trades / env.N_START_TRADES
+        profit = env.n_trades / env.N_START_TRADES
+        exec_ratio = sum(actions) / len(actions)
+
+        return {"eval_profit": profit, "eval_exec_ratio": exec_ratio}
 
 
 if __name__ == '__main__':
