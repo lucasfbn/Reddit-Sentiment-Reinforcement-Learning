@@ -46,7 +46,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps,
 
     callbacks = [WandbCallback(), LogCallback(1)]
     if model_checkpoints:
-        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
+        checkpoint_callback = CheckpointCallback(save_freq=25000,
                                                  save_path=Path(Path(run_dir) / "models").as_posix())
         callbacks.append(checkpoint_callback)
     if run_eval:
@@ -69,13 +69,14 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps,
 def main():
     data = load_data("2d2742q1", 0)
 
-    with wandb.init(project="Trendstuff", group="Throwaway") as run:
+    with wandb.init(project="Trendstuff", group="RL Portfolio Train") as run:
         wandb.tensorboard.patch(save=False)
 
         env = EnvCNN(data)
 
         model, summary = train(data, env, num_steps=500000, run_dir=run.dir,
-                               network=Network, features_extractor_kwargs=dict(features_dim=128))
+                               network=Network, features_extractor_kwargs=dict(features_dim=128),
+                               model_checkpoints=True)
 
         log_to_summary(run, summary)
 
