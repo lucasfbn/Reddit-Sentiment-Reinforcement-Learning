@@ -7,7 +7,7 @@ from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.portfolio.train.networks.multi_input import Network
 from rl.portfolio.training import train, load_data
 
-data = load_data(0, 0)
+data, _ = load_data(0, 0)
 
 
 def objective(trial):
