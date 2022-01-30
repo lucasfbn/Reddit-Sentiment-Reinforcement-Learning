@@ -18,11 +18,11 @@ from utils.wandb_utils import log_to_summary
 
 def load_data(meta_run_id, dataset_version):
     with wandb.init(project="Trendstuff", group="Throwaway") as run:
-        data = StockDatasetWandb()
-        data.wandb_load_meta_file(meta_run_id, run)
-        data.wandb_load_data(run, dataset_version)
+        dataset = StockDatasetWandb()
+        dataset.wandb_load_meta_file(meta_run_id, run)
+        dataset.wandb_load_data(run, dataset_version)
 
-    all_sequences = hs.get_all_sequences(data)
+    all_sequences = hs.get_all_sequences(dataset)
     all_sequences = hs.remove_invalid_sequences(all_sequences)
 
     for seq in all_sequences:
@@ -30,7 +30,7 @@ def load_data(meta_run_id, dataset_version):
 
     all_sequences = sorted(all_sequences, key=lambda seq: seq.metadata.date)
 
-    return all_sequences
+    return all_sequences, dataset
 
 
 def train(data, env, run_dir, network, features_extractor_kwargs, num_steps,
@@ -67,7 +67,7 @@ def train(data, env, run_dir, network, features_extractor_kwargs, num_steps,
 
 
 def main():
-    data = load_data("2d2742q1", 0)
+    data, _ = load_data("2d2742q1", 0)
 
     with wandb.init(project="Trendstuff", group="RL Portfolio Train") as run:
         wandb.tensorboard.patch(save=False)
