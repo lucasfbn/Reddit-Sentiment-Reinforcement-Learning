@@ -2,7 +2,6 @@ name: stocks
 channels:
   - defaults
 dependencies:
-  - python=3.8.12
   - pip
   - pip:
     - gym
@@ -22,5 +21,6 @@ dependencies:
     - yfinance
     - h5py
     - orjson
+    - tensorboard
 variables:
   WANDB_DIR: F:/wandb/
