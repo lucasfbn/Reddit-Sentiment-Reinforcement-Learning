@@ -64,16 +64,16 @@ class RewardHandler:
         return a + (((x - min_) * (b - a)) / (max_ - min_))
 
     def go(self, x):
-        if x <= 0.2:
+        if x <= 0.3:
             # return 1 - (x / 0.1) ** 0.4
             # return -10 * x + 1
-            x = self.min_max_scaler(0.2, 0.0, x, 0, 1)
+            x = self.min_max_scaler(0.3, 0.0, x, 0, 1)
             p0 = np.array([0.1, 0.0])
             p1 = np.array([0.0, 0.0])
             p2 = np.array([0.0, 1.0])
             bezier = (1 - x) ** 2 * p0 + 2 * (1 - x) * x * p1 + x ** 2 * p2
             return bezier[1]
-        elif 0.2 < x <= 0.6:
+        elif 0.3 < x <= 0.6:
             return 0.0
         elif 0.6 < x <= 1.0:
             x = self.min_max_scaler(0.6, 1.0, x, 0, 1)
