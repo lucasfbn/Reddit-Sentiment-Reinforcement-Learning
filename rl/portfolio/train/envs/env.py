@@ -11,7 +11,6 @@ from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
 from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
 
 
-
 class BaseEnv(Env, ABC):
 
     def __init__(self, base_sequences):
