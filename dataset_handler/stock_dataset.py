@@ -68,7 +68,7 @@ class StockDatasetWandb(StockDataset):
 
     def wandb_load_meta_file(self, run_id, run):
         path = Path(wandb.restore(name=self.META_FN, run_path=f'{run.entity}/{run.project}/{run_id}',
-                                  root=os.getenv("WANDB_DIR") + "files").name)
+                                  root=f"{os.getenv('WANDB_DIR')}run_files/{run_id}").name)
         path = path.parent  # because wandb adds the filename to the path
         self.load_meta(path)
 
@@ -107,7 +107,7 @@ if __name__ == "__main__":
         dataset.load_data(root)
         # or
         # dataset.load(root)
-        dataset.dump(root, dump_data=True)
+        # dataset.dump(root, dump_data=True)
 
 
     def wandb_usage():
@@ -132,5 +132,6 @@ if __name__ == "__main__":
             dataset.log_as_file(run)
 
 
+    non_wandb_usage()
     # wandb_usage()
-    convert()
+    # convert()
