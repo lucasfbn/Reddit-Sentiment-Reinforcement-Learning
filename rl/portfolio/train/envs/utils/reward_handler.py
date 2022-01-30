@@ -88,10 +88,10 @@ class RewardHandler:
             raise ValueError
 
     def go1(self, x):
-        if x <= 0.3:
+        if x <= 0.2:
             return 1 - (x / 0.3) ** 0.4
-        # elif 0.3 < x <= 0.35:
-        #     return 0
-        elif 0.3 < x <= 1.0:
-            x = self.min_max_scaler(0.3, 1.0, x, 0, 1)
+        elif 0.2 < x <= 0.25:
+            return 0
+        elif 0.25 < x <= 1.0:
+            x = self.min_max_scaler(0.25, 1.0, x, 0, 1)
             return x ** 1.4
