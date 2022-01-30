@@ -79,15 +79,11 @@ class BaseEnv(Env, ABC):
         self.data_iter.step()
 
         return next_state, total_reward, episode_end, {"reward": reward,
-                                                       "reward_completed_steps": reward_completed_steps,
-                                                       "reward_discount_n_trades_left": reward_discount_n_trades_left,
                                                        "total_reward": total_reward,
                                                        "episode_end": episode_end,
                                                        "new_date": new_date,
-                                                       "intermediate_episode_end": intermediate_episode_end,
                                                        "n_trades_left": self.trading_env.n_trades_left_scaled,
                                                        "trades_exhausted": self.trading_env.trades_exhausted(),
-                                                       "completed_steps": self.data_iter.perc_completed_steps,
                                                        "total_steps": len(self.data_iter.sequences),
                                                        "current_steps": self.data_iter.steps}
 
