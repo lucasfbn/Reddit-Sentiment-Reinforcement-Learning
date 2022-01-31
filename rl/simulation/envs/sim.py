@@ -1,5 +1,5 @@
 from tqdm import tqdm
-
+import wandb
 from rl.simulation.envs.sub_envs.trading import TradingSimulator
 from rl.simulation.envs.tracker.track import Tracker, EnvStateTracker
 from rl.simulation.envs.utils.utils import *
@@ -42,6 +42,12 @@ class Simulation:
         self._daywise_sequences = daywise
         return daywise
 
+    def per_action_callback(self, day, success, sequence):
+        pass
+
+    def end_of_day_callback(self, day):
+        pass
+
     def eval_loop(self):
 
         for day, sequences in tqdm(self._daywise_sequences.items(), desc="Processing day"):
@@ -61,17 +67,23 @@ class Simulation:
             # Execute sells first
             for sell in sells:
                 success = self._trading_env.sell(sell)
-                self.detail_tracker.track(day, success, sell)
+                self.per_action_callback(day, success, sell)
 
             for hold in holds:
                 success = self._trading_env.hold(hold)
-                self.detail_tracker.track(day, success, hold)
+                self.per_action_callback(day, success, hold)
 
             for buy in buys:
                 success = self._trading_env.buy(buy)
-                self.detail_tracker.track(day, success, buy)
+                self.per_action_callback(day, success, buy)
 
-            self.overall_tracker.track(day)
+            self.end_of_day_callback(day)
             self._trading_env.reset_day()
 
-        print(self._trading_env._balance)
+
+class SimulationWandb(Simulation):
+
+    def end_of_day_callback(self, day):
+        wandb.log(dict(day=str(day),
+                       inventory_len=len(self._trading_env.inventory),
+                       balance=self._trading_env.balance))
