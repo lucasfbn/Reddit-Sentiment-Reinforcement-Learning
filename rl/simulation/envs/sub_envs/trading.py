@@ -13,7 +13,6 @@ class TradingSimulator:
     START_BALANCE = 2000
     INVESTMENT_PER_TRADE = 50
     MAX_PRICE_PER_STOCK = None
-    MAX_TRADES_PER_DAY = 3
     SLIPPAGE = 0.007
     ORDER_FEE = 0.02
 
