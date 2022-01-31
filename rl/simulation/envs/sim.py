@@ -14,8 +14,8 @@ class Simulation:
         self.dataset = dataset
 
         self._daywise_sequences = None
-        self._trading_env = TradingSimulator()
-
+        self.trading_env = TradingSimulator()
+        
     def prepare_data(self):
         sequences = [list(t.sequences) for t in self.dataset]
         sequences = list(itertools.chain(*sequences))
@@ -73,19 +73,19 @@ class Simulation:
 
             # Execute sells first
             for sell in sells:
-                success = self._trading_env.sell(sell)
+                success = self.trading_env.sell(sell)
                 self.per_action_callback(day, success, sell)
 
             for hold in holds:
-                success = self._trading_env.hold(hold)
+                success = self.trading_env.hold(hold)
                 self.per_action_callback(day, success, hold)
 
             for buy in buys:
-                success = self._trading_env.buy(buy)
+                success = self.trading_env.buy(buy)
                 self.per_action_callback(day, success, buy)
 
             self.end_of_day_callback(i, day, actions)
-            self._trading_env.reset_day()
+            self.trading_env.reset_day()
 
         self.end_of_eval_callback()
 
@@ -110,9 +110,9 @@ class SimulationWandb(Simulation):
 
     def start_of_day_callback(self, day_index):
         wandb.log(dict(day=day_index,
-                       inventory_len=len(self._trading_env.inventory),
-                       balance=self._trading_env.balance,
-                       balance_rel=self._trading_env.balance / self._trading_env.START_BALANCE))
+                       inventory_len=len(self.trading_env.inventory),
+                       balance=self.trading_env.balance,
+                       balance_rel=self.trading_env.balance / self.trading_env.START_BALANCE))
 
     def end_of_day_callback(self, day_index, day, actions):
         holds, buys, sells = actions["0"], actions["1"], actions["2"]
@@ -124,9 +124,9 @@ class SimulationWandb(Simulation):
                        sell_ratio=len(sells) / total))
 
     def end_of_eval_callback(self):
-        log_to_summary(wandb.run, dict(final_balance=self._trading_env.balance,
-                                       profit=self._trading_env.balance / self._trading_env.START_BALANCE,
-                                       inventory_len=len(self._trading_env.inventory)))
+        log_to_summary(wandb.run, dict(final_balance=self.trading_env.balance,
+                                       profit=self.trading_env.balance / self.trading_env.START_BALANCE,
+                                       inventory_len=len(self.trading_env.inventory)))
 
         df = pd.DataFrame(self.tracked)
         df = df[df["action"] != 0]
