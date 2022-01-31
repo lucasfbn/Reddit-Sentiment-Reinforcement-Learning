@@ -60,20 +60,22 @@ class EvalEnv:
 if __name__ == '__main__':
     from rl.portfolio.train.envs.sub_envs.trading import TradingSimulator
     from rl.utils.state_handler import StateHandlerCNN
-    from rl.portfolio.train import load_data
+    from rl.portfolio.training import load_data
     from rl.portfolio.train.envs.utils.data_iterator import DataIterator
 
-    data = load_data("2d2742q1", 0)
-
-    data = sorted(data, key=lambda seq: seq.metadata.date)
+    data, dataset = load_data("2d2742q1", 0)
 
     data_iter = DataIterator(data).sequence_iter()
     #
-    run_id = "9cxzb2vg"
-    model_fn = "rl_model_374448_steps.zip"
+    run_id = "1xt7s0hf"
+    model_fn = "rl_model_275000_steps.zip"
 
     model_path = Path(wandb.restore(name=f"models/{model_fn}",
                                     run_path=f"lucasfbn/Trendstuff/{run_id}").name)
     model = PPO.load(model_path)
     env = EvalEnv(model, data_iter, StateHandlerCNN, TradingSimulator)
-    print(env.eval())
+    evl_result = env.eval()
+    print(evl_result)
+
+    with wandb.init(project="Trendstuff", group="RL Portfolio Eval") as run:
+        dataset.log_as_file(run)
