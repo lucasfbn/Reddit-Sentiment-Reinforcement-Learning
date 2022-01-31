@@ -53,9 +53,12 @@ class Simulation:
     def end_of_eval_callback(self):
         pass
 
-    def eval_loop(self):
+    def eval_loop(self, skip_first_day):
 
         for i, (day, sequences) in tqdm(enumerate(self._daywise_sequences.items()), desc="Processing day"):
+
+            if i == 0 and skip_first_day:
+                continue
 
             self.start_of_day_callback(i)
 
