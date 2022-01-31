@@ -88,8 +88,9 @@ class BaseEnv(Env, ABC):
         pass
 
     def _shuffle_sequences(self):
-        start_index = randrange(0, len(self._sequences))
-        episode_sequences = self._sequences[start_index:]
+        start_index = randrange(0, len(self._sequences), 1)
+        stop_index = randrange(start_index, len(self._sequences), 1)
+        episode_sequences = self._sequences[start_index:stop_index]
         return episode_sequences, len(episode_sequences)
 
     def reset(self):
