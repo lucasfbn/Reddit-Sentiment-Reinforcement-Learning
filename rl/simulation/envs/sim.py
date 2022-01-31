@@ -5,7 +5,7 @@ import wandb
 from tqdm import tqdm
 
 from rl.simulation.envs.sub_envs.trading import TradingSimulator
-from utils.wandb_utils import log_to_summary
+from utils.wandb_utils import log_to_summary, log_file
 
 
 class Simulation:
@@ -47,7 +47,7 @@ class Simulation:
     def start_of_day_callback(self, day):
         pass
 
-    def end_of_day_callback(self, day, actions):
+    def end_of_day_callback(self, day_index, day, actions):
         pass
 
     def end_of_eval_callback(self):
@@ -84,7 +84,7 @@ class Simulation:
                 success = self._trading_env.buy(buy)
                 self.per_action_callback(day, success, buy)
 
-            self.end_of_day_callback(i, actions)
+            self.end_of_day_callback(i, day, actions)
             self._trading_env.reset_day()
 
         self.end_of_eval_callback()
@@ -92,16 +92,33 @@ class Simulation:
 
 class SimulationWandb(Simulation):
 
-    def start_of_day_callback(self, day):
-        wandb.log(dict(day=day,
-                       inventory_len=len(self._trading_env.inventory),
-                       balance=self._trading_env.balance))
+    def __init__(self, dataset):
+        super().__init__(dataset)
 
-    def end_of_day_callback(self, day, actions):
+        self.tracked = []
+
+    def per_action_callback(self, day, success, sequence):
+        self.tracked.append(dict(
+            ticker=sequence.metadata.ticker_name,
+            date=str(day),
+            success=success,
+            action=sequence.evl.action,
+            exec=bool(sequence.portfolio.execute),
+            tradeable=sequence.metadata.tradeable,
+            price=sequence.metadata.price_raw
+        ))
+
+    def start_of_day_callback(self, day_index):
+        wandb.log(dict(day=day_index,
+                       inventory_len=len(self._trading_env.inventory),
+                       balance=self._trading_env.balance,
+                       balance_rel=self._trading_env.balance / self._trading_env.START_BALANCE))
+
+    def end_of_day_callback(self, day_index, day, actions):
         holds, buys, sells = actions["0"], actions["1"], actions["2"]
         total = len(holds) + len(buys) + len(sells)
 
-        wandb.log(dict(day=day,
+        wandb.log(dict(day=day_index,
                        buy_ratio=len(buys) / total,
                        hold_ratio=len(holds) / total,
                        sell_ratio=len(sells) / total))
@@ -110,3 +127,7 @@ class SimulationWandb(Simulation):
         log_to_summary(wandb.run, dict(final_balance=self._trading_env.balance,
                                        profit=self._trading_env.balance / self._trading_env.START_BALANCE,
                                        inventory_len=len(self._trading_env.inventory)))
+
+        df = pd.DataFrame(self.tracked)
+        df = df[df["action"] != 0]
+        log_file(df, "tracked.csv", wandb.run)
