@@ -1,30 +1,24 @@
-import mlflow
-from mlflow_utils import init_mlflow, load_file, log_file
-
-from rl.simulation.envs.env import EvalEnv
+from rl.simulation.envs.sim import Simulation
 from rl.simulation.envs.pre_process.pre_process import PreProcessor
-from utils.paths import mlflow_dir
+import wandb
+from dataset_handler.stock_dataset import StockDatasetWandb
+from utils.wandb_utils import log_file
 
 
 def main():
-    init_mlflow(mlflow_dir, "Tests")
-    ticker = load_file(
-        run_id="f384f58217114433875eda44495272ad",
-        fn="evl_ticker.pkl",
-        experiment="Eval_Stocks",
-    )
-    pre_processor = PreProcessor()
+    with wandb.init(project="Trendstuff", group="Throwaway") as run:
+        dataset = StockDatasetWandb()
+        dataset.wandb_load_meta_file("as6t2wi1", run)
 
-    eval_env = EvalEnv(ticker, pre_processor)
-    eval_env.run_pre_processor()
-    eval_env.eval_loop()
-
-    init_mlflow(mlflow_dir, "Tests")
-    with mlflow.start_run():
-        log_file(eval_env.detail_tracker.trades.tracked, fn="detailed_trades.csv")
-        log_file(eval_env.detail_tracker.env_state.tracked, fn="detailed_env_state.csv")
-        log_file(eval_env.detail_tracker.tracked, fn="detailed_tracked.csv")
-        log_file(eval_env.overall_tracker.tracked, fn="overall_tracked.csv")
+        dataset = dataset
+        eval_env = Simulation(dataset)
+        eval_env.prepare_data()
+        eval_env.eval_loop()
+        #
+        log_file(eval_env.detail_tracker.trades.tracked, fn="detailed_trades.csv", run=run)
+        log_file(eval_env.detail_tracker.env_state.tracked, fn="detailed_env_state.csv", run=run)
+        log_file(eval_env.detail_tracker.tracked, fn="detailed_tracked.csv", run=run)
+        log_file(eval_env.overall_tracker.tracked, fn="overall_tracked.csv", run=run)
 
 
 main()
