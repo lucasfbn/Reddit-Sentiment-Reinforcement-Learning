@@ -5,7 +5,6 @@ import wandb
 from tqdm import tqdm
 
 from rl.simulation.envs.sub_envs.trading import TradingSimulator
-from rl.simulation.envs.tracker.track import Tracker, EnvStateTracker
 from utils.wandb_utils import log_to_summary
 
 
@@ -16,9 +15,6 @@ class Simulation:
 
         self._daywise_sequences = None
         self._trading_env = TradingSimulator()
-
-        self.detail_tracker = Tracker(self._trading_env)
-        self.overall_tracker = EnvStateTracker(self._trading_env)
 
     def prepare_data(self):
         sequences = [list(t.sequences) for t in self.dataset]
