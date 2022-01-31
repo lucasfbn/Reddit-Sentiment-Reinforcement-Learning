@@ -10,8 +10,8 @@ class Stock:
 
 
 class TradingSimulator:
-    START_BALANCE = 1000
-    INVESTMENT_PER_TRADE = 70
+    START_BALANCE = 2000
+    INVESTMENT_PER_TRADE = 50
     MAX_PRICE_PER_STOCK = None
     MAX_TRADES_PER_DAY = 3
     SLIPPAGE = 0.007
@@ -27,42 +27,41 @@ class TradingSimulator:
         self._n_trades = 0
 
     @staticmethod
-    def _base_checks(operation):
-        return operation.tradeable
+    def _base_checks(sequence):
+        return sequence.metadata.tradeable
 
-    def buy(self, operation):
-        if not self._base_checks(operation):
+    def buy(self, sequence):
+        if not self._base_checks(sequence):
             return False
 
         if self._balance <= 0 or (self._balance - self.INVESTMENT_PER_TRADE) <= 0:
             return False
 
-        if self.MAX_TRADES_PER_DAY is not None and self._n_trades >= self.MAX_TRADES_PER_DAY:
+        price = sequence.metadata.price_raw
+
+        if self.MAX_PRICE_PER_STOCK is not None and price > self.MAX_PRICE_PER_STOCK:
             return False
 
-        if self.MAX_PRICE_PER_STOCK is not None and operation.price > self.MAX_PRICE_PER_STOCK:
-            return False
-
-        price = operation.price * (1 + self._additional_costs_perc)
+        price = price * (1 + self._additional_costs_perc)
         quantity = self.INVESTMENT_PER_TRADE // price
 
-        self._inventory.append(Stock(kind="buy", ticker=operation.ticker, price=price, quantity=quantity))
+        self._inventory.append(Stock(kind="buy", ticker=sequence.metadata.ticker_name, price=price, quantity=quantity))
         self._n_trades += 1
         self._balance -= price * quantity
 
         return True
 
-    def sell(self, operation):
+    def sell(self, sequence):
 
-        if not self._base_checks(operation):
+        if not self._base_checks(sequence):
             return False
 
         new_inventory = []
 
         for stock in self._inventory:
 
-            if stock.ticker == operation.ticker:
-                price = operation.price * (1 - self._additional_costs_perc)
+            if stock.ticker == sequence.metadata.ticker_name:
+                price = sequence.metadata.price_raw * (1 - self._additional_costs_perc)
 
                 self._balance += price * stock.quantity
             else:
@@ -72,11 +71,11 @@ class TradingSimulator:
 
         return True
 
-    def hold(self, operation):
+    def hold(self, sequence):
         return True
 
-    def inventory_state(self, operation):
-        is_in_inventory = any(op.ticker == operation.ticker for op in self._inventory)
+    def inventory_state(self, sequence):
+        is_in_inventory = any(stock.ticker == sequence.metadata.ticker_name for stock in self._inventory)
         return int(is_in_inventory)
 
     @property

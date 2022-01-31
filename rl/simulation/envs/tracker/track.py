@@ -28,19 +28,15 @@ class EnvStateTracker(BaseTracker):
 
 class TradeTracker(BaseTracker):
 
-    def track(self, date, success, action_pair):
-        operation = action_pair["operation"]
-        action = action_pair["action"]
-        proba = action_pair["proba"]
-
+    def track(self, date, success, sequence):
         self._tracked.append(dict(
-            ticker=operation.ticker,
+            ticker=sequence.metadata.ticker_name,
             date=date,
             success=success,
-            action=action,
-            proba=proba,
-            tradeable=operation.tradeable,
-            price=operation.price
+            action=sequence.evl.action,
+            exec=sequence.portfolio.execute,
+            tradeable=sequence.metadata.tradeable,
+            price=sequence.metadata.price_raw
         ))
 
 
@@ -50,9 +46,9 @@ class Tracker:
         self.env_state = EnvStateTracker(trading_env)
         self.trades = TradeTracker()
 
-    def track(self, date, success, action_pair):
+    def track(self, date, success, sequence):
         self.env_state.track(date)
-        self.trades.track(date, success, action_pair)
+        self.trades.track(date, success, sequence)
 
     @property
     def tracked(self):
