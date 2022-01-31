@@ -48,21 +48,15 @@ class Simulation:
 
             actions = {"0": [], "1": [], "2": []}
 
-            curr_counter = 0
-
             # Required for groupby
             sequences = sorted(sequences, key=lambda seq: seq.evl.action)
 
             for key, group in itertools.groupby(sequences, lambda seq: seq.evl.action):
-                list_group = list(group)
-                actions[str(key)] = list_group
-                curr_counter += len(list_group)
+                actions[str(key)] = list(group)
 
             assert list(actions.keys()) == ["0", "1", "2"]
 
             holds, buys, sells = actions["0"], actions["1"], actions["2"]
-
-            assert len(holds) + len(buys) + len(sells) == curr_counter
 
             # Execute sells first
             for sell in sells:
