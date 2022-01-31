@@ -15,7 +15,7 @@ class Simulation:
 
         self._daywise_sequences = None
         self.trading_env = TradingSimulator()
-        
+
     def prepare_data(self):
         sequences = [list(t.sequences) for t in self.dataset]
         sequences = list(itertools.chain(*sequences))
