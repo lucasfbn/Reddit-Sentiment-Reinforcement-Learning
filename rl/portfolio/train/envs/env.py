@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from random import randrange
+from itertools import groupby, chain
+from random import randrange, shuffle
 
 import numpy as np
 from gym import Env, spaces
@@ -17,6 +18,8 @@ class BaseEnv(Env, ABC):
         super().__init__()
 
         self._sequences = base_sequences
+        self._sequences_grouped = [list(grp) for _, grp in groupby(self._sequences,
+                                                                   lambda seq: seq.metadata.date)]
 
         self.data_iter = DataIterator(self._sequences)
         self._curr_state_iter = self.data_iter.sequence_iter()
@@ -87,14 +90,16 @@ class BaseEnv(Env, ABC):
     def close(self):
         pass
 
-    def _shuffle_sequences(self):
-        start_index = randrange(0, len(self._sequences), 1)
-        stop_index = randrange(start_index, len(self._sequences), 1)
-        episode_sequences = self._sequences[start_index:stop_index]
+    def _new_episode(self):
+        _ = [shuffle(grp) for grp in self._sequences_grouped]
+        sequences = list(chain(*self._sequences_grouped))
+        start_index = randrange(0, len(sequences), 1)
+        stop_index = randrange(start_index, len(sequences), 1)
+        episode_sequences = sequences[start_index:stop_index]
         return episode_sequences, len(episode_sequences)
 
     def reset(self):
-        sequences, n_max_episodes = self._shuffle_sequences()
+        sequences, n_max_episodes = self._new_episode()
         self.data_iter = DataIterator(sequences)
         self._curr_state_iter = self.data_iter.sequence_iter()
         self._next_state_iter = self.data_iter.sequence_iter()
