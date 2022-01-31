@@ -54,11 +54,11 @@ class Portfolio:
 
 class Sequence:
 
-    def __init__(self, index: int = None, data: Data = None, metadata: Metadata = None, evl: Eval = None):
+    def __init__(self, index: int = None):
         self.index = index
-        self.data = data
-        self.metadata = metadata
-        self.evl = Eval() if evl is None else evl
+        self.data = Data()
+        self.metadata = Metadata()
+        self.evl = Eval()
         self.portfolio = Portfolio()
 
     def drop_data(self):
