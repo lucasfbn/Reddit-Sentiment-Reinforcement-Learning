@@ -2,6 +2,7 @@ import os
 import tempfile
 from pathlib import Path
 
+import pandas as pd
 import wandb
 
 from dataset_handler.data.parser import Parser as DataParser
@@ -99,10 +100,37 @@ class StockDatasetWandb(StockDataset):
         self.dump(root, log_data)
 
 
+class StockDatasetMaxDate(StockDataset):
+
+    def __init__(self, max_date: pd.Period):
+        super().__init__()
+        self.max_date = max_date
+
+    def _apply_max_date_limit(self, metadata):
+        for obj in metadata:
+            df = obj.sequences.to_df()
+            df["date"] = pd.to_datetime(df["date"]).dt.to_period("d")
+            df = df[df["date"] <= self.max_date]
+            obj.sequences = obj.sequences[:len(df)]
+        return metadata
+
+    def load_meta(self, root):
+        root = Path(root)
+
+        meta_parser = MetaParser(root / self.META_FN, parse_date=False)
+        meta_data = meta_parser.parse()
+        meta_data = self._apply_max_date_limit(meta_data)
+        self.data = meta_data
+
+
+class StockDatasetMaxDateWandb(StockDatasetWandb, StockDatasetMaxDate):
+    pass
+
+
 if __name__ == "__main__":
     def non_wandb_usage():
         root = r"F:\wandb\artefacts\dataset"
-        dataset = StockDataset()
+        dataset = StockDatasetMaxDate(pd.Period("2021-04-23"))
         dataset.load_meta(root)
         dataset.load_data(root)
         # or
@@ -111,9 +139,9 @@ if __name__ == "__main__":
 
 
     def wandb_usage():
-        with wandb.init(project="TestsProject", group="Datasets") as run:
-            dataset = StockDatasetWandb()
-            dataset.wandb_load_meta_file("3e5jwups", run=run)
+        with wandb.init(project="Trendstuff", group="Throwaway") as run:
+            dataset = StockDatasetMaxDateWandb(pd.Period("2021-04-23"))
+            dataset.wandb_load_meta_file("2e779tzl", run=run)
             dataset.wandb_load_data(run, 0)
 
             # or
@@ -132,6 +160,6 @@ if __name__ == "__main__":
             dataset.log_as_file(run)
 
 
-    non_wandb_usage()
-    # wandb_usage()
+    # non_wandb_usage()
+    wandb_usage()
     # convert()
