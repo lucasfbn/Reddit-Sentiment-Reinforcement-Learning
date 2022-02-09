@@ -22,8 +22,12 @@ class Sequences:
         self.lst = None
 
     def min_max_dates(self):
-        min_ = self.lst[0].metadata.date
-        max_ = self.lst[len(self.lst) - 1].metadata.date
+
+        if len(self.lst) > 1:
+            min_ = pd.Period(self.lst[0].metadata.date)
+            max_ = pd.Period(self.lst[len(self.lst) - 1].metadata.date)
+        else:
+            min_, max_ = None, None
         return min_, max_
 
     def aggregated_rewards(self):
