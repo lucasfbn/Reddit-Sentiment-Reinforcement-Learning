@@ -1,3 +1,4 @@
+import copy
 import os
 import tempfile
 from pathlib import Path
@@ -15,8 +16,12 @@ class StockDataset:
     META_FN = "meta.json"
     DATA_FN = "data.h5"
 
-    def __init__(self):
+    def __init__(self, parse_date=False):
+        self.parse_date = parse_date
         self.data = None
+
+        self.stats = None
+        self.index = None
 
     def dump(self, root, dump_data=True):
         root = Path(root)
@@ -32,8 +37,11 @@ class StockDataset:
     def load_meta(self, root):
         root = Path(root)
 
-        meta_parser = MetaParser(root / self.META_FN)
+        meta_parser = MetaParser(root / self.META_FN, parse_date=self.parse_date)
         self.data = meta_parser.parse()
+
+        self.stats = Statistics(self.data, self.parse_date)
+        self.index = Indexer(self.data, self.parse_date)
 
     def load_data(self, root):
         root = Path(root)
@@ -41,6 +49,14 @@ class StockDataset:
         data_parser = DataParser(root / self.DATA_FN)
         self.data = data_parser.parse_multiple(self.data)
         data_parser.close()
+
+    def _update_attributes(self):
+        self.index = Indexer(self.data, self.parse_date)
+        self.stats = Statistics(self.data, self.parse_date)
+
+    def filter_min_len(self, min_len):
+        self.data = [obj for obj in self.data if len(obj) > min_len]
+        self._update_attributes()
 
     def load(self, root):
         root = Path(root)
@@ -56,6 +72,81 @@ class StockDataset:
 
     def __iter__(self):
         yield from self.data
+
+
+class Statistics:
+
+    def __init__(self, data, parse_date):
+        self.data = data
+        self.parse_date = parse_date
+
+    def min_max_date(self):
+
+        min_ = pd.Period("01/01/3000")
+        max_ = pd.Period("01/01/1000")
+
+        for obj in self.data:
+            obj_min, obj_max = obj.sequences.min_max_dates()
+
+            if obj_min < min_:
+                min_ = obj_min
+
+            if obj_max > max_:
+                max_ = obj_max
+
+        return min_, max_
+
+    def date_distribution(self):
+        dfs = [obj.sequences.to_df() for obj in self.data]
+        df = pd.concat(dfs)
+
+        if not self.parse_date:
+            df["date"] = pd.to_datetime(df["date"]).dt.to_period("d")
+
+        df = df.sort_values(by=["date"])
+        return df["date"].value_counts(sort=False)
+
+
+class Indexer:
+
+    def __init__(self, data, parse_date):
+        self.data = data
+        self.parse_date = parse_date
+
+    def __getitem__(self, idx):
+        min_date, max_date = idx.start, idx.stop
+
+        new_data = copy.deepcopy(self.data)
+
+        for obj in new_data:
+            df = obj.sequences.to_df()
+
+            if not self.parse_date:
+                df["date"] = pd.to_datetime(df["date"]).dt.to_period("d")
+
+            slice_ = slice(None, None)
+
+            if min_date is None:
+                df = df[df["date"] <= max_date]
+                if len(df) > 0:
+                    slice_ = slice(None, len(df), None)
+            elif max_date is None:
+                df = df[df["date"] >= min_date]
+                if len(df) > 0:
+                    slice_ = slice(int(df.index[0]), None, None)
+            else:
+                df = df[(min_date <= df["date"]) & (df["date"] <= max_date)]
+                if len(df) > 0:
+                    slice_ = slice(int(df.index[0]), int(df.index[len(df) - 1]) + 1, None)
+
+            obj.sequences.lst = [] if len(df) == 0 else obj.sequences[slice_]
+
+        new_dataset = StockDataset(self.parse_date)
+        new_dataset.data = new_data
+        new_dataset.index = Indexer(new_data, self.parse_date)
+        new_dataset.stats = Statistics(new_data, self.parse_date)
+        new_dataset.filter_min_len(1)
+        return new_dataset
 
 
 class StockDatasetWandb(StockDataset):
@@ -100,39 +191,19 @@ class StockDatasetWandb(StockDataset):
         self.dump(root, log_data)
 
 
-class StockDatasetMaxDate(StockDataset):
-
-    def __init__(self, max_date: pd.Period):
-        super().__init__()
-        self.max_date = max_date
-
-    def _apply_max_date_limit(self, metadata):
-        for obj in metadata:
-            df = obj.sequences.to_df()
-            df["date"] = pd.to_datetime(df["date"]).dt.to_period("d")
-            df = df[df["date"] <= self.max_date]
-            obj.sequences = obj.sequences[:len(df)]
-        return metadata
-
-    def load_meta(self, root):
-        root = Path(root)
-
-        meta_parser = MetaParser(root / self.META_FN, parse_date=False)
-        meta_data = meta_parser.parse()
-        meta_data = self._apply_max_date_limit(meta_data)
-        self.data = meta_data
-
-
-class StockDatasetMaxDateWandb(StockDatasetWandb, StockDatasetMaxDate):
-    pass
-
-
 if __name__ == "__main__":
     def non_wandb_usage():
         root = r"F:\wandb\artefacts\dataset"
-        dataset = StockDatasetMaxDate(pd.Period("2021-04-23"))
+        dataset = StockDataset(parse_date=False)
         dataset.load_meta(root)
         dataset.load_data(root)
+
+        # max_date_ds = dataset.index[:pd.Period("2021-04-23")]
+        #
+        # min_date_ds = dataset.index[pd.Period("2021-04-23"):]
+        #
+        # in_date_ds = dataset.index[pd.Period("2021-04-23"):pd.Period("2021-06-13")]
+
         # or
         # dataset.load(root)
         # dataset.dump(root, dump_data=True)
@@ -140,7 +211,7 @@ if __name__ == "__main__":
 
     def wandb_usage():
         with wandb.init(project="Trendstuff", group="Throwaway") as run:
-            dataset = StockDatasetMaxDateWandb(pd.Period("2021-04-23"))
+            dataset = StockDatasetWandb()
             dataset.wandb_load_meta_file("2e779tzl", run=run)
             dataset.wandb_load_data(run, 0)
 
@@ -160,6 +231,6 @@ if __name__ == "__main__":
             dataset.log_as_file(run)
 
 
-    # non_wandb_usage()
-    wandb_usage()
+    non_wandb_usage()
+    # wandb_usage()
     # convert()
