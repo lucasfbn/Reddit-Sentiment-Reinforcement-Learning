@@ -10,6 +10,7 @@ from rl.stocks.train.callbacks.log import LogCallback
 from rl.stocks.train.envs.env import EnvCNN
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.networks.multi_input import Network
+from rl.common.runner.train import TrainRunner
 
 """
 https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html
@@ -26,41 +27,21 @@ def load_data(data_version):
     return data
 
 
-def train(data, env, run_dir, network, policy_args, features_extractor_kwargs, num_steps, shutdown=False,
-          model_checkpoints=False):
-    len_sequences = [len(tck) for tck in data]
-    max_timesteps = max(len_sequences)
-    total_timesteps_p_episode = sum(len_sequences)
+class StockTrainRunner(TrainRunner):
 
-    wandb.log(dict(ENABLE_TRANSACTION_COSTS=SimpleTradingEnvTraining.ENABLE_TRANSACTION_COSTS,
-                   ENABLE_NEG_BUY_REWARD=SimpleTradingEnvTraining.ENABLE_NEG_BUY_REWARD,
-                   ENABLE_POS_SELL_REWARD=SimpleTradingEnvTraining.ENABLE_POS_SELL_REWARD,
-                   TRANSACTION_FEE_BID=SimpleTradingEnvTraining.TRANSACTION_FEE_BID,
-                   TRANSACTION_FEE_ASK=SimpleTradingEnvTraining.TRANSACTION_FEE_ASK,
-                   HOLD_REWARD_MULTIPLIER=SimpleTradingEnvTraining.HOLD_REWARD_MULTIPLIER,
-                   PARTIAL_HOLD_REWARD=SimpleTradingEnvTraining.PARTIAL_HOLD_REWARD))
+    def config(self):
+        return dict(ENABLE_TRANSACTION_COSTS=SimpleTradingEnvTraining.ENABLE_TRANSACTION_COSTS,
+                    ENABLE_NEG_BUY_REWARD=SimpleTradingEnvTraining.ENABLE_NEG_BUY_REWARD,
+                    ENABLE_POS_SELL_REWARD=SimpleTradingEnvTraining.ENABLE_POS_SELL_REWARD,
+                    TRANSACTION_FEE_BID=SimpleTradingEnvTraining.TRANSACTION_FEE_BID,
+                    TRANSACTION_FEE_ASK=SimpleTradingEnvTraining.TRANSACTION_FEE_ASK,
+                    HOLD_REWARD_MULTIPLIER=SimpleTradingEnvTraining.HOLD_REWARD_MULTIPLIER,
+                    PARTIAL_HOLD_REWARD=SimpleTradingEnvTraining.PARTIAL_HOLD_REWARD)
 
-    policy_kwargs = dict(
-        features_extractor_class=network,
-        features_extractor_kwargs=features_extractor_kwargs
-    )
-
-    checkpoint_callback = CheckpointCallback(save_freq=total_timesteps_p_episode,
-                                             save_path=Path(Path(run_dir) / "models").as_posix())
-    track_callback = LogCallback(episodes_log_interval=len(data))
-
-    callbacks = [track_callback]
-    if model_checkpoints:
-        callbacks.append(checkpoint_callback)
-
-    model = PPO('MultiInputPolicy', env, verbose=1, policy_kwargs=policy_kwargs,
-                tensorboard_log=(Path(run_dir) / "tensorboard").as_posix(), **policy_args)
-    model.learn(num_steps * total_timesteps_p_episode + 1, callback=callbacks)
-
-    if shutdown:
-        os.system('shutdown -s -t 600')
-
-    return model
+    def callbacks(self):
+        return [
+            LogCallback(episodes_log_interval=len(self.data)),
+        ]
 
 
 def main():
@@ -70,9 +51,10 @@ def main():
         wandb.tensorboard.patch(save=False)
 
         env = EnvCNN(data)
+        num_steps = data.stats.total_sequences() * 15
 
-        train(data, env, num_steps=15, run_dir=run.dir, policy_args={},
-              network=Network, features_extractor_kwargs=dict(features_dim=128))
+        runner = StockTrainRunner(run.dir, data, env)
+        runner.train(Network, dict(features_dim=128), num_steps)
 
 
 if __name__ == '__main__':
