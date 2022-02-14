@@ -106,6 +106,9 @@ class Statistics:
 
         return min_, max_
 
+    def total_sequences(self):
+        return sum(len(obj) for obj in self.data)
+
     def date_distribution(self):
         dfs = [obj.sequences.to_df() for obj in self.data]
         df = pd.concat(dfs)
