@@ -6,6 +6,7 @@ from pathlib import Path
 import pandas as pd
 import wandb
 
+from dataset_handler.classes.ticker import Sequences
 from dataset_handler.data.parser import Parser as DataParser
 from dataset_handler.data.saver import Saver as DataSaver
 from dataset_handler.meta.parser import Parser as MetaParser
@@ -117,9 +118,11 @@ class Indexer:
     def __getitem__(self, idx):
         min_date, max_date = idx.start, idx.stop
 
-        new_data = copy.deepcopy(self.data)
+        new_data = []
 
-        for obj in new_data:
+        for obj in self.data:
+            new_obj = copy.copy(obj)
+
             df = obj.sequences.to_df()
 
             if not self.parse_date:
@@ -140,7 +143,9 @@ class Indexer:
                 if len(df) > 0:
                     slice_ = slice(int(df.index[0]), int(df.index[len(df) - 1]) + 1, None)
 
-            obj.sequences.lst = [] if len(df) == 0 else obj.sequences[slice_]
+            new_obj.sequences = Sequences()
+            new_obj.sequences.lst = [] if len(df) == 0 else obj.sequences[slice_]
+            new_data.append(new_obj)
 
         new_dataset = StockDataset(self.parse_date)
         new_dataset.data = new_data
