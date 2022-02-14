@@ -104,7 +104,8 @@ class Statistics:
             df["date"] = pd.to_datetime(df["date"]).dt.to_period("d")
 
         df = df.sort_values(by=["date"])
-        return df["date"].value_counts(sort=False)
+        vc = df["date"].value_counts(sort=False)
+        return pd.DataFrame({"date": vc.index, "count": vc}).reset_index(drop=True)
 
 
 class Indexer:
