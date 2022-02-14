@@ -42,9 +42,6 @@ class Sequences:
     def to_df(self):
         return pd.DataFrame([seq.evl.to_dict() | seq.metadata.to_dict() for seq in self.lst])
 
-    def drop_data(self):
-        _ = [seq.drop_data() for seq in self.lst]
-
     def parse_dates(self):
         df = self.to_df()
         df["date"] = pd.to_datetime(df["date"]).dt.to_period("d")
