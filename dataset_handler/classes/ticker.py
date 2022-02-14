@@ -45,6 +45,16 @@ class Sequences:
     def drop_data(self):
         _ = [seq.drop_data() for seq in self.lst]
 
+    def parse_dates(self):
+        df = self.to_df()
+        df["date"] = pd.to_datetime(df["date"]).dt.to_period("d")
+
+        for index, row in df.iterrows():
+            self.lst[index].metadata.date = row["date"]
+
+    def is_empty(self):
+        return len(self.lst) == 0
+
     def backtrack(self):
         df = self.to_df()
         orig_df = df.copy()
@@ -90,6 +100,9 @@ class Ticker:
 
         self.sequences = Sequences()
         self.evl = Eval()
+
+    def is_empty(self):
+        return self.sequences.is_empty()
 
     def __len__(self):
         return len(self.sequences.lst)

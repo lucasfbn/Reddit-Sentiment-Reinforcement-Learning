@@ -38,8 +38,11 @@ class StockDataset:
     def load_meta(self, root):
         root = Path(root)
 
-        meta_parser = MetaParser(root / self.META_FN, parse_date=self.parse_date)
+        meta_parser = MetaParser(root / self.META_FN, parse_date=False)
         self.data = meta_parser.parse()
+
+        if self.parse_date:
+            self._parse_dates()
 
         self.stats = Statistics(self.data, self.parse_date)
         self.index = Indexer(self.data, self.parse_date)
@@ -58,6 +61,12 @@ class StockDataset:
     def filter_min_len(self, min_len):
         self.data = [obj for obj in self.data if len(obj) > min_len]
         self._update_attributes()
+
+    def _parse_dates(self):
+        _ = [obj.sequences.parse_dates() for obj in self.data]
+
+    def is_empty(self):
+        return all(obj.is_empty() for obj in self.data)
 
     def load(self, root):
         root = Path(root)
@@ -200,7 +209,7 @@ class StockDatasetWandb(StockDataset):
 if __name__ == "__main__":
     def non_wandb_usage():
         root = r"F:\wandb\artefacts\dataset"
-        dataset = StockDataset(parse_date=False)
+        dataset = StockDataset(parse_date=True)
         dataset.load_meta(root)
         dataset.load_data(root)
 
