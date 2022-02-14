@@ -75,7 +75,9 @@ class SplitWeekwise:
             end = grp.at[len(grp) - 1, "date"]
             idxs.append((start, end))
 
-        return [self.dataset.index[start:end] for start, end in tqdm(idxs, desc="Splitting")]
+        return idxs
+
+        # return [self.dataset.index[start:end] for start, end in tqdm(idxs, desc="Splitting")]
 
 
 def split(dataset: StockDataset, splits: list):
@@ -93,8 +95,10 @@ if __name__ == "__main__":
     dataset = StockDataset(parse_date=True)
     dataset.load_meta(root)
 
-    train, test = split(dataset, [0.6, 0.4])
+    # train, test = split(dataset, [0.6, 0.4])
     tests = split_weekwise(dataset)
+
+    print(tests)
 
     distros = [d.stats.date_distribution()["count"].sum() for d in tests if not d.is_empty()]
     print(distros)
