@@ -1,7 +1,9 @@
 import wandb
+from stable_baselines3.common.callbacks import EveryNTimesteps
 
 from dataset_handler.stock_dataset import StockDatasetWandb
 from rl.common.runner.train import TrainRunner
+from rl.stocks.eval.callbacks.eval import EvalCallback
 from rl.stocks.train.callbacks.log import LogCallback
 from rl.stocks.train.envs.env import EnvCNN
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
@@ -30,6 +32,9 @@ class StockTrainRunner(TrainRunner):
     def callbacks(self):
         return [
             LogCallback(episodes_log_interval=len(self.data)),
+            EveryNTimesteps(n_steps=len(self.data), callback=EvalCallback(self.data,
+                                                                          self.env.state_handler.__class__,
+                                                                          self.env.trading_env.__class__))
         ]
 
 
@@ -40,10 +45,10 @@ def main():
         wandb.tensorboard.patch(save=False)
 
         env = EnvCNN(data)
-        num_steps = data.stats.total_sequences() * 15
+        total_sequences = data.stats.total_sequences()
 
-        runner = StockTrainRunner(run.dir, data, env)
-        runner.train(Network, dict(features_dim=128), num_steps)
+        runner = StockTrainRunner(run.dir, data, env, model_checkpoint=total_sequences)
+        runner.train(Network, dict(features_dim=128), total_sequences * 15)
 
 
 if __name__ == '__main__':
