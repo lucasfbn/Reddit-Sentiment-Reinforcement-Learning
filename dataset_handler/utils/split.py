@@ -99,6 +99,3 @@ if __name__ == "__main__":
     tests = split_weekwise(dataset)
 
     print(tests)
-
-    distros = [d.stats.date_distribution()["count"].sum() for d in tests if not d.is_empty()]
-    print(distros)
