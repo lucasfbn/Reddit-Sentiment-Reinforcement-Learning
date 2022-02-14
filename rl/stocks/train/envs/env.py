@@ -6,7 +6,7 @@ from gym import Env, spaces
 from dataset_handler.classes.sequence import Sequence
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.envs.utils.data_iterator import DataIterator
-from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
+from rl.common.state_handler import StateHandlerCNN, StateHandlerNN
 
 
 class BaseEnv(Env, ABC):

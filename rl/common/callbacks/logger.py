@@ -1,7 +1,7 @@
 import pandas as pd
 import wandb
 
-from rl.utils.callbacks.base import Callback
+from rl.common.callbacks.base import Callback
 
 
 class Episode:

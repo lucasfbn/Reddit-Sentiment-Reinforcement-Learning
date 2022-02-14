@@ -2,7 +2,7 @@ import wandb
 
 from stable_baselines3.common.callbacks import EveryNTimesteps, BaseCallback
 from rl.portfolio.eval.env import EvalEnv
-from rl.utils.callbacks.base import Callback
+from rl.common.callbacks.base import Callback
 
 
 class EvalCallback(BaseCallback):

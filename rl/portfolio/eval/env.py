@@ -3,7 +3,7 @@ from pathlib import Path
 import wandb
 from stable_baselines3 import PPO
 
-from rl.utils.predict_proba import predict_proba
+from rl.common.predict_proba import predict_proba
 
 
 class EvalEnv:
@@ -59,7 +59,7 @@ class EvalEnv:
 
 if __name__ == '__main__':
     from rl.portfolio.train.envs.sub_envs.trading import TradingSimulator
-    from rl.utils.state_handler import StateHandlerCNN
+    from rl.common.state_handler import StateHandlerCNN
     from rl.portfolio.training import load_data
     from rl.portfolio.train.envs.utils.data_iterator import DataIterator
 

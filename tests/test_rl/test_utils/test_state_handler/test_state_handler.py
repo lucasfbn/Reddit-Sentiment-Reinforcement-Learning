@@ -2,7 +2,7 @@ import pandas as pd
 from numpy import array_equal
 from pandas.testing import assert_frame_equal
 
-from rl.utils.state_handler import StateHandlerCNN
+from rl.common.state_handler import StateHandlerCNN
 from tests.utils import MockObj
 
 
