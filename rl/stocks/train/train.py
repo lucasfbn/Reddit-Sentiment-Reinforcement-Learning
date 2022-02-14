@@ -1,22 +1,11 @@
-import os
-from pathlib import Path
-
 import wandb
-from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import CheckpointCallback
 
 from dataset_handler.stock_dataset import StockDatasetWandb
+from rl.common.runner.train import TrainRunner
 from rl.stocks.train.callbacks.log import LogCallback
 from rl.stocks.train.envs.env import EnvCNN
 from rl.stocks.train.envs.sub_envs.trading import SimpleTradingEnvTraining
 from rl.stocks.train.networks.multi_input import Network
-from rl.common.runner.train import TrainRunner
-
-"""
-https://stable-baselines3.readthedocs.io/en/master/guide/custom_policy.html
-https://stable-baselines.readthedocs.io/en/master/guide/callbacks.html
-https://pytorch.org/docs/stable/generated/torch.nn.Conv1d.html
-"""
 
 
 def load_data(data_version):
