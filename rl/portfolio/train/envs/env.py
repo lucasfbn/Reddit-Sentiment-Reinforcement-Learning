@@ -9,7 +9,7 @@ from dataset_handler.classes.sequence import Sequence
 from rl.portfolio.train.envs.sub_envs.trading import TradingSimulator
 from rl.portfolio.train.envs.utils.data_iterator import DataIterator
 from rl.portfolio.train.envs.utils.reward_handler import RewardHandler
-from rl.utils.state_handler import StateHandlerCNN, StateHandlerNN
+from rl.common.state_handler import StateHandlerCNN, StateHandlerNN
 
 
 class BaseEnv(Env, ABC):

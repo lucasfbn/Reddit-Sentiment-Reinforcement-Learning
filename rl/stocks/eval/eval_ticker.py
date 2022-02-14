@@ -1,6 +1,6 @@
 from tqdm import tqdm
 
-from rl.utils.predict_proba import predict_proba
+from rl.common.predict_proba import predict_proba
 
 
 class Eval:

@@ -1,4 +1,4 @@
-from rl.utils.callbacks.logger import BaseLogCallback
+from rl.common.callbacks.logger import BaseLogCallback
 
 
 class LogCallback(BaseLogCallback):
