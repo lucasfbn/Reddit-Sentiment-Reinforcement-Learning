@@ -1,3 +1,5 @@
+from tqdm import tqdm
+
 from dataset_handler.stock_dataset import StockDataset
 
 
@@ -47,7 +49,7 @@ class Split:
         return [(self._date_distro.at[start, "date"], self._date_distro.at[end, "date"]) for start, end in idxs]
 
     def _slice(self, idxs):
-        return [self.dataset.index[start:end] for start, end in idxs]
+        return [self.dataset.index[start:end] for start, end in tqdm(idxs, desc="Splitting")]
 
     def split(self, splits):
         splits_vals = self._find_abs_vals(splits)
@@ -56,15 +58,43 @@ class Split:
         return self._slice(splits_dates)
 
 
+class SplitWeekwise:
+
+    def __init__(self, dataset):
+        self.dataset = dataset
+        self._date_distro = dataset.stats.date_distribution()
+
+    def split(self):
+        self._date_distro["week"] = self._date_distro["date"].dt.week
+
+        idxs = []
+
+        for name, grp in self._date_distro.groupby(["week"]):
+            grp = grp.reset_index(drop=True)
+            start = grp.at[0, "date"]
+            end = grp.at[len(grp) - 1, "date"]
+            idxs.append((start, end))
+
+        return [self.dataset.index[start:end] for start, end in tqdm(idxs, desc="Splitting")]
+
+
 def split(dataset: StockDataset, splits: list):
     splitter = Split(dataset)
     return splitter.split(splits)
 
 
+def split_weekwise(dataset):
+    splitter = SplitWeekwise(dataset)
+    return splitter.split()
+
+
 if __name__ == "__main__":
     root = r"F:\wandb\artefacts\dataset"
-    dataset = StockDataset(parse_date=False)
+    dataset = StockDataset(parse_date=True)
     dataset.load_meta(root)
-    splits = split(dataset, [0.25, 0.25, 0.25, 0.25])
-    distros = [d.stats.date_distribution()["count"].sum() for d in splits]
+
+    train, test = split(dataset, [0.6, 0.4])
+    tests = split_weekwise(dataset)
+
+    distros = [d.stats.date_distribution()["count"].sum() for d in tests if not d.is_empty()]
     print(distros)
