@@ -8,7 +8,7 @@ In recent years, social media has become an increasingly popular way for people 
 
 One platform that has been used extensively for sentiment analysis is Reddit. Reddit is a social news aggregator and discussion forum where users can submit, vote, and comment on content. Due to the large amount of user-generated content, Reddit has been found to be a valuable source for gauging public opinion.
 
-In this repository, we will be using reinforcement learning to train two agents to predict the movement of stock prices based on Reddit sentiment. The agents are using either a multimodal convolutional neural network.
+In this repository, we will be using reinforcement learning to train two agents to predict the movement of stock prices based on Reddit sentiment. The agents are using a multimodal convolutional neural network.
 
 ## Directory structure
 
